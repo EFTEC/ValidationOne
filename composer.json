@@ -1,0 +1,21 @@
+{
+    "name": "eftec/validationone",
+    "description": "It's a php library for fetch and validate fields ",
+    "type": "library",
+    "keywords": ["php","library","validation"],
+    "homepage": "https://github.com/EFTEC/ValidationOne",
+    "license": "LGPL-3",
+    "authors": [
+        {
+            "name": "Jorge Castro",
+            "email": "jorge.castro.c@gmail.com"
+        }
+    ],
+    "require": {
+    },
+    "extra": {
+      "branch-alias": {
+        "dev-master": "1.x-dev"
+      }
+    }
+}

@@ -1,0 +1,741 @@
+<?php
+
+namespace eftec;
+
+
+use DateTime;
+use ReflectionMethod;
+
+/**
+ * Class Validation
+ * @package eftec
+ * @author Jorge Castro Castillo
+ * @version 1.0 20180930
+ * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
+ * @see https://github.com/EFTEC/ValidationOne
+ */
+class ValidationOne
+{
+    /** @var string  sometimes we want to sets an empty as empty. For example <select><option> this nullval is equals to null */
+    const NULLVAL='__nullval__';
+    public static $dateShort='d/m/Y';
+    public static $dateLong='d/m/Y H:i:s';
+    /** @var ErrorList */
+    var $errorList;
+
+    var $prefix='';
+    private $NUMARR='integer,unixtime,boolean,decimal,float';
+    private $STRARR='varchar,string';
+    private $DATARR='date,datetime';
+
+    //<editor-fold desc="chain variables">
+    /** @var mixed default value */
+    private $default=null;
+    /** @var string integer,unixtime,boolean,decimal,float,varchar,string,date,datetime */
+    private $type='string';
+    /** @var int 0=number,1=string,2=date,3=boolean */
+    private $typeFam=1;
+    /** @var bool if the value is an array or not */
+    private $isArray=false;
+    /** @var bool if true then the the errors from id[0],id[1] ared stored in "idx" */
+    private $isArrayFlat=false;
+
+    private $hasError=false;
+    /** @var bool if the validation fails then it returns the default value */
+    private $ifFailThenReturn=false;
+    /** @var bool It reset previous errors (for the "id" used) */
+    private $reset=false;
+    /** @var bool If true then the field is required otherwise it generates an error */
+    private $required=false;
+    /** @var string It's a friendly id used to replace the "id" used in message. For example: "id customer" instead of "idcustomer" */
+    private $friendId=null;
+    /** @var ValidationItem[]  */
+    private $validation=[];
+    //</editor-fold>
+
+    /**
+     * Validation constructor.
+     * @param string $prefix
+     */
+    public function __construct($prefix='')
+    {
+        $this->prefix=$prefix;
+        if (function_exists('getErrorList')) {
+            $this->errorList=getErrorList();
+        } else {
+            $this->errorList=new ErrorList();
+        }
+    }
+
+    /**
+     * Returns null if the value is not present, false if the value is incorrect and the value if its correct
+     * @param $field
+     * @param bool $array
+     * @param string $fileTmp
+     * @param string $fileNew
+     * @return array|int|null|string
+     * @internal param $folder
+     * @internal param string $type
+     */
+    public static function getFile($field,$array=false,&$fileTmp="",&$fileNew="")
+    {
+        if (!$array) {
+            $fileNew=@$_FILES[$field]['name'];
+            if ($fileNew!="") {
+                // its uploading a file
+                $fileTmp=@$_FILES[$field]['tmp_name'];
+                $filename=@$_POST[$field.'_file']; // previous filename if any
+                return $filename;
+            } else {
+                $filename=@$_POST[$field.'_file']; // previous filename if any
+                $fileTmp='';
+                $fileNew='';
+                return $filename;
+            }
+        } else {
+            $c=count($_FILES[$field]['name']);
+            $filenames=array();
+            for($i=0;$i<$c;$i++) {
+                $filename=@$_FILES[$field]['name'][$i];
+                if ($filename!="") {
+                    $filename=$filename.'&&'.@$_FILES[$field]['tmp_name'][$i].'&&'.@$_POST[$field.'_file'][$i];
+                } else {
+                    $filename='&&'.'&&'.@$_POST[$field.'_file'][$i];
+                }
+                $filenames[]=$filename;
+            }
+            return $filenames;
+        }
+    }
+
+
+
+
+    public function default($def) {
+        $this->default=$def;
+        return $this;
+    }
+    public function array($flat=false) {
+        $this->isArray=true;
+        $this->isArrayFlat=$flat;
+        return $this;
+    }
+    /**
+     * @return ValidationOne
+     */
+    public function ifFailThenDefault() {
+        $this->ifFailThenReturn=true;
+        return $this;
+    }
+    /**
+     * @return ValidationOne
+     */
+    public function reset() {
+        $this->reset=true;
+        return $this;
+    }
+
+    /**
+     * @return ValidationOne
+     */
+    public function required() {
+        $this->required=true;
+        return $this;
+    }
+
+    /**
+     * It's a friendly id used to replace the "id" used in message. For example: "id customer" instead of "idcustomer"
+     * @return ValidationOne
+     */
+    public function friendId($id) {
+        $this->friendId=$id;
+        return $this;
+    }
+
+    public function resetValidation() {
+        $this->validation=array();
+    }
+
+
+    /**
+     * @param string $type integer,unixtime,boolean,decimal,float,varchar,string,date,datetime
+     * @return $this
+     */
+    public function type($type) {
+        switch (1==1) {
+            case (strpos($this->STRARR,$type)!==false):
+                $this->typeFam=1; // string
+                break;
+            case (strpos($this->DATARR,$type)!==false):
+                $this->typeFam=2; // date
+                break;
+            case ($type=='boolean'):
+                $this->typeFam=3; // boolean
+                break;
+            default:
+                $this->typeFam=0; // number
+        }
+        $this->type=$type;
+        return $this;
+    }
+
+    /**
+     * @param string $type
+     *      number:req,eq,ne,gt,lt,gte,lte,between<br>
+     *      string:req,eq,ne,minlen,maxlen,betweenlen,notnull<br>
+     *      date:req,eq,ne,gt,lt,gte,lte,between<br>
+     *      boolean:req,eq,ne,true,false<br>
+     *      <b>function:</b><br>
+     *          fn.static.Class.methodstatic<br>
+     *          fn.global.function<br>
+     *          fn.object.Class.method where object is a global $object<br>
+     *          fn.class.Class.method<br>
+     *          fn.class.\namespace\Class.method<br>
+     * @param string $message<br>
+     *      Message could uses the next variables '%field','%realfield','%value','%comp','%first','%second'
+     * @param null $value
+     * @param string $level (error,warning,info,success)
+     * @return ValidationOne
+     */
+    public function condition($type, $message="", $value=null, $level='error') {
+        $this->validation[]=new ValidationItem($type,$message,$value,$level);
+        return $this;
+
+    }
+
+    /**
+     * It resets the chain (if any)
+     */
+    public function resetChain() {
+        $this->default=null;
+        $this->type='string'; // it's important, string is the default value because it's not processed.
+        $this->typeFam=1; // string
+        $this->isArray=false;
+        $this->isArrayFlat=false;
+        $this->hasError=false;
+        $this->ifFailThenReturn=false;
+        $this->validation=[];
+
+        $this->reset=false;
+        $this->validation=array();
+        $this->required=false;
+        $this->friendId=null;
+    }
+
+    public function get($field,$msg=null) {
+        $fieldId=$this->prefix.$field;
+        $r=$this->getField($fieldId,INPUT_GET,$this->type,$this->isArray,$this->default,$msg);
+        return $this->utilFetch($r,$fieldId);
+    }
+    public function post($field,$msg=null) {
+        $fieldId=$this->prefix.$field;
+        $r=$this->getField($fieldId,INPUT_POST,$this->type,$this->isArray,$this->default,$msg);
+        return $this->utilFetch($r,$fieldId);
+    }
+    public function request($field,$msg=null) {
+        $fieldId=$this->prefix.$field;
+        $r=$this->getField($fieldId,INPUT_REQUEST,$this->type,$this->isArray,$this->default,$msg);
+        return $this->utilFetch($r,$fieldId);
+    }
+    private function utilFetch($r,$fieldId) {
+        if ($this->isArray) {
+            if (is_array($r)) {
+                foreach ($r as $items) {
+                    $this->runConditions($items, $fieldId);
+                }
+            }
+        } else {
+            $this->runConditions($r,$fieldId);
+        }
+
+        if ($this->ifFailThenReturn) {
+            if ($this->errorList->errorcount)
+                $r=$this->default;
+        }
+        $this->resetChain();
+        return $r;
+    }
+
+    public function set($value,$fieldId="setfield",$msg="") {
+        if ($this->reset) {
+            $this->errorList->items[$fieldId]=new ErrorItem();
+        }
+
+        if (is_array($value)) {
+            foreach($value as $key=>&$v) {
+                $currentField=($this->isArrayFlat)?$fieldId:$fieldId."[".$key."]";
+                $v=$this->basicValidation($v,$currentField,$msg);
+                $this->runConditions($v,$currentField);
+            }
+        } else {
+            $this->runConditions($value,$fieldId);
+        }
+        $this->resetChain();
+        return $value;
+    }
+
+    /**
+     * @param $r
+     * @param ValidationItem $cond
+     * @param $fail
+     * @param $genMsg
+     */
+    private function runNumericCondition($r,$cond,&$fail,&$genMsg) {
+        switch ($cond->type) {
+            case 'req':
+                if (!$r) {
+                    $fail = true;
+                    $genMsg = '%field is required';
+                }
+                break;
+            case 'lt':
+                if ($r >= $cond->value) {
+                    $fail = true;
+                    $genMsg = '%field is great or equal than %comp';
+                }
+                break;
+            case 'lte':
+                if ($r > $cond->value) {
+                    $fail = true;
+                    $genMsg = '%field is great than %comp';
+                }
+                break;
+            case 'gt':
+                if ($r <= $cond->value) {
+                    $fail = true;
+                    $genMsg = '%field is less or equal than %comp';
+                }
+                break;
+            case 'eq':
+                if ($r != $cond->value) {
+                    $fail = true;
+                    $genMsg = '%field is not equals than %comp';
+                }
+                break;
+            case 'ne':
+                if ($r == $cond->value) {
+                    $fail = true;
+                    $genMsg = '%field is equals than %comp';
+                }
+                break;
+            case 'gte':
+                if ($r <= $cond->value) {
+                    $fail = true;
+                    $genMsg = '%field is less than %comp';
+                }
+                break;
+            case 'between':
+                if ($r < @$cond->value[0] || $r > @$cond->value[1]) {
+                    $fail = true;
+                    $genMsg = '%field is not between ' . @$cond->value[0] . " and " . @$cond->value[1];
+                }
+                break;
+            case 'notnull':
+                break;
+        }
+    }
+    /**
+     * @param $r
+     * @param ValidationItem $cond
+     * @param $fail
+     * @param $genMsg
+     */
+    private function runStringCondition($r,$cond,&$fail,&$genMsg) {
+        switch ($cond->type) {
+            case 'req':
+                if (!$r) {
+                    $fail = true;
+                    $genMsg = '%field is required';
+                }
+                break;
+            case 'eq':
+                if ($r != $cond->value) {
+                    $fail = true;
+                    $genMsg = '%field is not equals than %comp';
+                }
+                break;
+            case 'ne':
+                if ($r == $cond->value) {
+                    $fail = true;
+                    $genMsg = '%field is equals than %comp';
+                }
+                break;
+            case 'minlen':
+                if (strlen($r) < $cond->value) {
+                    $fail = true;
+                    $genMsg = '%field size is less than %comp';
+                }
+                break;
+            case 'maxlen':
+                if (strlen($r) > $cond->value) {
+                    $fail = true;
+                    $genMsg = '%field size is great than %comp';
+                }
+                break;
+            case 'betweenlen':
+                if (strlen($r) < $cond->value[0] || strlen($r) > $cond->value[1]) {
+                    $fail = true;
+                    $genMsg = '%field size is not between %first and %second ';
+                }
+                break;
+            case 'notnull':
+                if ($r===null) {
+                    $fail = true;
+                    $genMsg = '%field is null ';
+                }
+                break;
+            default:
+                trigger_error("type not defined {$cond->type} for string");
+        }
+
+    }
+    /**
+     * @param $r
+     * @param ValidationItem $cond
+     * @param $fail
+     * @param $genMsg
+     */
+    private function runDateCondition($r,$cond,&$fail,&$genMsg) {
+        switch ($cond->type) {
+            case 'req':
+                if (!$r) {
+                    $fail = true;
+                    $genMsg = '%field is required';
+                }
+                break;
+            case 'lt':
+                if ($r >= $cond->value) {
+                    $fail = true;
+                    $genMsg = '%field is great or equal than %comp';
+                }
+                break;
+            case 'lte':
+                if ($r > $cond->value) {
+                    $fail = true;
+                    $genMsg = '%field is great than %comp';
+                }
+                break;
+            case 'gt':
+                if ($r <= $cond->value) {
+                    $fail = true;
+                    $genMsg = '%field is less or equal than %comp';
+                }
+                break;
+            case 'eq':
+                if ($r != $cond->value) {
+                    $fail = true;
+                    $genMsg = '%field is not equals than %comp';
+                }
+                break;
+            case 'ne':
+                if ($r == $cond->value) {
+                    $fail = true;
+                    $genMsg = '%field is equals than %comp';
+                }
+                break;
+            case 'gte':
+                if ($r <= $cond->value) {
+                    $fail = true;
+                    $genMsg = '%field is less than %comp';
+                }
+                break;
+            case 'between':
+                if ($r < @$cond->value[0] || $r > @$cond->value[1]) {
+                    $fail = true;
+                    $genMsg = '%field is not between ' . @$cond->value[0] . " and " . @$cond->value[1];
+                }
+                break;
+        }
+
+    }
+    /**
+     * @param $r
+     * @param ValidationItem $cond
+     * @param $fail
+     * @param $genMsg
+     */
+    private function runBoolCondition($r,$cond,&$fail,&$genMsg) {
+        switch ($cond->type) {
+            case 'req':
+                if (!$r) {
+                    $fail = true;
+                    $genMsg = '%field is required';
+                }
+                break;
+            case 'eq':
+                if ($r != $cond->value) {
+                    $fail = true;
+                    $genMsg = '%field is not equals than %comp';
+                }
+                break;
+            case 'ne':
+                if ($r == $cond->value) {
+                    $fail = true;
+                    $genMsg = '%field is equals than %comp';
+                }
+                break;
+            case 'true':
+                if ($r) {
+                    $fail = true;
+                    $genMsg = '%field is not true';
+                }
+                break;
+            case 'false':
+                if (!$r) {
+                    $fail = true;
+                    $genMsg = '%field is not false';
+                }
+                break;
+        }
+
+    }
+    /**
+     * @param $r
+     * @param ValidationItem $cond
+     * @param $fail
+     * @param $genMsg
+     */
+    private function runFnCondition($r,$cond,&$fail,&$genMsg) {
+        // is a function
+        $arr=explode(".",$cond->type);
+        switch ($arr[1]) {
+            case 'static':
+                // fn.static.Class.method
+                try {
+                    $reflectionMethod = new ReflectionMethod($arr[2], $arr[3]);
+                    $fail=!$reflectionMethod->invoke(null, $r,$cond->value);
+                } catch (\Exception $e) {
+                    $fail=true;
+                    $genMsg=$e->getMessage();
+                }
+                break;
+            case 'global':
+                // fn.global.method
+                try {
+                    $fail=!@call_user_func($arr[2], $r,$cond->value);
+                } catch (\Exception $e) {
+                    $fail=true;
+                    $genMsg=$e->getMessage();
+                    var_dump($genMsg);
+                }
+                break;
+            case 'object':
+                //  0.     1.   2.     3
+                // fn.object.$arr.method
+                try {
+                    if (!isset($GLOBALS[$arr[2]])) {
+                        throw new \Exception("variable {$arr[2]} not defined as global");
+                    }
+                    $obj=$GLOBALS[$arr[2]];
+                    $reflectionMethod = new ReflectionMethod(get_class($obj), $arr[3]);
+                    $fail=!$reflectionMethod->invoke($obj, $r,$cond->value);
+                } catch (\Exception $e) {
+                    $fail=true;
+                    $genMsg=$e->getMessage();
+                }
+                break;
+            case 'class':
+                //  0.     1.   2.     3
+                // fn.class.ClassName.method
+                try {
+                    $className=$arr[2];
+                    if (function_exists('get'.$className)) {
+                        // we try to call the function getClass();
+                        $obj=call_user_func('get'.$className);
+                        $reflectionMethod = new ReflectionMethod(null, 'get'.$className);
+                        $called=$reflectionMethod->invoke(null);
+                        if ($called===null || $called===false) {
+                            throw new \Exception("unable to call injection");
+                        }
+                    } else {
+                        $obj=new $className();
+                    }
+                    $reflectionMethod = new ReflectionMethod($className, $arr[3]);
+                    $fail=!$reflectionMethod->invoke($obj, $r,$cond->value);
+                } catch (\Exception $e) {
+                    $fail=true;
+                    $genMsg=$e->getMessage();
+                }
+                break;
+            default:
+                trigger_error("validation fn not defined");
+        }
+    }
+    private function runConditions($r, $fieldId) {
+        $genMsg='';
+        foreach($this->validation as $cond) {
+            $fail=false;
+
+            if (strpos($cond->type,"fn.")===0) {
+                $this->runFnCondition($r,$cond,$fail,$genMsg);
+            } else {
+                switch ($this->typeFam) {
+                    case 0: // number
+                        $this->runNumericCondition($r,$cond,$fail,$genMsg);
+                        break;
+                    case 1: // string
+                        $this->runStringCondition($r,$cond,$fail,$genMsg);
+                        break;
+                    case 2: // date
+                        $this->runDateCondition($r,$cond,$fail,$genMsg);
+                        break;
+                    case 3: // bool
+                        $this->runBoolCondition($r,$cond,$fail,$genMsg);
+                        break;
+                } // switch
+            }
+            if ($fail) {
+                $this->addError($cond->msg,$genMsg,$fieldId,$r,$cond->value, $cond->level);
+            }
+        }
+    }
+
+    /**
+     * It adds an error
+     * @param string $msg first message. If it's empty or null then it uses the second message<br>
+     *      Message could uses the next variables '%field','%realfield','%value','%comp','%first','%second'
+     * @param string $msg2 second message
+     * @param string $fieldId id of the field
+     * @param mixed $value value supplied
+     * @param mixed $vcomp value to compare.
+     * @param string $level (error,warning,info,success) error level
+     */
+    private function addError($msg, $msg2, $fieldId, $value, $vcomp, $level='error') {
+        $txt=($msg)?$msg:$msg2;
+        if (is_array($vcomp)) {
+            $first=@$vcomp[0];
+            $second=@$vcomp[1];
+            $vcomp=@$vcomp[0]; // is not array anymore
+
+        } else {
+            $first=$vcomp;
+            $second=$vcomp;
+        }
+        $txt=str_replace(['%field','%realfield','%value','%comp','%first','%second']
+            ,[($this->friendId)??$fieldId,$fieldId,$value,$vcomp,$first,$second],$txt);
+        $this->errorList->addItem($fieldId,$txt, $level);
+    }
+
+    /**
+     * @param string $value
+     * @param string $field
+     * @param string $msg
+     * @return bool|DateTime|float|int|mixed|null
+     */
+    private function basicValidation($value, $field, $msg="") {
+        switch($this->type) {
+            case 'integer':
+            case 'unixtime':
+                if (!is_numeric($value)) {
+                    $this->hasError=true;
+                    $this->addError($msg,'%field is not numeric',$field,$value,null,'error');
+                    return null;
+                }
+                return (int)$value;
+                break;
+            case 'boolean':
+                return (bool)$value;
+                break;
+            case 'decimal':
+                if (!is_numeric($value)) {
+                    $this->hasError=true;
+                    $this->addError($msg,'$field is not decimal',$field,$value,null,'error');
+                    return null;
+                }
+                return (double)$value;
+                break;
+            case 'float':
+                if (!is_numeric($value)) {
+                    $this->hasError=true;
+                    $this->addError($msg,'$field is not float',$field,$value,null,'error');
+                    return null;
+                }
+                return (float)$value;
+                break;
+            case 'varchar':
+            case 'string':
+                // if string is empty then it uses the default value. It's useful for filter
+                return ($value==="")?$this->default:$value;
+                break;
+            case 'date':
+            case 'datetime':
+                $valueDate=DateTime::createFromFormat(self::$dateLong, $value);
+                if ($valueDate===false) {
+                    // the format is not date and time, maybe it's only date
+                    /** @var DateTime $valueDate */
+                    $valueDate=DateTime::createFromFormat(self::$dateShort, $value);
+                    if ($valueDate===false) {
+                        // nope, it's neither date.
+                        $this->hasError=true;
+                        $this->addError($msg,'%field is not date',$field,$value,null,'error');
+                        return null;
+                    }
+                    $valueDate->settime(0,0,0,0);
+                }
+                return $valueDate;
+                break;
+            default:
+                return $value;
+                break;
+        }
+    }
+
+    /**
+     * Returns null if the value is not present, false if the value is incorrect and the value if its correct
+     * @param $field
+     * @param int|string $inputType INPUT_REQUEST|INPUT_POST|INPUT_GET or it could be the value (for set)
+     * @param string $type
+     * @param bool $array
+     * @param null $default
+     * @param null $msg
+     * @return array|mixed|null
+     */
+    public function getField($field,$inputType=INPUT_REQUEST,$type='integer',$array=false,$default=null,$msg=null) {
+        $r=null;
+
+        switch ($inputType) {
+            case INPUT_POST:
+                if (!isset($_POST[$field])) {
+                    if ($this->required) $this->addError($msg,"Field is missing",$field,"","",'error');
+                    return $default;
+                }
+                $r=$_POST[$field];
+                $r=($r===self::NULLVAL)?null:$r;
+                break;
+            case INPUT_GET:
+                if (!isset($_GET[$field])) {
+                    if ($this->required) $this->addError($msg,"Field is missing",$field,"","",'error');
+                    return $default;
+                }
+                $r=$_GET[$field];
+                $r=($r===self::NULLVAL) ?null:$r;
+                break;
+            case INPUT_REQUEST:
+                if (isset($_POST[$field]) ) {
+                    $r=$_POST[$field];
+                }  else {
+                    if (!isset($_GET[$field]) ) {
+                        if ($this->required) $this->addError($msg,"Field is missing",$field,"","",'error');
+                        return $default;
+                    }
+                    $r=$_GET[$field];
+                    $r=($r===self::NULLVAL) ?null:$r;
+                }
+                break;
+            default:
+                $r=$inputType;
+        }
+        if (!$array) {
+            return $this->basicValidation($r, $field, $msg);
+        } else {
+            foreach($r as $key=>&$v) {
+                $currentField=($this->isArrayFlat)?$field:$field."[".$key."]";
+                $v=$this->basicValidation($v,$currentField,$msg);
+            }
+            return $r;
+        }
+    }
+
+
+
+}
