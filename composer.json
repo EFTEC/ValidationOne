@@ -1,6 +1,7 @@
 {
     "name": "eftec/validationone",
     "description": "It's a php library for fetch and validate fields ",
+    "version": "1.1",
     "type": "library",
     "keywords": ["php","library","validation"],
     "homepage": "https://github.com/EFTEC/ValidationOne",
@@ -12,10 +13,5 @@
         }
     ],
     "require": {
-    },
-    "extra": {
-      "branch-alias": {
-        "dev-master": "1.x-dev"
-      }
     }
 }
