@@ -1,9 +1,9 @@
 <?php
 
 use eftec\ValidationOne;
-use mapache_commons\Collection;
 
-include __DIR__."/../app_start/App.php";
+
+include "common.php";
 include "dBug.php";
 function customval($value,$compareValue) {
     return true;
@@ -84,6 +84,6 @@ echo $memoryEnd-$memoryStart."<br>";
 echo json_encode(getVal()->errorList, JSON_PRETTY_PRINT);
 
 $timeEnd = microtime(true);
-echo Collection::generateTable(getVal()->errorList->allArray());
+echo json_encode(getVal()->errorList->allArray(),JSON_PRETTY_PRINT);
 
 echo "<br>time:".($timeEnd-$timeStart)."<br>";

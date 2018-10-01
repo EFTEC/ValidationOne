@@ -10,7 +10,7 @@ use ReflectionMethod;
  * Class Validation
  * @package eftec
  * @author Jorge Castro Castillo
- * @version 1.0 20180930
+ * @version 1.1 20180930
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see https://github.com/EFTEC/ValidationOne
  */
@@ -24,7 +24,7 @@ class ValidationOne
     var $errorList;
 
     var $prefix='';
-    private $NUMARR='integer,unixtime,boolean,decimal,float';
+    //private $NUMARR='integer,unixtime,boolean,decimal,float';
     private $STRARR='varchar,string';
     private $DATARR='date,datetime';
 
@@ -145,6 +145,7 @@ class ValidationOne
 
     /**
      * It's a friendly id used to replace the "id" used in message. For example: "id customer" instead of "idcustomer"
+     * @param $id
      * @return ValidationOne
      */
     public function friendId($id) {
@@ -224,19 +225,32 @@ class ValidationOne
 
     public function get($field,$msg=null) {
         $fieldId=$this->prefix.$field;
-        $r=$this->getField($fieldId,INPUT_GET,$this->type,$this->isArray,$this->default,$msg);
+        $r=$this->getField($fieldId,INPUT_GET,$msg);
         return $this->utilFetch($r,$fieldId);
     }
     public function post($field,$msg=null) {
         $fieldId=$this->prefix.$field;
-        $r=$this->getField($fieldId,INPUT_POST,$this->type,$this->isArray,$this->default,$msg);
+        $r=$this->getField($fieldId,INPUT_POST,$msg);
         return $this->utilFetch($r,$fieldId);
     }
     public function request($field,$msg=null) {
         $fieldId=$this->prefix.$field;
-        $r=$this->getField($fieldId,INPUT_REQUEST,$this->type,$this->isArray,$this->default,$msg);
+        $r=$this->getField($fieldId,INPUT_REQUEST,$msg);
         return $this->utilFetch($r,$fieldId);
     }
+
+    /**
+     * @param int $inputType INPUT_POST|INPUT_GET|INPUT_REQUEST
+     * @param string $field
+     * @param null|string $msg
+     * @return mixed
+     */
+    public function fetch($inputType,$field,$msg=null) {
+        $fieldId=$this->prefix.$field;
+        $r=$this->getField($fieldId,$inputType,$msg);
+        return $this->utilFetch($r,$fieldId);
+    }
+
     private function utilFetch($r,$fieldId) {
         if ($this->isArray) {
             if (is_array($r)) {
@@ -684,20 +698,17 @@ class ValidationOne
      * Returns null if the value is not present, false if the value is incorrect and the value if its correct
      * @param $field
      * @param int|string $inputType INPUT_REQUEST|INPUT_POST|INPUT_GET or it could be the value (for set)
-     * @param string $type
-     * @param bool $array
-     * @param null $default
      * @param null $msg
      * @return array|mixed|null
      */
-    public function getField($field,$inputType=INPUT_REQUEST,$type='integer',$array=false,$default=null,$msg=null) {
+    private function getField($field,$inputType=INPUT_REQUEST,$msg=null) {
         $r=null;
 
         switch ($inputType) {
             case INPUT_POST:
                 if (!isset($_POST[$field])) {
                     if ($this->required) $this->addError($msg,"Field is missing",$field,"","",'error');
-                    return $default;
+                    return $this->default;
                 }
                 $r=$_POST[$field];
                 $r=($r===self::NULLVAL)?null:$r;
@@ -705,7 +716,7 @@ class ValidationOne
             case INPUT_GET:
                 if (!isset($_GET[$field])) {
                     if ($this->required) $this->addError($msg,"Field is missing",$field,"","",'error');
-                    return $default;
+                    return $this->default;
                 }
                 $r=$_GET[$field];
                 $r=($r===self::NULLVAL) ?null:$r;
@@ -716,7 +727,7 @@ class ValidationOne
                 }  else {
                     if (!isset($_GET[$field]) ) {
                         if ($this->required) $this->addError($msg,"Field is missing",$field,"","",'error');
-                        return $default;
+                        return $this->default;
                     }
                     $r=$_GET[$field];
                     $r=($r===self::NULLVAL) ?null:$r;
@@ -725,7 +736,7 @@ class ValidationOne
             default:
                 $r=$inputType;
         }
-        if (!$array) {
+        if (!$this->isArray) {
             return $this->basicValidation($r, $field, $msg);
         } else {
             foreach($r as $key=>&$v) {
