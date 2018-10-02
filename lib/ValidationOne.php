@@ -9,7 +9,7 @@ use ReflectionMethod;
  * Class Validation
  * @package eftec
  * @author Jorge Castro Castillo
- * @version 1.2 20180930
+ * @version 1.3 20180930
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see https://github.com/EFTEC/ValidationOne
  */
@@ -702,6 +702,69 @@ class ValidationOne
                 $v=$this->basicValidation($v,$currentField,$msg);
             }
             return $r;
+        }
+    }
+    /**
+     * @param string $value
+     * @param string $field
+     * @param string $msg
+     * @return bool|DateTime|float|int|mixed|null
+     */
+    private function basicValidation($value, $field, $msg="") {
+        switch($this->type) {
+            case 'integer':
+            case 'unixtime':
+                if (!is_numeric($value)) {
+                    $this->hasError=true;
+                    $this->addError($msg,'%field is not numeric',$field,$value,null,'error');
+                    return null;
+                }
+                return (int)$value;
+                break;
+            case 'boolean':
+                return (bool)$value;
+                break;
+            case 'decimal':
+                if (!is_numeric($value)) {
+                    $this->hasError=true;
+                    $this->addError($msg,'$field is not decimal',$field,$value,null,'error');
+                    return null;
+                }
+                return (double)$value;
+                break;
+            case 'float':
+                if (!is_numeric($value)) {
+                    $this->hasError=true;
+                    $this->addError($msg,'$field is not float',$field,$value,null,'error');
+                    return null;
+                }
+                return (float)$value;
+                break;
+            case 'varchar':
+            case 'string':
+                // if string is empty then it uses the default value. It's useful for filter
+                return ($value==="")?$this->default:$value;
+                break;
+            case 'date':
+            case 'datetime':
+                $valueDate=DateTime::createFromFormat(self::$dateLong, $value);
+                if ($valueDate===false) {
+                    // the format is not date and time, maybe it's only date
+                    /** @var DateTime $valueDate */
+                    $valueDate=DateTime::createFromFormat(self::$dateShort, $value);
+                    if ($valueDate===false) {
+                        // nope, it's neither date.
+                        $this->hasError=true;
+                        $this->addError($msg,'%field is not date',$field,$value,null,'error');
+                        return null;
+                    }
+                    $valueDate->settime(0,0,0,0);
+                }
+                return $valueDate;
+                break;
+            default:
+                return $value;
+                break;
         }
     }
 

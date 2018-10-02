@@ -1,13 +1,20 @@
 <?php
 
 use eftec\ValidationOne;
-use mapache_commons\Collection;
 
-include __DIR__."/../app_start/App.php";
+
+include __DIR__."/common.php";
+
 include "dBug.php";
+
+
+
+
+
 function customval($value,$compareValue) {
     return true;
 }
+
 class Example {
     public static function fnstatic($value,$compareValue) {
         return true;
@@ -37,7 +44,7 @@ var_dump($r);
 $timeEnd = microtime(true);
 echo json_encode(getVal()->errorList->items,JSON_PRETTY_PRINT);
 echo "<hr>";
-echo Collection::generateTable(getErrorList()->allArray());
-echo Collection::generateTable(getErrorList()->get('id[2]')->allErrorOrWarning());
+echo json_encode(getErrorList()->allArray(),JSON_PRETTY_PRINT);
+echo json_encode(getErrorList()->get('id[2]')->allErrorOrWarning(),JSON_PRETTY_PRINT);
 echo (getErrorList()->get('id[2]')->firstError())."<br>";
 
