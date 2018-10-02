@@ -66,8 +66,9 @@ var_dump($val->errorList->allArray())
 
 ## version list
 
-2018-09-30 1.1 Some fixes
-2018-09-29 1.0 first version
+* 2018-10-02 1.2 array() is now isArray()
+* 2018-09-30 1.1 Some fixes
+* 2018-09-29 1.0 first version
 
 ## Note
  

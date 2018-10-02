@@ -2,7 +2,6 @@
 
 namespace eftec;
 
-
 use DateTime;
 use ReflectionMethod;
 
@@ -10,7 +9,7 @@ use ReflectionMethod;
  * Class Validation
  * @package eftec
  * @author Jorge Castro Castillo
- * @version 1.1 20180930
+ * @version 1.2 20180930
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see https://github.com/EFTEC/ValidationOne
  */
@@ -42,20 +41,24 @@ class ValidationOne
 
     private $hasError=false;
     /** @var bool if the validation fails then it returns the default value */
-    private $ifFailThenReturn=false;
-    /** @var bool It reset previous errors (for the "id" used) */
-    private $reset=false;
+    private $ifFailThenDefault=false;
+    /** @var bool It override previous errors (for the "id" used) */
+    private $override=false;
     /** @var bool If true then the field is required otherwise it generates an error */
     private $required=false;
     /** @var string It's a friendly id used to replace the "id" used in message. For example: "id customer" instead of "idcustomer" */
     private $friendId=null;
     /** @var ValidationItem[]  */
     private $validation=[];
+
+    private $defaultIfFail=false;
+    private $defaultRequired=false;
+
     //</editor-fold>
 
     /**
      * Validation constructor.
-     * @param string $prefix
+     * @param string $prefix The prefix is used to fetch values. For example the prefix "frm_"
      */
     public function __construct($prefix='')
     {
@@ -65,81 +68,74 @@ class ValidationOne
         } else {
             $this->errorList=new ErrorList();
         }
+        $this->resetChain();
+    }
+
+
+    //<editor-fold desc="chain commands">
+    /**
+     * It sets a default value
+     * @param mixed $value
+     * @param bool|null $ifFailThenDefault  True if the system returns the default value if error.
+     * @return ValidationOne $this
+     */
+    public function default($value,$ifFailThenDefault=null) {
+        $this->default=$value;
+        if ($ifFailThenDefault!==null) $this->ifFailThenDefault=$ifFailThenDefault;
+        return $this;
     }
 
     /**
-     * Returns null if the value is not present, false if the value is incorrect and the value if its correct
-     * @param $field
-     * @param bool $array
-     * @param string $fileTmp
-     * @param string $fileNew
-     * @return array|int|null|string
-     * @internal param $folder
-     * @internal param string $type
+     * It configures all the next chains with those default values.<br>
+     * For example, we could force to be required always.
+     * @param bool $ifFailThenDefault
+     * @param bool $ifRequired The field must be fetched, otherwise it generates an error
      */
-    public static function getFile($field,$array=false,&$fileTmp="",&$fileNew="")
-    {
-        if (!$array) {
-            $fileNew=@$_FILES[$field]['name'];
-            if ($fileNew!="") {
-                // its uploading a file
-                $fileTmp=@$_FILES[$field]['tmp_name'];
-                $filename=@$_POST[$field.'_file']; // previous filename if any
-                return $filename;
-            } else {
-                $filename=@$_POST[$field.'_file']; // previous filename if any
-                $fileTmp='';
-                $fileNew='';
-                return $filename;
-            }
-        } else {
-            $c=count($_FILES[$field]['name']);
-            $filenames=array();
-            for($i=0;$i<$c;$i++) {
-                $filename=@$_FILES[$field]['name'][$i];
-                if ($filename!="") {
-                    $filename=$filename.'&&'.@$_FILES[$field]['tmp_name'][$i].'&&'.@$_POST[$field.'_file'][$i];
-                } else {
-                    $filename='&&'.'&&'.@$_POST[$field.'_file'][$i];
-                }
-                $filenames[]=$filename;
-            }
-            return $filenames;
-        }
+    public function configChain($ifFailThenDefault=false,$ifRequired=false) {
+        $this->defaultIfFail=$ifFailThenDefault;
+        $this->defaultRequired=$ifRequired;
     }
 
-
-
-
-    public function default($def) {
-        $this->default=$def;
-        return $this;
-    }
-    public function array($flat=false) {
+    /**
+     * Sets the fetch for an array. It's not required for set()<br>
+     * If $flat is true then then errors are returned as a flat array (idx instead of idx[0],idx[1])
+     * @param bool $flat
+     * @return ValidationOne $this
+     */
+    public function isArray($flat=false) {
         $this->isArray=true;
         $this->isArrayFlat=$flat;
         return $this;
     }
+
     /**
-     * @return ValidationOne
+     * @param bool $ifFailDefault
+     * @return ValidationOne ValidationOne
      */
-    public function ifFailThenDefault() {
-        $this->ifFailThenReturn=true;
-        return $this;
-    }
-    /**
-     * @return ValidationOne
-     */
-    public function reset() {
-        $this->reset=true;
+    public function ifFailThenDefault($ifFailDefault=true) {
+        $this->ifFailThenDefault=$ifFailDefault;
         return $this;
     }
 
     /**
+     * If override previous errors
+     * @param bool $override
      * @return ValidationOne
      */
-    public function required() {
-        $this->required=true;
+    public function override($override=true) {
+        $this->override=$override;
+        return $this;
+    }
+
+    /**
+     * If it's unable to fetch then it generates an error.<br>
+     * However, by default it also returns the default value.
+     * @param bool $required
+     * @return ValidationOne
+     * @see ValidationOne::default()
+     */
+    public function required($required=true) {
+        $this->required=$required;
         return $this;
     }
 
@@ -153,14 +149,11 @@ class ValidationOne
         return $this;
     }
 
-    public function resetValidation() {
-        $this->validation=array();
-    }
 
 
     /**
      * @param string $type integer,unixtime,boolean,decimal,float,varchar,string,date,datetime
-     * @return $this
+     * @return ValidationOne $this
      */
     public function type($type) {
         switch (1==1) {
@@ -206,23 +199,75 @@ class ValidationOne
 
     /**
      * It resets the chain (if any)
+     * It also reset any validating pending to be executed.
      */
     public function resetChain() {
+
         $this->default=null;
         $this->type='string'; // it's important, string is the default value because it's not processed.
         $this->typeFam=1; // string
         $this->isArray=false;
         $this->isArrayFlat=false;
         $this->hasError=false;
-        $this->ifFailThenReturn=false;
+        $this->ifFailThenDefault=$this->defaultIfFail;
         $this->validation=[];
 
-        $this->reset=false;
-        $this->validation=array();
-        $this->required=false;
+        $this->override=false;
+        $this->resetValidation();
+        $this->required=$this->defaultRequired;
         $this->friendId=null;
     }
+    //</editor-fold>
 
+    /**
+     * It cleans the stacked validations. It doesn't delete the errors.
+     */
+    public function resetValidation() {
+        $this->validation=array();
+    }
+
+    //<editor-fold desc="fetch and end of chain commands">
+
+    /**
+     * Returns null if the value is not present, false if the value is incorrect and the value if its correct
+     * @param $field
+     * @param bool $array
+     * @param string $fileTmp
+     * @param string $fileNew
+     * @return array|int|null|string
+     * @internal param $folder
+     * @internal param string $type
+     */
+    public static function getFile($field,$array=false,&$fileTmp="",&$fileNew="")
+    {
+        if (!$array) {
+            $fileNew=@$_FILES[$field]['name'];
+            if ($fileNew!="") {
+                // its uploading a file
+                $fileTmp=@$_FILES[$field]['tmp_name'];
+                $filename=@$_POST[$field.'_file']; // previous filename if any
+                return $filename;
+            } else {
+                $filename=@$_POST[$field.'_file']; // previous filename if any
+                $fileTmp='';
+                $fileNew='';
+                return $filename;
+            }
+        } else {
+            $c=count($_FILES[$field]['name']);
+            $filenames=array();
+            for($i=0;$i<$c;$i++) {
+                $filename=@$_FILES[$field]['name'][$i];
+                if ($filename!="") {
+                    $filename=$filename.'&&'.@$_FILES[$field]['tmp_name'][$i].'&&'.@$_POST[$field.'_file'][$i];
+                } else {
+                    $filename='&&'.'&&'.@$_POST[$field.'_file'][$i];
+                }
+                $filenames[]=$filename;
+            }
+            return $filenames;
+        }
+    }
     public function get($field,$msg=null) {
         $fieldId=$this->prefix.$field;
         $r=$this->getField($fieldId,INPUT_GET,$msg);
@@ -240,6 +285,7 @@ class ValidationOne
     }
 
     /**
+     * It fetches a value.
      * @param int $inputType INPUT_POST|INPUT_GET|INPUT_REQUEST
      * @param string $field
      * @param null|string $msg
@@ -262,16 +308,15 @@ class ValidationOne
             $this->runConditions($r,$fieldId);
         }
 
-        if ($this->ifFailThenReturn) {
+        if ($this->ifFailThenDefault) {
             if ($this->errorList->errorcount)
                 $r=$this->default;
         }
         $this->resetChain();
         return $r;
     }
-
     public function set($value,$fieldId="setfield",$msg="") {
-        if ($this->reset) {
+        if ($this->override) {
             $this->errorList->items[$fieldId]=new ErrorItem();
         }
 
@@ -287,7 +332,9 @@ class ValidationOne
         $this->resetChain();
         return $value;
     }
+    //</editor-fold>
 
+    //<editor-fold desc="conditions">
     /**
      * @param $r
      * @param ValidationItem $cond
@@ -603,96 +650,7 @@ class ValidationOne
             }
         }
     }
-
-    /**
-     * It adds an error
-     * @param string $msg first message. If it's empty or null then it uses the second message<br>
-     *      Message could uses the next variables '%field','%realfield','%value','%comp','%first','%second'
-     * @param string $msg2 second message
-     * @param string $fieldId id of the field
-     * @param mixed $value value supplied
-     * @param mixed $vcomp value to compare.
-     * @param string $level (error,warning,info,success) error level
-     */
-    private function addError($msg, $msg2, $fieldId, $value, $vcomp, $level='error') {
-        $txt=($msg)?$msg:$msg2;
-        if (is_array($vcomp)) {
-            $first=@$vcomp[0];
-            $second=@$vcomp[1];
-            $vcomp=@$vcomp[0]; // is not array anymore
-
-        } else {
-            $first=$vcomp;
-            $second=$vcomp;
-        }
-        $txt=str_replace(['%field','%realfield','%value','%comp','%first','%second']
-            ,[($this->friendId)??$fieldId,$fieldId,$value,$vcomp,$first,$second],$txt);
-        $this->errorList->addItem($fieldId,$txt, $level);
-    }
-
-    /**
-     * @param string $value
-     * @param string $field
-     * @param string $msg
-     * @return bool|DateTime|float|int|mixed|null
-     */
-    private function basicValidation($value, $field, $msg="") {
-        switch($this->type) {
-            case 'integer':
-            case 'unixtime':
-                if (!is_numeric($value)) {
-                    $this->hasError=true;
-                    $this->addError($msg,'%field is not numeric',$field,$value,null,'error');
-                    return null;
-                }
-                return (int)$value;
-                break;
-            case 'boolean':
-                return (bool)$value;
-                break;
-            case 'decimal':
-                if (!is_numeric($value)) {
-                    $this->hasError=true;
-                    $this->addError($msg,'$field is not decimal',$field,$value,null,'error');
-                    return null;
-                }
-                return (double)$value;
-                break;
-            case 'float':
-                if (!is_numeric($value)) {
-                    $this->hasError=true;
-                    $this->addError($msg,'$field is not float',$field,$value,null,'error');
-                    return null;
-                }
-                return (float)$value;
-                break;
-            case 'varchar':
-            case 'string':
-                // if string is empty then it uses the default value. It's useful for filter
-                return ($value==="")?$this->default:$value;
-                break;
-            case 'date':
-            case 'datetime':
-                $valueDate=DateTime::createFromFormat(self::$dateLong, $value);
-                if ($valueDate===false) {
-                    // the format is not date and time, maybe it's only date
-                    /** @var DateTime $valueDate */
-                    $valueDate=DateTime::createFromFormat(self::$dateShort, $value);
-                    if ($valueDate===false) {
-                        // nope, it's neither date.
-                        $this->hasError=true;
-                        $this->addError($msg,'%field is not date',$field,$value,null,'error');
-                        return null;
-                    }
-                    $valueDate->settime(0,0,0,0);
-                }
-                return $valueDate;
-                break;
-            default:
-                return $value;
-                break;
-        }
-    }
+    //</editor-fold>
 
     /**
      * Returns null if the value is not present, false if the value is incorrect and the value if its correct
@@ -747,6 +705,61 @@ class ValidationOne
         }
     }
 
+    //<editor-fold desc="error control">
+    /**
+     * It adds an error
+     * @param string $msg first message. If it's empty or null then it uses the second message<br>
+     *      Message could uses the next variables '%field','%realfield','%value','%comp','%first','%second'
+     * @param string $msg2 second message
+     * @param string $fieldId id of the field
+     * @param mixed $value value supplied
+     * @param mixed $vcomp value to compare.
+     * @param string $level (error,warning,info,success) error level
+     */
+    private function addError($msg, $msg2, $fieldId, $value, $vcomp, $level='error') {
+        $txt=($msg)?$msg:$msg2;
+        if (is_array($vcomp)) {
+            $first=@$vcomp[0];
+            $second=@$vcomp[1];
+            $vcomp=@$vcomp[0]; // is not array anymore
+        } else {
+            $first=$vcomp;
+            $second=$vcomp;
+        }
+        $txt=str_replace(['%field','%realfield','%value','%comp','%first','%second']
+            ,[($this->friendId)??$fieldId,$fieldId,$value,$vcomp,$first,$second],$txt);
+        $this->errorList->addItem($fieldId,$txt, $level);
+    }
+
+    /**
+     * It gets the first error message available in the whole errorlist.
+     * @param bool $withWarning
+     * @return null|string
+     */
+    public function getError($withWarning=false) {
+        if ($withWarning) return $this->errorList->firstErrorOrWarning();
+        return $this->errorList->firstErrorText();
+    }
+
+    /**
+     * It returns an array with all the errors of all "ids"
+     * @param bool $withWarning
+     * @return array
+     */
+    public function getErrors($withWarning=false) {
+        if ($withWarning) $this->errorList->allErrorOrWarningArray();
+        return $this->errorList->allErrorArray();
+    }
+
+    /**
+     * It returns the error of the element "id".  If it doesn't exist then it returns an empty ErrorItem
+     * @param string $id
+     * @return ErrorItem
+     */
+    public function getErrorId($id) {
+        return $this->errorList->get($id);
+    }
+    //</editor-fold>
 
 
 }

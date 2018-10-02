@@ -29,7 +29,7 @@ function getExample() {
     //getVal()->reset();
 $r = getVal()->default(['ERROR'])
     ->type('integer')
-    ->array(true)->get('id',"some error message on %field");
+    ->isArray(true)->get('id',"some error message on %field");
 
 
 var_dump($r);
