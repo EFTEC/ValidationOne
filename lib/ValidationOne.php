@@ -9,7 +9,7 @@ use ReflectionMethod;
  * Class Validation
  * @package eftec
  * @author Jorge Castro Castillo
- * @version 1.3 20180930
+ * @version 1.4 20181003
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see https://github.com/EFTEC/ValidationOne
  */
@@ -74,7 +74,10 @@ class ValidationOne
 
     //<editor-fold desc="chain commands">
     /**
-     * It sets a default value
+     * It sets a default value. It could be used as follow:
+     * a) if the value is not set and it's not required (by default, it's not required), then it sets this value. otherwise null<br>
+     * b) if the value is not set and it's required, then it returns an error and it sets this value, otherwise null<br>
+     * c) if the value is not set and it's an array, then it sets a single value (not the whole array).
      * @param mixed $value
      * @param bool|null $ifFailThenDefault  True if the system returns the default value if error.
      * @return ValidationOne $this
@@ -82,6 +85,34 @@ class ValidationOne
     public function default($value,$ifFailThenDefault=null) {
         $this->default=$value;
         if ($ifFailThenDefault!==null) $this->ifFailThenDefault=$ifFailThenDefault;
+        return $this;
+    }
+
+    /**
+     * It sets the default value based in the type of data. <br>
+     * If the type of data is not specified, then it sets the value to string ''.<br>
+     * number = 0 (-1 for negative)<br>
+     * string = '' (null for negative)<br>
+     * date = DateTime() (null for negative)<br>
+     * boolean = true (false for negative)<br>
+     * @param bool $negative if true then it returns the negative default value.
+     * @return ValidationOne $this
+     */
+    public function defaultNatural($negative=false) {
+        switch ($this->typeFam) {
+            case 0:
+                $this->default=(!$negative)?0:-1;
+                break;
+            case 1:
+                $this->default=(!$negative)?'':null;
+                break;
+            case 2:
+                $this->default=(!$negative)?new DateTime():null;
+                break;
+            case 3:
+                $this->default=(!$negative)?true:false;
+                break;
+        }
         return $this;
     }
 
@@ -149,26 +180,33 @@ class ValidationOne
         return $this;
     }
 
-
-
+    /**
+     * It returns the number of the family.
+     * @param string $type integer,unixtime,boolean,decimal,float,varchar,string,date,datetime
+     * @return int 1=string,2=date,3=boolean,0=number
+     */
+    private function getTypeFamily($type) {
+        switch (1==1) {
+            case (strpos($this->STRARR,$type)!==false):
+                $r=1; // string
+                break;
+            case (strpos($this->DATARR,$type)!==false):
+                $r=2; // date
+                break;
+            case ($type=='boolean'):
+                $r=3; // boolean
+                break;
+            default:
+                $r=0; // number
+        }
+        return $r;
+    }
     /**
      * @param string $type integer,unixtime,boolean,decimal,float,varchar,string,date,datetime
      * @return ValidationOne $this
      */
     public function type($type) {
-        switch (1==1) {
-            case (strpos($this->STRARR,$type)!==false):
-                $this->typeFam=1; // string
-                break;
-            case (strpos($this->DATARR,$type)!==false):
-                $this->typeFam=2; // date
-                break;
-            case ($type=='boolean'):
-                $this->typeFam=3; // boolean
-                break;
-            default:
-                $this->typeFam=0; // number
-        }
+        $this->typeFam=$this->getTypeFamily($type);
         $this->type=$type;
         return $this;
     }

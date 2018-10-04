@@ -1,16 +1,10 @@
 <?php
 
 use eftec\ValidationOne;
+use mapache_commons\Collection;
 
-
-include __DIR__."/common.php";
-
+include "common.php";
 include "dBug.php";
-
-
-
-
-
 function customval($value,$compareValue) {
     return true;
 }
@@ -35,7 +29,7 @@ function getExample() {
 
     //getVal()->reset();
 $r = getVal()->default(['ERROR'])
-    ->type('integer')
+    ->type('integer')->ifFailThenDefault()
     ->isArray(true)->get('id',"some error message on %field");
 
 
