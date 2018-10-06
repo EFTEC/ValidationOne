@@ -7,16 +7,14 @@ It's in beta.
 
 ## ValidationOne
 
-Let's say we want to validate a value an input value (get) called "id"
-
-so, we could add the next contitions
+Let's say we want to validate a value an input value (get) called "id", we could do the next things:
 
 * the default value is the text "**ERROR**"
-* the type is an **integer**, so it must returns an integer.
-* we add an condition, the value must be equals (**eq**) to **10**. If fails then it returns a message (as **error**)
+* the type of the value is an **integer**, so it must returns an integer.   It also could be an integer,decimal,string,date and boolean
+* we add a condition, the value must be equals (**eq**) to **10**. If fails then it returns a message (as **error**)
 * we add another condition, if the value must be equals (**eq**) to **30**. If fails then it returns an **info** (not an error)
 * If the operation fails then it returns the default value.
-* And finally, we obtain the "**id**" from get.
+* And finally, we obtain the "**id**" from $_GET (parameter url).
 
 ```php
 $val=new ValidationOne();
@@ -66,6 +64,7 @@ var_dump($val->errorList->allArray())
 
 ## version list
 
+* 2018-10-06 1.5 added method ErrorItem on first()
 * 2018-10-03 1.4 added defaultNatural()
 * 2018-10-02 1.3 basicvalidation() was deleted. It was restored.
 * 2018-10-02 1.2 array() is now isArray()

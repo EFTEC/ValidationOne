@@ -5,7 +5,7 @@ namespace eftec;
  * Class ErrorList
  * @package eftec
  * @author Jorge Castro Castillo
- * @version 1.0 20180930
+ * @version 1.5 20181006
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see https://github.com/EFTEC/ValidationOne
  */

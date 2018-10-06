@@ -6,7 +6,7 @@ namespace eftec;
  * Class ErrorItem
  * @package eftec
  * @author Jorge Castro Castillo
- * @version 1.0 20180930
+ * @version 1.5 20181006
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see https://github.com/EFTEC/ValidationOne
  */
@@ -83,6 +83,28 @@ class ErrorItem
             return $this->successMsg[0];
         }
         return null;
+    }
+
+    /**
+     * It returns the first message.<br>
+     * If error then it returns the first message of error<br>
+     * If not, if warning then it returns the first message of warning<br>
+     * If not, then it show the first info message (if any)<br>
+     * If not, then it shows the first success message (if any)<br>
+     * If not, then it shows the default message.
+     * @param string $defaultMsg
+     * @return string
+     */
+    public function first($defaultMsg='') {
+        $r=$this->firstError();
+        if ($r!==null) return $r;
+        $r=$this->firstWarning();
+        if ($r!==null) return $r;
+        $r=$this->firstInfo();
+        if ($r!==null) return $r;
+        $r=$this->firstSuccess();
+        if ($r!==null) return $r;
+        return $defaultMsg;
     }
 
     /**

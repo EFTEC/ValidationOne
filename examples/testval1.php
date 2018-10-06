@@ -4,7 +4,7 @@ use eftec\ValidationOne;
 
 
 include "common.php";
-include "dBug.php";
+include "Someclass.php";
 function customval($value,$compareValue) {
     return true;
 }
@@ -25,27 +25,26 @@ function getExample() {
 
 }
 
-//$x=new \somespace\Someclass();
+$x=new \somespace\Someclass();
 
 
 //var_dump(call_user_func('customval', 'aaa','bbb'));
-/*
+
 
 $r=getVal()->default(null)
     ->type('integer')
-    ->condition('fn.static.Example.customval','la funcion no funciona',20)
+    ->condition('fn.static.Example.customval','la funcion no funciona',20) // this calls a custom function
     ->condition('req')
     ->condition('lt',"es muy grande",2000,'warning')
-    ->condition('eq','%s [%2$s] is not equal to %3$s ',50)->get("id");
+    ->condition('eq','%field %value is not equal to %comp ',50)->get("id");
 
- */
-/*
+
 $r=getVal()->default('ERROR')
     ->type('integer')
     ->condition('fn.static.Example.customval','la funcion no funciona',20)
     ->condition('req')
     ->condition('lt',"es muy grande",2000,'warning')
-    ->condition('eq','%s [%2$s] is not equal to %3$s ',50)
+    ->condition('eq','%field %value is not equal to %comp',50)
     ->condition('fn.static.Example.fnstatic','la funcion estatica no funciona',20)
     ->condition('fn.static.\somespace\Someclass.methodStatic',null,20)
     ->condition('fn.global.customval','la funcion global no funciona',20)
@@ -57,18 +56,26 @@ $r=getVal()->default('ERROR')
 
 echo "el valor es ".print_r($r,true)."<br>";
 
-echo Collection::generateTable(getVal()->errorDic->get('id')->all());
-var_dump(getVal()->errorDic->msg("id"));
-echo "<hr>con id2:<br>";
-echo Collection::generateTable(getVal()->errorDic->get('id2')->all());
+dump(getVal()->errorList->get('id')->allErrorOrWarning());
 
-var_dump(getVal()->errorDic->msg("id"));
+dump(getVal()->errorList->get("id"));
+echo "<hr>con id2:<br>";
+
+dump(getVal()->errorList->get('id2')->allErrorOrWarning());
+
+dump(getVal()->errorList->get("id"));
 echo "<hr>";
-*/
+
+function dump($var) {
+    echo "<pre>";
+    echo json_encode($var,JSON_PRETTY_PRINT);
+    echo "</pre>";
+
+}
 
 $timeStart = microtime(true);
 $memoryStart = memory_get_usage();
-for($i=0;$i<1000;$i++) {
+for($i=0;$i<10;$i++) {
     //getVal()->reset();
     $r = getVal()->default('ERROR')
         ->type('integer')
@@ -81,9 +88,9 @@ for($i=0;$i<1000;$i++) {
 
 $memoryEnd = memory_get_usage();
 echo $memoryEnd-$memoryStart."<br>";
-echo json_encode(getVal()->errorList, JSON_PRETTY_PRINT);
+dump(getVal()->errorList);
 
 $timeEnd = microtime(true);
-echo json_encode(getVal()->errorList->allArray(),JSON_PRETTY_PRINT);
+dump(getVal()->errorList->allArray());
 
 echo "<br>time:".($timeEnd-$timeStart)."<br>";
