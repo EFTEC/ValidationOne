@@ -3,14 +3,14 @@
 namespace eftec;
 
 /**
- * Class ErrorItem
+ * Class MessageItem
  * @package eftec
  * @author Jorge Castro Castillo
- * @version 1.5 20181006
+ * @version 1.7 20181015
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see https://github.com/EFTEC/ValidationOne
  */
-class ErrorItem
+class MessageItem
 {
     /** @var string[] */
     private $errorMsg;
@@ -21,7 +21,7 @@ class ErrorItem
     /** @var string[] */
     private $successMsg;
     /**
-     * ErrorItem constructor.
+     * MessageItem constructor.
      */
     public function __construct()
     {
@@ -30,7 +30,7 @@ class ErrorItem
         $this->infoMsg=[];
         $this->successMsg=[];
     }
-    public function addError($msg) {
+    public function addMessage($msg) {
         @$this->errorMsg[]=$msg;
     }
     public function addWarning($msg) {
@@ -43,7 +43,7 @@ class ErrorItem
         @$this->successMsg[]=$msg;
     }
 
-    public function countError() {
+    public function countMessage() {
         return count($this->errorMsg);
     }
     public function countWarning() {
@@ -55,14 +55,14 @@ class ErrorItem
     public function countSuccess() {
         return count($this->successMsg);
     }
-    public function firstError() {
+    public function firstMessage() {
         if (isset($this->errorMsg[0])) {
             return $this->errorMsg[0];
         }
         return null;
     }
-    public function firstErrorOrWarning() {
-        $r=$this->firstError();
+    public function firstMessageOrWarning() {
+        $r=$this->firstMessage();
         if ($r===null) $r=$this->firstWarning();
         return $r;
     }
@@ -96,7 +96,7 @@ class ErrorItem
      * @return string
      */
     public function first($defaultMsg='') {
-        $r=$this->firstError();
+        $r=$this->firstMessage();
         if ($r!==null) return $r;
         $r=$this->firstWarning();
         if ($r!==null) return $r;
@@ -110,13 +110,13 @@ class ErrorItem
     /**
      * @return null|string[]
      */
-    public function allError() {
+    public function allMessage() {
         return $this->errorMsg;
     }
     /**
      * @return null|string[]
      */
-    public function allErrorOrWarning() {
+    public function allMessageOrWarning() {
 
         return @array_merge($this->errorMsg,$this->warningMsg);
     }

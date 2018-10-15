@@ -1,10 +1,9 @@
 <?php
 
 use eftec\ValidationOne;
-use mapache_commons\Collection;
 
-include __DIR__."/../app_start/App.php";
-include "dBug.php";
+include "common.php";
+
 function customval($value,$compareValue) {
     return true;
 }
@@ -24,10 +23,10 @@ function getExample() {
     return new Example();
 
 }
+$val=new ValidationOne();
 
-
-    //getVal()->reset();
-$r = getVal()->default('ERROR')
+    //$val->reset();
+$r = $val->def('ERROR')
     ->type('integer')
     ->friendId('Id of example')
     ->condition("eq", "It's not equals to 10 (error) [%field] [%realfield] [%value] [%comp]", 10)
@@ -36,16 +35,16 @@ $r = getVal()->default('ERROR')
     ->set([1,'aaa','bbbb'], 'id',"some error message");
 
 
-$r2 = getVal()->default('ERROR')
+$r2 = $val->def('ERROR')
     ->type('integer')
     ->ifFailThenDefault()
     ->required()->get('id',"Missing id field from get");
 
 
 $timeEnd = microtime(true);
-echo json_encode(getVal()->errorList->items,JSON_PRETTY_PRINT);
+echo json_encode($val->messageList->items,JSON_PRETTY_PRINT);
 echo "<hr>";
-echo Collection::generateTable(getErrorList()->allArray());
-echo Collection::generateTable(getErrorList()->get('id[2]')->allErrorOrWarning());
-echo (getErrorList()->get('id[2]')->firstError())."<br>";
+echo json_encode(getMessageList()->allArray(),JSON_PRETTY_PRINT);
+echo json_encode(getMessageList()->get('id[2]')->allMessageOrWarning(),JSON_PRETTY_PRINT);
+echo (getMessageList()->get('id[2]')->firstMessage())."<br>";
 

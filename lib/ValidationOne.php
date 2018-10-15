@@ -5,22 +5,23 @@ namespace eftec;
 use DateTime;
 use ReflectionMethod;
 
+/** @var string  sometimes we want to sets an empty as empty. For example <select><option> this nullval is equals to null */
+if (!defined("NULLVAL")) define('NULLVAL','__nullval__');
+
 /**
  * Class Validation
  * @package eftec
  * @author Jorge Castro Castillo
- * @version 1.5 20181006
+ * @version 1.7 20181015
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see https://github.com/EFTEC/ValidationOne
  */
 class ValidationOne
 {
-    /** @var string  sometimes we want to sets an empty as empty. For example <select><option> this nullval is equals to null */
-    const NULLVAL='__nullval__';
     public static $dateShort='d/m/Y';
     public static $dateLong='d/m/Y H:i:s';
-    /** @var ErrorList */
-    var $errorList;
+    /** @var MessageList */
+    var $messageList;
 
     var $prefix='';
     //private $NUMARR='integer,unixtime,boolean,decimal,float';
@@ -39,7 +40,7 @@ class ValidationOne
     /** @var bool if true then the the errors from id[0],id[1] ared stored in "idx" */
     private $isArrayFlat=false;
 
-    private $hasError=false;
+    private $hasMessage=false;
     /** @var bool if the validation fails then it returns the default value */
     private $ifFailThenDefault=false;
     /** @var bool It override previous errors (for the "id" used) */
@@ -63,10 +64,10 @@ class ValidationOne
     public function __construct($prefix='')
     {
         $this->prefix=$prefix;
-        if (function_exists('getErrorList')) {
-            $this->errorList=getErrorList();
+        if (function_exists('messages')) {
+            $this->messageList=messages();
         } else {
-            $this->errorList=new ErrorList();
+            $this->messageList=new MessageList();
         }
         $this->resetChain();
     }
@@ -82,7 +83,7 @@ class ValidationOne
      * @param bool|null $ifFailThenDefault  True if the system returns the default value if error.
      * @return ValidationOne $this
      */
-    public function default($value,$ifFailThenDefault=null) {
+    public function def($value, $ifFailThenDefault=null) {
         $this->default=$value;
         if ($ifFailThenDefault!==null) $this->ifFailThenDefault=$ifFailThenDefault;
         return $this;
@@ -163,7 +164,7 @@ class ValidationOne
      * However, by default it also returns the default value.
      * @param bool $required
      * @return ValidationOne
-     * @see ValidationOne::default()
+     * @see ValidationOne::def()
      */
     public function required($required=true) {
         $this->required=$required;
@@ -246,7 +247,7 @@ class ValidationOne
         $this->typeFam=1; // string
         $this->isArray=false;
         $this->isArrayFlat=false;
-        $this->hasError=false;
+        $this->hasMessage=false;
         $this->ifFailThenDefault=$this->defaultIfFail;
         $this->validation=[];
 
@@ -256,6 +257,16 @@ class ValidationOne
         $this->friendId=null;
     }
     //</editor-fold>
+    /**
+     * You could add a message (including errors,warning..) and store in a $id
+     * It is a wrapper of $this->messageList->addItem
+     * @param string $id Identified of the message (where the message will be stored
+     * @param string $message message to show. Example: 'the value is incorrect'
+     * @param string $level = error|warning|info|success
+     */
+    public function addMessage($id,$message,$level='error') {
+        $this->messageList->addItem($id,$message,$level);
+    }
 
     /**
      * It cleans the stacked validations. It doesn't delete the errors.
@@ -347,7 +358,7 @@ class ValidationOne
         }
 
         if ($this->ifFailThenDefault) {
-            if ($this->errorList->errorcount)
+            if ($this->messageList->errorcount)
                 $r=$this->default;
         }
         $this->resetChain();
@@ -355,7 +366,7 @@ class ValidationOne
     }
     public function set($value,$fieldId="setfield",$msg="") {
         if ($this->override) {
-            $this->errorList->items[$fieldId]=new ErrorItem();
+            $this->messageList->items[$fieldId]=new MessageItem();
         }
 
         if (is_array($value)) {
@@ -684,7 +695,7 @@ class ValidationOne
                 } // switch
             }
             if ($fail) {
-                $this->addError($cond->msg,$genMsg,$fieldId,$r,$cond->value, $cond->level);
+                $this->addMessageInternal($cond->msg,$genMsg,$fieldId,$r,$cond->value, $cond->level);
             }
         }
     }
@@ -703,30 +714,30 @@ class ValidationOne
         switch ($inputType) {
             case INPUT_POST:
                 if (!isset($_POST[$field])) {
-                    if ($this->required) $this->addError($msg,"Field is missing",$field,"","",'error');
+                    if ($this->required) $this->addMessageInternal($msg,"Field is missing",$field,"","",'error');
                     return $this->default;
                 }
                 $r=$_POST[$field];
-                $r=($r===self::NULLVAL)?null:$r;
+                $r=($r===NULLVAL)?null:$r;
                 break;
             case INPUT_GET:
                 if (!isset($_GET[$field])) {
-                    if ($this->required) $this->addError($msg,"Field is missing",$field,"","",'error');
+                    if ($this->required) $this->addMessageInternal($msg,"Field is missing",$field,"","",'error');
                     return $this->default;
                 }
                 $r=$_GET[$field];
-                $r=($r===self::NULLVAL) ?null:$r;
+                $r=($r===NULLVAL) ?null:$r;
                 break;
             case INPUT_REQUEST:
                 if (isset($_POST[$field]) ) {
                     $r=$_POST[$field];
                 }  else {
                     if (!isset($_GET[$field]) ) {
-                        if ($this->required) $this->addError($msg,"Field is missing",$field,"","",'error');
+                        if ($this->required) $this->addMessageInternal($msg,"Field is missing",$field,"","",'error');
                         return $this->default;
                     }
                     $r=$_GET[$field];
-                    $r=($r===self::NULLVAL) ?null:$r;
+                    $r=($r===NULLVAL) ?null:$r;
                 }
                 break;
             default:
@@ -753,8 +764,8 @@ class ValidationOne
             case 'integer':
             case 'unixtime':
                 if (!is_numeric($value)) {
-                    $this->hasError=true;
-                    $this->addError($msg,'%field is not numeric',$field,$value,null,'error');
+                    $this->hasMessage=true;
+                    $this->addMessageInternal($msg,'%field is not numeric',$field,$value,null,'error');
                     return null;
                 }
                 return (int)$value;
@@ -764,16 +775,16 @@ class ValidationOne
                 break;
             case 'decimal':
                 if (!is_numeric($value)) {
-                    $this->hasError=true;
-                    $this->addError($msg,'$field is not decimal',$field,$value,null,'error');
+                    $this->hasMessage=true;
+                    $this->addMessageInternal($msg,'$field is not decimal',$field,$value,null,'error');
                     return null;
                 }
                 return (double)$value;
                 break;
             case 'float':
                 if (!is_numeric($value)) {
-                    $this->hasError=true;
-                    $this->addError($msg,'$field is not float',$field,$value,null,'error');
+                    $this->hasMessage=true;
+                    $this->addMessageInternal($msg,'$field is not float',$field,$value,null,'error');
                     return null;
                 }
                 return (float)$value;
@@ -792,8 +803,8 @@ class ValidationOne
                     $valueDate=DateTime::createFromFormat(self::$dateShort, $value);
                     if ($valueDate===false) {
                         // nope, it's neither date.
-                        $this->hasError=true;
-                        $this->addError($msg,'%field is not date',$field,$value,null,'error');
+                        $this->hasMessage=true;
+                        $this->addMessageInternal($msg,'%field is not date',$field,$value,null,'error');
                         return null;
                     }
                     $valueDate->settime(0,0,0,0);
@@ -817,7 +828,7 @@ class ValidationOne
      * @param mixed $vcomp value to compare.
      * @param string $level (error,warning,info,success) error level
      */
-    private function addError($msg, $msg2, $fieldId, $value, $vcomp, $level='error') {
+    private function addMessageInternal($msg, $msg2, $fieldId, $value, $vcomp, $level='error') {
         $txt=($msg)?$msg:$msg2;
         if (is_array($vcomp)) {
             $first=@$vcomp[0];
@@ -828,18 +839,18 @@ class ValidationOne
             $second=$vcomp;
         }
         $txt=str_replace(['%field','%realfield','%value','%comp','%first','%second']
-            ,[($this->friendId)??$fieldId,$fieldId,$value,$vcomp,$first,$second],$txt);
-        $this->errorList->addItem($fieldId,$txt, $level);
+            ,[($this->friendId)?$fieldId:$this->friendId,$fieldId,$value,$vcomp,$first,$second],$txt);
+        $this->messageList->addItem($fieldId,$txt, $level);
     }
 
     /**
-     * It gets the first error message available in the whole errorlist.
+     * It gets the first error message available in the whole messagelist.
      * @param bool $withWarning
      * @return null|string
      */
-    public function getError($withWarning=false) {
-        if ($withWarning) return $this->errorList->firstErrorOrWarning();
-        return $this->errorList->firstErrorText();
+    public function getMessage($withWarning=false) {
+        if ($withWarning) return $this->messageList->firstMessageOrWarning();
+        return $this->messageList->firstMessageText();
     }
 
     /**
@@ -847,18 +858,18 @@ class ValidationOne
      * @param bool $withWarning
      * @return array
      */
-    public function getErrors($withWarning=false) {
-        if ($withWarning) $this->errorList->allErrorOrWarningArray();
-        return $this->errorList->allErrorArray();
+    public function getMessages($withWarning=false) {
+        if ($withWarning) $this->messageList->allMessageOrWarningArray();
+        return $this->messageList->allMessageArray();
     }
 
     /**
-     * It returns the error of the element "id".  If it doesn't exist then it returns an empty ErrorItem
+     * It returns the error of the element "id".  If it doesn't exist then it returns an empty MessageItem
      * @param string $id
-     * @return ErrorItem
+     * @return MessageItem
      */
-    public function getErrorId($id) {
-        return $this->errorList->get($id);
+    public function getMessageId($id) {
+        return $this->messageList->get($id);
     }
     //</editor-fold>
 

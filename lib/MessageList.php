@@ -2,28 +2,28 @@
 namespace eftec;
 
 /**
- * Class ErrorList
+ * Class MessageList
  * @package eftec
  * @author Jorge Castro Castillo
- * @version 1.5 20181006
+ * @version 1.7 20181015
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see https://github.com/EFTEC/ValidationOne
  */
-class ErrorList
+class MessageList
 {
-    /** @var  ErrorItem[] */
+    /** @var  MessageItem[] */
     var $items;
     var $errorcount=0;
     var $warningcount=0;
     var $infocount=0;
     var $successcount=0;
-    var $firstError=null;
+    var $firstMessage=null;
     var $firstWarning=null;
     var $firstInfo=null;
     var $firstSuccess=null;
 
     /**
-     * ErrorList constructor.
+     * MessageList constructor.
      */
     public function __construct()
     {
@@ -36,25 +36,27 @@ class ErrorList
         $this->infocount=0;
         $this->successcount=0;
         $this->items=array();
-        $this->firstError=null;
+        $this->firstMessage=null;
         $this->firstWarning=null;
         $this->firstInfo=null;
         $this->firstSuccess=null;
     }
     /**
-     * @param string $message
-     * @param string $level = 2(error),1(warning) 0(no error) ERRORLIST_*
-     * @param string $id
+     * You could add a message (including errors,warning..) and store in a $id
+     * @param string $id Identified of the message (where the message will be stored
+     * @param string $message message to show. Example: 'the value is incorrect'
+     * @param string $level = error|warning|info|success
      */
     public function addItem($id,$message,$level='error') {
+        $id=($id==='')?"0":$id;
         if (!isset($this->items[$id])) {
-            $this->items[$id]=new ErrorItem();
+            $this->items[$id]=new MessageItem();
         }
         switch ($level) {
             case 'error':
                 $this->errorcount++;
-                if ($this->firstError===null) $this->firstError=$message;
-                $this->items[$id]->addError($message);
+                if ($this->firstMessage===null) $this->firstMessage=$message;
+                $this->items[$id]->addMessage($message);
                 break;
             case 'warning':
                 $this->warningcount++;
@@ -77,11 +79,12 @@ class ErrorList
     /**
      * It returns an error item. If the item doesn't exist then it returns an empty object (not null)
      * @param $id
-     * @return ErrorItem
+     * @return MessageItem
      */
     public function get($id) {
+        $id=($id==='')?"0":$id;
         if (!isset($this->items[$id])) {
-            return new ErrorItem(); // we returns an empty error.
+            return new MessageItem(); // we returns an empty error.
         }
         return $this->items[$id];
     }
@@ -93,7 +96,7 @@ class ErrorList
      */
     public function class($idx) {
         if (!isset($this->items[$idx])) return "";
-        if (@$this->items[$idx]->countError()) {
+        if (@$this->items[$idx]->countMessage()) {
             return "danger";
         }
         if ($this->items[$idx]->countWarning()) {
@@ -107,12 +110,12 @@ class ErrorList
         }
         return "";
     }
-    public function firstErrorText() {
-        return ($this->errorcount==0)?"":$this->firstError;
+    public function firstMessageText() {
+        return ($this->errorcount==0)?"":$this->firstMessage;
     }
 
-    public function firstErrorOrWarning() {
-        if ($this->errorcount) return $this->firstError;
+    public function firstMessageOrWarning() {
+        if ($this->errorcount) return $this->firstMessage;
         return ($this->warningcount==0)?"":$this->firstWarning;
     }
 
@@ -126,27 +129,27 @@ class ErrorList
     public function firstSuccessText() {
         return ($this->successcount==0)?"":$this->firstSuccess;
     }
-    public function allErrorArray() {
+    public function allMessageArray() {
         $r=array();
         foreach($this->items as $v) {
-            $r=array_merge($r,$v->allError());
+            $r=array_merge($r,$v->allMessage());
         }
         return $r;
     }
     public function allArray() {
         $r=array();
         foreach($this->items as $v) {
-            $r=array_merge($r,$v->allError());
+            $r=array_merge($r,$v->allMessage());
             $r=array_merge($r,$v->allWarning());
             $r=array_merge($r,$v->allInfo());
             $r=array_merge($r,$v->allSuccess());
         }
         return $r;
     }
-    public function allErrorOrWarningArray() {
+    public function allMessageOrWarningArray() {
         $r=array();
         foreach($this->items as $v) {
-            $r=array_merge($r,$v->allError());
+            $r=array_merge($r,$v->allMessage());
             $r=array_merge($r,$v->allWarning());
         }
         return $r;

@@ -4,7 +4,7 @@ use eftec\ValidationOne;
 
 
 include "common.php";
-include "dBug.php";
+
 function customval($value,$compareValue) {
     return true;
 }
@@ -28,7 +28,7 @@ function getExample() {
 
 
     //getVal()->reset();
-$r = getVal()->default(['ERROR'])
+$r = getVal()->def(['ERROR'])
     ->type('integer')->ifFailThenDefault()
     ->isArray(true)->get('id',"some error message on %field");
 
@@ -36,9 +36,9 @@ $r = getVal()->default(['ERROR'])
 var_dump($r);
 
 $timeEnd = microtime(true);
-echo json_encode(getVal()->errorList->items,JSON_PRETTY_PRINT);
+echo json_encode(getVal()->messageList->items,JSON_PRETTY_PRINT);
 echo "<hr>";
-echo json_encode(getErrorList()->allArray(),JSON_PRETTY_PRINT);
-echo json_encode(getErrorList()->get('id[2]')->allErrorOrWarning(),JSON_PRETTY_PRINT);
-echo (getErrorList()->get('id[2]')->firstError())."<br>";
+echo json_encode(getMessageList()->allArray(),JSON_PRETTY_PRINT);
+echo json_encode(getMessageList()->get('id[2]')->allMessageOrWarning(),JSON_PRETTY_PRINT);
+echo (getMessageList()->get('id[2]')->firstMessage())."<br>";
 

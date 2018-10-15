@@ -1,11 +1,11 @@
 <?php
 
-use eftec\ErrorList;
+use eftec\MessageList;
 use eftec\ValidationOne;
 include "../lib/ValidationOne.php";
 include "../lib/ValidationItem.php";
-include "../lib/ErrorList.php";
-include "../lib/ErrorItem.php";
+include "../lib/MessageList.php";
+include "../lib/MessageItem.php";
 
 /**
  * @param string $prefix
@@ -20,12 +20,12 @@ function getVal($prefix='') {
 }
 
 /**
- * @return ErrorList|null
+ * @return MessageList|null
  */
-function getErrorList() {
+function getMessageList() {
     global $errorList;
     if ($errorList===null) {
-        $errorList=new ErrorList();
+        $errorList=new MessageList();
     }
     return $errorList;
 }

@@ -1,7 +1,7 @@
 # ValidationOne
-It's a php library for fetch and validate fields and returns an error (or a list of errors) depending in the conditions.
+It's a php library for fetch and validate fields and returns an message (or a list of messages, including error,warning,info and success) depending in the conditions.
 
-It's also a error-container library.
+It's also a message-container library.
 
 It's in beta.
 
@@ -27,7 +27,7 @@ Let's say we want to validate a value an input value (get) called "id", we could
 ```php
 $val=new ValidationOne();
 
-$r = $val->default('ERROR')
+$r = $val->def('ERROR')
     ->type('integer')
     ->condition("eq", "It's not equals to 10", 10)
     ->condition("eq", "It's not equals to 30 (info)", 30, 'info')
@@ -65,14 +65,15 @@ var_dump($val->errorList->allArray())
 * @param string $level (error,warning,info,success)
 * @return ValidationOne
 
-## ErrorList
+## MessageList
 
 
 
 
 ## version list
 
-* 2018-10-06 1.5 added method ErrorItem on first()
+* 2018-10-15 1.7 Added method addMessage() in ValidationOne. Now ErrorItem/ErrorList is called MessageItem and MessageList
+* 2018-10-06 1.5 added method first() in MessageItem 
 * 2018-10-03 1.4 added defaultNatural()
 * 2018-10-02 1.3 basicvalidation() was deleted. It was restored.
 * 2018-10-02 1.2 array() is now isArray()
