@@ -56,12 +56,12 @@ $r=getVal()->def('ERROR')
 
 echo "el valor es ".print_r($r,true)."<br>";
 
-dump(getVal()->messageList->get('id')->allMessageOrWarning());
+dump(getVal()->messageList->get('id')->allErrorOrWarning());
 
 dump(getVal()->messageList->get("id"));
 echo "<hr>con id2:<br>";
 
-dump(getVal()->messageList->get('id2')->allMessageOrWarning());
+dump(getVal()->messageList->get('id2')->allErrorOrWarning());
 
 dump(getVal()->messageList->get("id"));
 echo "<hr>";

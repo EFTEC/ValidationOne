@@ -17,7 +17,7 @@ class MessageList
     var $warningcount=0;
     var $infocount=0;
     var $successcount=0;
-    var $firstMessage=null;
+    var $firstError=null;
     var $firstWarning=null;
     var $firstInfo=null;
     var $firstSuccess=null;
@@ -36,7 +36,7 @@ class MessageList
         $this->infocount=0;
         $this->successcount=0;
         $this->items=array();
-        $this->firstMessage=null;
+        $this->firstError=null;
         $this->firstWarning=null;
         $this->firstInfo=null;
         $this->firstSuccess=null;
@@ -55,8 +55,8 @@ class MessageList
         switch ($level) {
             case 'error':
                 $this->errorcount++;
-                if ($this->firstMessage===null) $this->firstMessage=$message;
-                $this->items[$id]->addMessage($message);
+                if ($this->firstError===null) $this->firstError=$message;
+                $this->items[$id]->addError($message);
                 break;
             case 'warning':
                 $this->warningcount++;
@@ -94,9 +94,9 @@ class MessageList
      * @param string $idx
      * @return string
      */
-    public function class($idx) {
+    public function cssClass($idx) {
         if (!isset($this->items[$idx])) return "";
-        if (@$this->items[$idx]->countMessage()) {
+        if (@$this->items[$idx]->countError()) {
             return "danger";
         }
         if ($this->items[$idx]->countWarning()) {
@@ -110,12 +110,12 @@ class MessageList
         }
         return "";
     }
-    public function firstMessageText() {
-        return ($this->errorcount==0)?"":$this->firstMessage;
+    public function firstErrorText() {
+        return ($this->errorcount==0)?"":$this->firstError;
     }
 
-    public function firstMessageOrWarning() {
-        if ($this->errorcount) return $this->firstMessage;
+    public function firstErrorOrWarning() {
+        if ($this->errorcount) return $this->firstError;
         return ($this->warningcount==0)?"":$this->firstWarning;
     }
 
@@ -129,27 +129,27 @@ class MessageList
     public function firstSuccessText() {
         return ($this->successcount==0)?"":$this->firstSuccess;
     }
-    public function allMessageArray() {
+    public function allErrorArray() {
         $r=array();
         foreach($this->items as $v) {
-            $r=array_merge($r,$v->allMessage());
+            $r=array_merge($r,$v->allError());
         }
         return $r;
     }
     public function allArray() {
         $r=array();
         foreach($this->items as $v) {
-            $r=array_merge($r,$v->allMessage());
+            $r=array_merge($r,$v->allError());
             $r=array_merge($r,$v->allWarning());
             $r=array_merge($r,$v->allInfo());
             $r=array_merge($r,$v->allSuccess());
         }
         return $r;
     }
-    public function allMessageOrWarningArray() {
+    public function allErrorOrWarningArray() {
         $r=array();
         foreach($this->items as $v) {
-            $r=array_merge($r,$v->allMessage());
+            $r=array_merge($r,$v->allError());
             $r=array_merge($r,$v->allWarning());
         }
         return $r;

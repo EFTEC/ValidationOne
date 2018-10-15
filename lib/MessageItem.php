@@ -30,7 +30,7 @@ class MessageItem
         $this->infoMsg=[];
         $this->successMsg=[];
     }
-    public function addMessage($msg) {
+    public function addError($msg) {
         @$this->errorMsg[]=$msg;
     }
     public function addWarning($msg) {
@@ -43,7 +43,7 @@ class MessageItem
         @$this->successMsg[]=$msg;
     }
 
-    public function countMessage() {
+    public function countError() {
         return count($this->errorMsg);
     }
     public function countWarning() {
@@ -55,14 +55,14 @@ class MessageItem
     public function countSuccess() {
         return count($this->successMsg);
     }
-    public function firstMessage() {
+    public function firstError() {
         if (isset($this->errorMsg[0])) {
             return $this->errorMsg[0];
         }
         return null;
     }
-    public function firstMessageOrWarning() {
-        $r=$this->firstMessage();
+    public function firstErrorOrWarning() {
+        $r=$this->firstError();
         if ($r===null) $r=$this->firstWarning();
         return $r;
     }
@@ -96,7 +96,7 @@ class MessageItem
      * @return string
      */
     public function first($defaultMsg='') {
-        $r=$this->firstMessage();
+        $r=$this->firstError();
         if ($r!==null) return $r;
         $r=$this->firstWarning();
         if ($r!==null) return $r;
@@ -110,13 +110,13 @@ class MessageItem
     /**
      * @return null|string[]
      */
-    public function allMessage() {
+    public function allError() {
         return $this->errorMsg;
     }
     /**
      * @return null|string[]
      */
-    public function allMessageOrWarning() {
+    public function allErrorOrWarning() {
 
         return @array_merge($this->errorMsg,$this->warningMsg);
     }

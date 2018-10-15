@@ -39,6 +39,6 @@ $timeEnd = microtime(true);
 echo json_encode(getVal()->messageList->items,JSON_PRETTY_PRINT);
 echo "<hr>";
 echo json_encode(getMessageList()->allArray(),JSON_PRETTY_PRINT);
-echo json_encode(getMessageList()->get('id[2]')->allMessageOrWarning(),JSON_PRETTY_PRINT);
-echo (getMessageList()->get('id[2]')->firstMessage())."<br>";
+echo json_encode(getMessageList()->get('id[2]')->allErrorOrWarning(),JSON_PRETTY_PRINT);
+echo (getMessageList()->get('id[2]')->firstError())."<br>";
 

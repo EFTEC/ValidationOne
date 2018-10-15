@@ -99,7 +99,7 @@ class ValidationOne
      * @param bool $negative if true then it returns the negative default value.
      * @return ValidationOne $this
      */
-    public function defaultNatural($negative=false) {
+    public function defNatural($negative=false) {
         switch ($this->typeFam) {
             case 0:
                 $this->default=(!$negative)?0:-1;
@@ -849,8 +849,8 @@ class ValidationOne
      * @return null|string
      */
     public function getMessage($withWarning=false) {
-        if ($withWarning) return $this->messageList->firstMessageOrWarning();
-        return $this->messageList->firstMessageText();
+        if ($withWarning) return $this->messageList->firstErrorOrWarning();
+        return $this->messageList->firstErrorText();
     }
 
     /**
@@ -859,8 +859,8 @@ class ValidationOne
      * @return array
      */
     public function getMessages($withWarning=false) {
-        if ($withWarning) $this->messageList->allMessageOrWarningArray();
-        return $this->messageList->allMessageArray();
+        if ($withWarning) $this->messageList->allErrorOrWarningArray();
+        return $this->messageList->allErrorArray();
     }
 
     /**
