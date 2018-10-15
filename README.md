@@ -1,9 +1,5 @@
 # ValidationOne
-It's a php library for fetch and validate fields and returns an message (or a list of messages, including error,warning,info and success) depending in the conditions.
-
-It's also a message-container library.
-
-It's in beta.
+It's a PHP library for fetch and validate fields and store messages in different containers(including error, warning, info, and success) depending on the conditions.
 
 
 [![Packagist](https://img.shields.io/packagist/v/eftec/validationone.svg)](https://packagist.org/packages/eftec/validationone)
@@ -12,6 +8,16 @@ It's in beta.
 [![php](https://img.shields.io/badge/php->5.6-green.svg)]()
 [![php](https://img.shields.io/badge/php-7.x-green.svg)]()
 [![CocoaPods](https://img.shields.io/badge/docs-70%25-yellow.svg)]()
+
+## Examples
+
+[Examples](https://github.com/EFTEC/ValidationOne/tree/master/examples)
+
+[Tutorial Form and Table with PHP](https://github.com/EFTEC/BladeOne-tutorial1)
+
+![diagram example](examples/docs/DiagramExample.jpg)
+It is an example of functionality.  A normal example is more complex, even if it's only a few lines of code.
+
 
 ## ValidationOne
 
@@ -72,6 +78,7 @@ var_dump($val->errorList->allArray())
 
 ## version list
 
+* 2018-10-15 1.8 Some fixes and phpdocs, a new example
 * 2018-10-15 1.7 Added method addMessage() in ValidationOne. Now ErrorItem/ErrorList is called MessageItem and MessageList
 * 2018-10-06 1.5 added method first() in MessageItem 
 * 2018-10-03 1.4 added defaultNatural()
@@ -79,6 +86,11 @@ var_dump($val->errorList->allArray())
 * 2018-10-02 1.2 array() is now isArray()
 * 2018-09-30 1.1 Some fixes
 * 2018-09-29 1.0 first version
+
+## todo
+* More examples
+* Documentation
+
 
 ## Note
  

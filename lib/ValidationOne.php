@@ -12,7 +12,7 @@ if (!defined("NULLVAL")) define('NULLVAL','__nullval__');
  * Class Validation
  * @package eftec
  * @author Jorge Castro Castillo
- * @version 1.7 20181015
+ * @version 1.8 20181015
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see https://github.com/EFTEC/ValidationOne
  */
@@ -35,6 +35,9 @@ class ValidationOne
     private $type='string';
     /** @var int 0=number,1=string,2=date,3=boolean */
     private $typeFam=1;
+    /** @var bool if an error happens, then the next validations are not executed */
+    private $abortOnError=false;
+
     /** @var bool if the value is an array or not */
     private $isArray=false;
     /** @var bool if true then the the errors from id[0],id[1] ared stored in "idx" */
@@ -47,6 +50,8 @@ class ValidationOne
     private $override=false;
     /** @var bool If true then the field is required otherwise it generates an error */
     private $required=false;
+    /** @var mixed It keeps a copy of the original value (after get/post/fetch or set) */
+    private $originalValue=null;
     /** @var string It's a friendly id used to replace the "id" used in message. For example: "id customer" instead of "idcustomer" */
     private $friendId=null;
     /** @var ValidationItem[]  */
@@ -127,6 +132,15 @@ class ValidationOne
         $this->defaultIfFail=$ifFailThenDefault;
         $this->defaultRequired=$ifRequired;
     }
+    /**
+     * Sets if the conditions must be evaluated on Error or not. By default it's not aborted.
+     * @param bool $abort if true, then it stop at the first error.
+     * @return ValidationOne $this
+     */
+    public function abortOnError($abort=false) {
+        $this->abortOnError=$abort;
+        return $this;
+    }
 
     /**
      * Sets the fetch for an array. It's not required for set()<br>
@@ -162,6 +176,7 @@ class ValidationOne
     /**
      * If it's unable to fetch then it generates an error.<br>
      * However, by default it also returns the default value.
+     * This validation doesn't fail if the field is empty or zero. Only if it's unable to fetch the value.
      * @param bool $required
      * @return ValidationOne
      * @see ValidationOne::def()
@@ -246,6 +261,7 @@ class ValidationOne
         $this->type='string'; // it's important, string is the default value because it's not processed.
         $this->typeFam=1; // string
         $this->isArray=false;
+        $this->abortOnError=true;
         $this->isArrayFlat=false;
         $this->hasMessage=false;
         $this->ifFailThenDefault=$this->defaultIfFail;
@@ -356,7 +372,6 @@ class ValidationOne
         } else {
             $this->runConditions($r,$fieldId);
         }
-
         if ($this->ifFailThenDefault) {
             if ($this->messageList->errorcount)
                 $r=$this->default;
@@ -368,15 +383,20 @@ class ValidationOne
         if ($this->override) {
             $this->messageList->items[$fieldId]=new MessageItem();
         }
-
         if (is_array($value)) {
             foreach($value as $key=>&$v) {
+                $this->originalValue=$v;
                 $currentField=($this->isArrayFlat)?$fieldId:$fieldId."[".$key."]";
                 $v=$this->basicValidation($v,$currentField,$msg);
+                //if ($this->abortOnError && $this->messageList->errorcount) break;
                 $this->runConditions($v,$currentField);
             }
         } else {
-            $this->runConditions($value,$fieldId);
+            $this->originalValue=$value;
+            $value=$this->basicValidation($value,$fieldId,$msg);
+            if ($this->abortOnError!=false || $this->messageList->errorcount==0) {
+                $this->runConditions($value, $fieldId);
+            }
         }
         $this->resetChain();
         return $value;
@@ -626,7 +646,6 @@ class ValidationOne
                 } catch (\Exception $e) {
                     $fail=true;
                     $genMsg=$e->getMessage();
-                    var_dump($genMsg);
                 }
                 break;
             case 'object':
@@ -696,6 +715,9 @@ class ValidationOne
             }
             if ($fail) {
                 $this->addMessageInternal($cond->msg,$genMsg,$fieldId,$r,$cond->value, $cond->level);
+                if (!$this->abortOnError) {
+                    break; // no continue anymore.
+                }
             }
         }
     }
@@ -744,8 +766,10 @@ class ValidationOne
                 $r=$inputType;
         }
         if (!$this->isArray) {
+            $this->originalValue=$r;
             return $this->basicValidation($r, $field, $msg);
         } else {
+            $this->originalValue=$r;
             foreach($r as $key=>&$v) {
                 $currentField=($this->isArrayFlat)?$field:$field."[".$key."]";
                 $v=$this->basicValidation($v,$currentField,$msg);
@@ -838,8 +862,16 @@ class ValidationOne
             $first=$vcomp;
             $second=$vcomp;
         }
-        $txt=str_replace(['%field','%realfield','%value','%comp','%first','%second']
-            ,[($this->friendId)?$fieldId:$this->friendId,$fieldId,$value,$vcomp,$first,$second],$txt);
+        if (is_array($this->originalValue)) {
+            $txt=str_replace(['%field','%realfield','%value','%comp','%first','%second']
+                ,[($this->friendId===null)?$fieldId:$this->friendId,$fieldId
+                    ,$value,$vcomp,$first,$second],$txt);
+            //$this->originalValue=$value;
+        } else {
+            $txt=str_replace(['%field','%realfield','%value','%comp','%first','%second']
+                ,[($this->friendId===null)?$fieldId:$this->friendId,$fieldId
+                    ,$this->originalValue,$vcomp,$first,$second],$txt);
+        }
         $this->messageList->addItem($fieldId,$txt, $level);
     }
 
