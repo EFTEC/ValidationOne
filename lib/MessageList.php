@@ -5,7 +5,7 @@ namespace eftec;
  * Class MessageList
  * @package eftec
  * @author Jorge Castro Castillo
- * @version 1.8 20181015
+ * @version 1.9 20181015
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see https://github.com/EFTEC/ValidationOne
  */

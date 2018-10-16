@@ -6,7 +6,7 @@ namespace eftec;
  * Class MessageItem
  * @package eftec
  * @author Jorge Castro Castillo
- * @version 1.8 20181015
+ * @version 1.9 20181015
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see https://github.com/EFTEC/ValidationOne
  */
@@ -55,38 +55,64 @@ class MessageItem
     public function countSuccess() {
         return count($this->successMsg);
     }
-    public function firstError() {
+
+    /**
+     * It returns the first message of error, if any. Otherwise it returns the default value
+     * @param string $default
+     * @return null|string
+     */
+    public function firstError($default=null) {
         if (isset($this->errorMsg[0])) {
             return $this->errorMsg[0];
         }
-        return null;
+        return $default;
     }
-    public function firstErrorOrWarning() {
+    /**
+     * It returns the first message of error or warning (in this order), if any. Otherwise it returns the default value
+     * @param string $default
+     * @return null|string
+     */
+    public function firstErrorOrWarning($default=null) {
         $r=$this->firstError();
         if ($r===null) $r=$this->firstWarning();
-        return $r;
+        return ($r===null)?$default:$r;
     }
-    public function firstWarning() {
+    /**
+     * It returns the first message of warning, if any. Otherwise it returns the default value
+     * @param string $default
+     * @return null|string
+     */
+    public function firstWarning($default=null) {
         if (isset($this->warningMsg[0])) {
             return $this->warningMsg[0];
         }
-        return null;
+        return $default;
     }
-    public function firstInfo() {
+    /**
+     * It returns the first message of info, if any. Otherwise it returns the default value
+     * @param string $default
+     * @return null|string
+     */
+    public function firstInfo($default=null) {
         if (isset($this->infoMsg[0])) {
             return $this->infoMsg[0];
         }
-        return null;
+        return $default;
     }
-    public function firstSuccess() {
+    /**
+     * It returns the first message of success, if any. Otherwise it returns the default value
+     * @param string $default
+     * @return null|string
+     */
+    public function firstSuccess($default=null) {
         if (isset($this->successMsg[0])) {
             return $this->successMsg[0];
         }
-        return null;
+        return $default;
     }
 
     /**
-     * It returns the first message.<br>
+     * It returns the first message of any kind.<br>
      * If error then it returns the first message of error<br>
      * If not, if warning then it returns the first message of warning<br>
      * If not, then it show the first info message (if any)<br>
@@ -108,33 +134,38 @@ class MessageItem
     }
 
     /**
-     * @return null|string[]
+     * Returns all messages of errors, or an empty array.
+     * @return string[]
      */
     public function allError() {
         return $this->errorMsg;
     }
     /**
-     * @return null|string[]
+     * Returns all messages of errors or warnings, or an empty array
+     * @return string[]
      */
     public function allErrorOrWarning() {
 
         return @array_merge($this->errorMsg,$this->warningMsg);
     }
     /**
-     * @return array|string[]
+     * Returns all messages of warning, or an empty array.
+     * @return string[]
      */
     public function allWarning() {
         return $this->warningMsg;
     }
 
     /**
-     * @return array|string[]
+     * Returns all messages of info, or an empty array.
+     * @return string[]
      */
     public function allInfo() {
         return $this->infoMsg;
     }
     /**
-     * @return array|string[]
+     * Returns all messages of success, or an empty array.
+     * @return string[]
      */
     public function allSuccess() {
         return $this->successMsg;

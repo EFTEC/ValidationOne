@@ -41,10 +41,10 @@ $r = $val->def('ERROR')
     ->get('id');
 ```
 
-But, where is the error?.  It's in errorlist
+But, where is the error?.  It's in messagelist
 
 ```php
-var_dump($val->errorList->allArray())
+var_dump($val->messagelist->allArray())
 ```
 
 ### condition ($type, $message="", $value=null, $level='error')
@@ -78,6 +78,7 @@ var_dump($val->errorList->allArray())
 
 ## version list
 
+* 2018-10-15 1.9 Added some extra features
 * 2018-10-15 1.8 Some fixes and phpdocs, a new example
 * 2018-10-15 1.7 Added method addMessage() in ValidationOne. Now ErrorItem/ErrorList is called MessageItem and MessageList
 * 2018-10-06 1.5 added method first() in MessageItem 

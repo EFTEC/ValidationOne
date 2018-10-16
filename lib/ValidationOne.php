@@ -12,7 +12,7 @@ if (!defined("NULLVAL")) define('NULLVAL','__nullval__');
  * Class Validation
  * @package eftec
  * @author Jorge Castro Castillo
- * @version 1.8 20181015
+ * @version 1.9 20181015
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see https://github.com/EFTEC/ValidationOne
  */
@@ -229,8 +229,8 @@ class ValidationOne
 
     /**
      * @param string $type
-     *      number:req,eq,ne,gt,lt,gte,lte,between<br>
-     *      string:req,eq,ne,minlen,maxlen,betweenlen,notnull<br>
+     *      number:req,eq,ne,gt,lt,gte,lte,between,null,notnull<br>
+     *      string:req,eq,ne,minlen,maxlen,betweenlen,null,notnull,contain,notcontain,alpha,alphanum,text,regexp,email,url,domain<br>
      *      date:req,eq,ne,gt,lt,gte,lte,between<br>
      *      boolean:req,eq,ne,true,false<br>
      *      <b>function:</b><br>
@@ -460,8 +460,19 @@ class ValidationOne
                     $genMsg = '%field is not between ' . @$cond->value[0] . " and " . @$cond->value[1];
                 }
                 break;
-            case 'notnull':
+            case 'null':
+                if ($r !==null) {
+                    $fail = true;
+                    $genMsg = '%field is noy null';
+                }
                 break;
+            case 'notnull':
+                if ($r ===null) {
+                    $fail = true;
+                    $genMsg = '%field is null';
+                }
+                break;
+
         }
     }
     /**
@@ -482,6 +493,62 @@ class ValidationOne
                 if ($r != $cond->value) {
                     $fail = true;
                     $genMsg = '%field is not equals than %comp';
+                }
+                break;
+            case 'contain':
+                if (strpos($r,$cond->value)===false) {
+                    $fail = true;
+                    $genMsg = '%field contains %comp';
+                }
+                break;
+            case 'notcontain':
+                if (strpos($r,$cond->value)!==false) {
+                    $fail = true;
+                    $genMsg = '%field does not contain %comp';
+                }
+                break;
+            case 'alpha':
+                if (!ctype_alpha($r)) {
+                    $fail = true;
+                    $genMsg = '%field is not alphabetic';
+                }
+                break;
+            case 'alphanum':
+                //
+                if (!ctype_alnum($r)) {
+                    $fail = true;
+                    $genMsg = '%field is not alphanumeric';
+                }
+                break;
+            case 'text':
+                // words, number, accents, spaces, and other characters
+                if (!preg_match('^[\p{L}| |.|\/|*|+|.|,|=|_|"|\']+$',$r)) {
+                    $fail = true;
+                    $genMsg = '%field has characters not allowed';
+                }
+                break;
+            case 'regexp':
+                if (!preg_match($cond->value,$r)) {
+                    $fail = true;
+                    $genMsg = '%field is not allowed';
+                }
+                break;
+            case 'email':
+                if (!filter_var($r, FILTER_VALIDATE_EMAIL)) {
+                    $fail = true;
+                    $genMsg = '%field is not an email';
+                }
+                break;
+            case 'url':
+                if (!filter_var($r, FILTER_VALIDATE_URL)) {
+                    $fail = true;
+                    $genMsg = '%field is not an url';
+                }
+                break;
+            case 'domain':
+                if (!filter_var($r, FILTER_VALIDATE_DOMAIN)) {
+                    $fail = true;
+                    $genMsg = '%field is not a domain';
                 }
                 break;
             case 'ne':
@@ -508,10 +575,16 @@ class ValidationOne
                     $genMsg = '%field size is not between %first and %second ';
                 }
                 break;
-            case 'notnull':
-                if ($r===null) {
+            case 'null':
+                if ($r !==null) {
                     $fail = true;
-                    $genMsg = '%field is null ';
+                    $genMsg = '%field is noy null';
+                }
+                break;
+            case 'notnull':
+                if ($r ===null) {
+                    $fail = true;
+                    $genMsg = '%field is null';
                 }
                 break;
             default:
@@ -696,6 +769,7 @@ class ValidationOne
             $fail=false;
 
             if (strpos($cond->type,"fn.")===0) {
+                // if it starts with fn. then it's a function condition
                 $this->runFnCondition($r,$cond,$fail,$genMsg);
             } else {
                 switch ($this->typeFam) {
