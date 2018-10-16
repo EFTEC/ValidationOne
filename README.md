@@ -15,7 +15,7 @@ It's a PHP library for fetch and validate fields and store messages in different
 
 [Tutorial Form and Table with PHP](https://github.com/EFTEC/BladeOne-tutorial1)
 
-![diagram example](examples/docs/DiagramExample.jpg)
+![diagram example](examples/docs/DiagramExample.jpg)  
 It is an example of functionality.  A normal example is more complex, even if it's only a few lines of code.
 
 
@@ -72,6 +72,24 @@ var_dump($val->messagelist->allArray())
 * @return ValidationOne
 
 ## MessageList
+
+MessageList is a list of containers of messages. It's aimed for convenience, so it features many methods to  access of the information in different ways. 
+
+Messages are cataloged as follow
+
+| id      | Description                                                          | Example                               |
+|---------|----------------------------------------------------------------------|---------------------------------------|
+| error   | The message is an error and it must be solved. It is a show stopper. | Database is down                      |
+| warning | The message is a warning that maybe it could be ignored.             | The size of the field is at the limit |
+| info    | The message is an information                                        | Log is stored                         |
+| success | The message is a succesful operation                                 | Order Accepted                        |                             |
+
+
+Sometimes, both errors are warning are considered as equals. So the system allows to read an error or warning.
+
+Error has always the priority, then warning, info and success.  If you want to read the first message, then it starts searching for errors.
+
+You can obtain a message as an array of objects of the type MessageItem, as an array of string, or as an a single string (first message)
 
 
 
