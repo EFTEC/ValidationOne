@@ -12,7 +12,7 @@ if (!defined("NULLVAL")) define('NULLVAL','__nullval__');
  * Class Validation
  * @package eftec
  * @author Jorge Castro Castillo
- * @version 1.10 2018-oct-22
+ * @version 1.11 2018-oct-22
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see https://github.com/EFTEC/ValidationOne
  */
@@ -25,6 +25,9 @@ class ValidationOne
 
     /** @var ValidationInputOne */
     var $input;
+    /** @var bool if debug then it fills an array called debugLog */
+    var $debug=false;
+    var $debugLog=[];
 
     //private $NUMARR='integer,unixtime,boolean,decimal,float';
     private $STRARR='varchar,string';
@@ -79,8 +82,8 @@ class ValidationOne
     private $defaultRequired=false;
     /** @var string Prefix used for the input */
     private $prefix='';
-    /** @var bool  */
-    private $isEmpty=false;
+    /** @var bool value is missing  */
+    private $isMissing=false;
     /* interal counter of error per chain */
     private $countError;
 
@@ -101,12 +104,14 @@ class ValidationOne
         $this->resetChain();
     }
 
+    /**
+     * @return ValidationInputOne
+     */
     private function input() {
         if ($this->input===null) {
             $this->input=new ValidationInputOne($this->prefix,$this->messageList); // we used the same message list
         }
         return $this->input;
-
     }
 
     /**
@@ -117,10 +122,19 @@ class ValidationOne
     public function get($field="",$msg=null) {
         return $this->endChainFetch(INPUT_GET,$field,$msg);
     }
+    /**
+     * @param string $field
+     * @param null $msg
+     * @return array|bool|\DateTime|float|int|mixed|null
+     */
     public function post($field,$msg=null) {
         return $this->endChainFetch(INPUT_POST,$field,$msg);
     }
-
+    /**
+     * @param string $field
+     * @param null $msg
+     * @return array|bool|\DateTime|float|int|mixed|null
+     */
     public function request($field,$msg=null) {
         return $this->endChainFetch(INPUT_REQUEST,$field,$msg);
     }
@@ -149,12 +163,10 @@ class ValidationOne
         $this->input()->originalValue=$this->originalValue;
         $this->input()->ifFailThenOrigin=$this->ifFailThenOrigin;
         $this->input()->initial=$this->initial;
-
         $r=$this->input()
             ->required($this->required)
             ->friendId($this->friendId)
-            ->getField($fieldId,$inputType,$msg,$isEmpty);
-
+            ->getField($fieldId,$inputType,$msg,$this->isMissing);
         return $this->afterFetch($r,$fieldId,$msg);
 
     }
@@ -177,6 +189,12 @@ class ValidationOne
         return $this;
     }
 
+    /**
+     * (Optional). It sets an initial value.<br>
+     * If the value is missing (that it's different to empty or null), then it uses this value.
+     * @param null $initial
+     * @return $this
+     */
     public function initial($initial=null) {
         $this->initial=$initial;
         return $this;
@@ -282,7 +300,7 @@ class ValidationOne
     /**
      * If it's unable to fetch then it generates an error.<br>
      * However, by default it also returns the default value.
-     * This validation doesn't fail if the field is empty or zero. Only if it's unable to fetch the value.
+     * This validation doesn't fail if the field is missing or zero. Only if it's unable to fetch the value.
      * @param bool $required
      * @return ValidationOne
      * @see ValidationOne::def()
@@ -457,7 +475,7 @@ class ValidationOne
 
     private function afterFetch($r, $fieldId,$msg) {
 
-        if (!$this->isEmpty) {
+        if (!$this->isMissing) {
             if ($this->ifFailThenOrigin) {
                 $this->default = $r;
             }
@@ -497,7 +515,6 @@ class ValidationOne
                 }
             }
         }
-
         if ($this->messageList->errorcount==$this->countError && $this->successMessage!==null) {
             $this->addMessage($this->successMessage['id'],$this->successMessage['msg'],$this->successMessage['level']);
         }
@@ -507,13 +524,21 @@ class ValidationOne
         $this->resetChain();
         return $r;
     }
-    private function callFormBack($fieldId) {
-        $this->formOne->callBack($this,$fieldId);
 
+    /**
+     * It's a callback to the form if it's defined.<br>
+     * It's used to inform to the form that the validation chain is ready to send validation to the visual layer.
+     * @param $fieldId
+     */
+    private function callFormBack($fieldId) {
+        if ($this->formOne!==null) {
+            /** @noinspection PhpUndefinedMethodInspection */
+            $this->formOne->callBack($this, $fieldId);
+        }
     }
 
-    public function set($value,$fieldId="setfield",$msg="",&$isEmpty=false) {
-        $this->isEmpty=$isEmpty;
+    public function set($value,$fieldId="setfield",$msg="",&$isMissing=false) {
+        $this->isMissing=$isMissing;
         if ($this->override) {
             $this->messageList->items[$fieldId]=new MessageItem();
         }
@@ -561,9 +586,8 @@ class ValidationOne
      * @param ValidationItem $cond
      * @param $fail
      * @param $genMsg
-     * @param $key
      */
-    private function runNumericCondition($r,$cond,&$fail,&$genMsg,$key) {
+    private function runNumericCondition($r, $cond, &$fail, &$genMsg) {
         switch ($cond->type) {
             case 'req':
                 if (!$r) {
@@ -634,9 +658,8 @@ class ValidationOne
      * @param ValidationItem $cond
      * @param $fail
      * @param $genMsg
-     * @param $key
      */
-    private function runStringCondition($r,$cond,&$fail,&$genMsg,$key) {
+    private function runStringCondition($r, $cond, &$fail, &$genMsg) {
 
         switch ($cond->type) {
             case 'req':
@@ -754,9 +777,8 @@ class ValidationOne
      * @param ValidationItem $cond
      * @param $fail
      * @param $genMsg
-     * @param $key
      */
-    private function runDateCondition($r,$cond,&$fail,&$genMsg,$key) {
+    private function runDateCondition($r, $cond, &$fail, &$genMsg) {
         switch ($cond->type) {
             case 'req':
                 if (!$r) {
@@ -815,9 +837,8 @@ class ValidationOne
      * @param ValidationItem $cond
      * @param $fail
      * @param $genMsg
-     * @param $key
      */
-    private function runBoolCondition($r,$cond,&$fail,&$genMsg,$key) {
+    private function runBoolCondition($r, $cond, &$fail, &$genMsg) {
         switch ($cond->type) {
             case 'req':
                 if (!$r) {
@@ -858,9 +879,8 @@ class ValidationOne
      * @param ValidationItem $cond
      * @param $fail
      * @param $genMsg
-     * @param null $key
      */
-    private function runFnCondition($r,$cond,&$fail,&$genMsg,$key=null) {
+    private function runFnCondition($r, $cond, &$fail, &$genMsg) {
         // is a function
         $arr=explode(".",$cond->type);
         switch ($arr[1]) {
@@ -936,16 +956,16 @@ class ValidationOne
                 } else {
                     switch ($this->typeFam) {
                         case 0: // number
-                            $this->runNumericCondition($r, $cond, $fail, $genMsg,$key);
+                            $this->runNumericCondition($r, $cond, $fail, $genMsg);
                             break;
                         case 1: // string
-                            $this->runStringCondition($r, $cond, $fail, $genMsg,$key);
+                            $this->runStringCondition($r, $cond, $fail, $genMsg);
                             break;
                         case 2: // date
-                            $this->runDateCondition($r, $cond, $fail, $genMsg,$key);
+                            $this->runDateCondition($r, $cond, $fail, $genMsg);
                             break;
                         case 3: // bool
-                            $this->runBoolCondition($r, $cond, $fail, $genMsg,$key);
+                            $this->runBoolCondition($r, $cond, $fail, $genMsg);
                             break;
                     } // switch
                 }
@@ -963,20 +983,20 @@ class ValidationOne
 
                     if (strpos($cond->type, "fn.") === 0) {
                         // if it starts with fn. then it's a function condition
-                        $this->runFnCondition($r, $cond, $fail, $genMsg,$key);
+                        $this->runFnCondition($r, $cond, $fail, $genMsg);
                     } else {
                         switch ($this->typeFams[$key]) {
                             case 0: // number
-                                $this->runNumericCondition($r, $cond, $fail, $genMsg,$key);
+                                $this->runNumericCondition($r, $cond, $fail, $genMsg);
                                 break;
                             case 1: // string
-                                $this->runStringCondition($r, $cond, $fail, $genMsg,$key);
+                                $this->runStringCondition($r, $cond, $fail, $genMsg);
                                 break;
                             case 2: // date
-                                $this->runDateCondition($r, $cond, $fail, $genMsg,$key);
+                                $this->runDateCondition($r, $cond, $fail, $genMsg);
                                 break;
                             case 3: // bool
-                                $this->runBoolCondition($r, $cond, $fail, $genMsg,$key);
+                                $this->runBoolCondition($r, $cond, $fail, $genMsg);
                                 break;
                         } // switch
                     }
@@ -1040,7 +1060,6 @@ class ValidationOne
             case 'varchar':
             case 'string':
                 // if string is empty then it uses the default value. It's useful for filter
-
                 return ($value==="")?$localDefault:$value;
                 break;
             case 'date':

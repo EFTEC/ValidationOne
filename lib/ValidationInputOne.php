@@ -78,16 +78,18 @@ class ValidationInputOne
      * @param string $field id of the field, without the prefix.
      * @param int|string $inputType INPUT_REQUEST|INPUT_POST|INPUT_GET or it could be the value (for set)
      * @param null|string $msg
-     * @param bool $isEmpty
+     * @param bool $isMissing
      * @return array|mixed|null
      */
-    public function getField($field,$inputType=INPUT_REQUEST,$msg=null,&$isEmpty=false) {
+    public function getField($field,$inputType=INPUT_REQUEST,$msg=null,&$isMissing=false) {
+
+
         $fieldId=$this->prefix.$field;
         $r=null;
         switch ($inputType) {
             case INPUT_POST:
                 if (!isset($_POST[$fieldId])) {
-                    $isEmpty=true;
+                    $isMissing=true;
                     if ($this->required) $this->addMessageInternal($msg,"Field is missing",$fieldId,"","",'error');
                     return ($this->initial===null)?$this->default:$this->initial;
                 }
@@ -96,7 +98,7 @@ class ValidationInputOne
                 break;
             case INPUT_GET:
                 if (!isset($_GET[$fieldId])) {
-                    $isEmpty=true;
+                    $isMissing=true;
                     if ($this->required) $this->addMessageInternal($msg,"Field is missing",$fieldId,"","",'error');
                     return ($this->initial===null)?$this->default:$this->initial;
                 }
@@ -108,7 +110,7 @@ class ValidationInputOne
                     $r=$_POST[$fieldId];
                 }  else {
                     if (!isset($_GET[$fieldId]) ) {
-                        $isEmpty=true;
+                        $isMissing=true;
                         if ($this->required) $this->addMessageInternal($msg,"Field is missing",$fieldId,"","",'error');
                         return ($this->initial===null)?$this->default:$this->initial;
                     }
@@ -118,7 +120,7 @@ class ValidationInputOne
                 break;
             default:
                 trigger_error("input type ".$inputType." not defined for getField()");
-                $isEmpty=false;
+                $isMissing=false;
                 $r=null;
         }
         return $r;
@@ -127,21 +129,21 @@ class ValidationInputOne
     /**
      * @param string $field
      * @param null $msg
-     * @param bool $isEmpty
+     * @param bool $isMissing
      * @return array|bool|\DateTime|float|int|mixed|null
      */
-    public function get($field="",$msg=null,&$isEmpty=false) {
-        $r=$this->getField($field,INPUT_GET,$msg,$isEmpty);
+    public function get($field="",$msg=null,&$isMissing=false) {
+        $r=$this->getField($field,INPUT_GET,$msg,$isMissing);
         return $r;
     }
-    public function post($field,$msg=null,&$isEmpty=false) {
+    public function post($field,$msg=null,&$isMissing=false) {
         $fieldId=$this->prefix.$field;
-        $r=$this->getField($field,INPUT_POST,$msg,$isEmpty);
+        $r=$this->getField($field,INPUT_POST,$msg,$isMissing);
         return $r;
     }
-    public function request($field,$msg=null,&$isEmpty=false) {
+    public function request($field,$msg=null,&$isMissing=false) {
         $fieldId=$this->prefix.$field;
-        $r=$this->getField($field,INPUT_REQUEST,$msg,$isEmpty);
+        $r=$this->getField($field,INPUT_REQUEST,$msg,$isMissing);
         return $r;
     }
 
@@ -150,11 +152,11 @@ class ValidationInputOne
      * @param int $inputType INPUT_POST|INPUT_GET|INPUT_REQUEST
      * @param string $field
      * @param null|string $msg
-     * @param bool $isEmpty
+     * @param bool $isMissing
      * @return mixed
      */
-    public function fetch($inputType,$field,$msg=null,&$isEmpty=false) {
-        $r=$this->getField($field,$inputType,$msg,$isEmpty);
+    public function fetch($inputType,$field,$msg=null,&$isMissing=false) {
+        $r=$this->getField($field,$inputType,$msg,$isMissing);
         return $r;
     }
 

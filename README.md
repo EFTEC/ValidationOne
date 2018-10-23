@@ -99,7 +99,7 @@ You can obtain a message as an array of objects of the type MessageItem, as an a
 
 
 ## version list
-
+* 2018-10-22 1.11 Some fixes. Now isEmpty is called isMissing
 * 2018-10-22 1.10 New Features
 * * Added ValidationInputOne, now the fetchs are done by  this class (SRP principle)
 * * Added a fix with the input, when the value expected is an array but it's returned a single value
