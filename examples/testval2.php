@@ -32,6 +32,8 @@ $r = $val->def('ERROR')
     ->condition("eq", "It's not equals to 10 (error) [%field] [%realfield] [%value] [%comp]", 10)
     ->condition("eq", "It's not equals to 30 (info)", 30, 'info')
     ->ifFailThenDefault()
+    ->isArray(false)
+    ->isColumn(true)
     ->set([1,'aaa','bbbb'], 'id',"some error message");
 
 
@@ -44,7 +46,7 @@ $r2 = $val->def('ERROR')
 $timeEnd = microtime(true);
 echo json_encode($val->messageList->items,JSON_PRETTY_PRINT);
 echo "<hr>";
-echo json_encode(getMessageList()->allArray(),JSON_PRETTY_PRINT);
-echo json_encode(getMessageList()->get('id[2]')->allErrorOrWarning(),JSON_PRETTY_PRINT);
-echo (getMessageList()->get('id[2]')->firstError())."<br>";
+echo json_encode(messages()->allArray(),JSON_PRETTY_PRINT);
+echo json_encode(messages()->get('id[2]')->allErrorOrWarning(),JSON_PRETTY_PRINT);
+echo (messages()->get('id[2]')->firstError())."<br>";
 

@@ -17,6 +17,9 @@ class Example {
     }
 }
 
+echo "<h1>Testing to fetch value from get (test 2)</h1>";
+echo "<a href='?frm_id=12345'>click here for test a value</a><br><br>";
+
 $example=new Example();
 
 function getExample() {
@@ -59,11 +62,11 @@ echo "el valor es ".print_r($r,true)."<br>";
 dump(getVal()->messageList->get('id')->allErrorOrWarning());
 
 dump(getVal()->messageList->get("id"));
-echo "<hr>con id2:<br>";
+echo "<hr>with id2: (there is not a container with id2)<br>";
 
 dump(getVal()->messageList->get('id2')->allErrorOrWarning());
 
-dump(getVal()->messageList->get("id"));
+dump(getVal()->messageList->get("id2"));
 echo "<hr>";
 
 function dump($var) {

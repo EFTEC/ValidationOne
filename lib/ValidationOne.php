@@ -12,7 +12,7 @@ if (!defined("NULLVAL")) define('NULLVAL','__nullval__');
  * Class Validation
  * @package eftec
  * @author Jorge Castro Castillo
- * @version 1.9 20181015
+ * @version 1.10 2018-oct-22
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see https://github.com/EFTEC/ValidationOne
  */
@@ -23,7 +23,9 @@ class ValidationOne
     /** @var MessageList */
     var $messageList;
 
-    var $prefix='';
+    /** @var ValidationInputOne */
+    var $input;
+
     //private $NUMARR='integer,unixtime,boolean,decimal,float';
     private $STRARR='varchar,string';
     private $DATARR='date,datetime';
@@ -31,21 +33,30 @@ class ValidationOne
     //<editor-fold desc="chain variables">
     /** @var mixed default value */
     private $default=null;
+    private $initial=null;
     /** @var string integer,unixtime,boolean,decimal,float,varchar,string,date,datetime */
     private $type='string';
+    private $types=[];
     /** @var int 0=number,1=string,2=date,3=boolean */
     private $typeFam=1;
+    private $typeFams=1;
     /** @var bool if an error happens, then the next validations are not executed */
     private $abortOnError=false;
 
     /** @var bool if the value is an array or not */
     private $isArray=false;
+    /** @var bool if the value is an array or not */
+    private $isColumn=false;
     /** @var bool if true then the the errors from id[0],id[1] ared stored in "idx" */
     private $isArrayFlat=false;
 
     private $hasMessage=false;
     /** @var bool if the validation fails then it returns the default value */
     private $ifFailThenDefault=false;
+    private $ifFailThenOrigin=false;
+    /** @var null|string  */
+    private $successMessage=null;
+
     /** @var bool It override previous errors (for the "id" used) */
     private $override=false;
     /** @var bool If true then the field is required otherwise it generates an error */
@@ -55,26 +66,97 @@ class ValidationOne
     /** @var string It's a friendly id used to replace the "id" used in message. For example: "id customer" instead of "idcustomer" */
     private $friendId=null;
     /** @var ValidationItem[]  */
-    private $validation=[];
+    public $conditions=[];
+
+    /**
+     * @var FormOne It is a optional feature that uses FormOne. It's used for callback.
+     * @see https://github.com/EFTEC/FormOne
+     */
+    private $formOne=null;
+    private $addToForm=false;
 
     private $defaultIfFail=false;
     private $defaultRequired=false;
+    /** @var string Prefix used for the input */
+    private $prefix='';
+    /** @var bool  */
+    private $isEmpty=false;
+    /* interal counter of error per chain */
+    private $countError;
 
     //</editor-fold>
 
     /**
      * Validation constructor.
-     * @param string $prefix The prefix is used to fetch values. For example the prefix "frm_"
+     * @param string $prefix Prefix used for the input. For example "frm_"
      */
     public function __construct($prefix='')
     {
-        $this->prefix=$prefix;
         if (function_exists('messages')) {
             $this->messageList=messages();
         } else {
             $this->messageList=new MessageList();
         }
+        $this->prefix=$prefix;
         $this->resetChain();
+    }
+
+    private function input() {
+        if ($this->input===null) {
+            $this->input=new ValidationInputOne($this->prefix,$this->messageList); // we used the same message list
+        }
+        return $this->input;
+
+    }
+
+    /**
+     * @param string $field
+     * @param null $msg
+     * @return array|bool|\DateTime|float|int|mixed|null
+     */
+    public function get($field="",$msg=null) {
+        return $this->endChainFetch(INPUT_GET,$field,$msg);
+    }
+    public function post($field,$msg=null) {
+        return $this->endChainFetch(INPUT_POST,$field,$msg);
+    }
+
+    public function request($field,$msg=null) {
+        return $this->endChainFetch(INPUT_REQUEST,$field,$msg);
+    }
+    /**
+     * It fetches a value.
+     * @param int $inputType INPUT_POST|INPUT_GET|INPUT_REQUEST
+     * @param string $field
+     * @param null|string $msg
+     * @return mixed
+     */
+    public function fetch($inputType,$field,$msg=null) {
+        return $this->endChainFetch($inputType,$field,$msg);
+    }
+
+    /**
+     * @param $inputType
+     * @param $fieldId
+     * @param null $msg
+     * @return array|bool|\DateTime|float|int|mixed|null
+     */
+    private function endChainFetch($inputType,$fieldId,$msg=null) {
+
+        $this->countError=$this->messageList->errorcount;
+
+        $this->input()->default=$this->default;
+        $this->input()->originalValue=$this->originalValue;
+        $this->input()->ifFailThenOrigin=$this->ifFailThenOrigin;
+        $this->input()->initial=$this->initial;
+
+        $r=$this->input()
+            ->required($this->required)
+            ->friendId($this->friendId)
+            ->getField($fieldId,$inputType,$msg,$isEmpty);
+
+        return $this->afterFetch($r,$fieldId,$msg);
+
     }
 
 
@@ -83,14 +165,20 @@ class ValidationOne
      * It sets a default value. It could be used as follow:
      * a) if the value is not set and it's not required (by default, it's not required), then it sets this value. otherwise null<br>
      * b) if the value is not set and it's required, then it returns an error and it sets this value, otherwise null<br>
-     * c) if the value is not set and it's an array, then it sets a single value (not the whole array).
-     * @param mixed $value
+     * c) if the value is not set and it's an array, then it sets a single value or it sets a value per key of array.
+     * d) if value is null, then the default value is the same input value.
+     * @param mixed|array $value
      * @param bool|null $ifFailThenDefault  True if the system returns the default value if error.
      * @return ValidationOne $this
      */
-    public function def($value, $ifFailThenDefault=null) {
+    public function def($value=null, $ifFailThenDefault=null) {
         $this->default=$value;
         if ($ifFailThenDefault!==null) $this->ifFailThenDefault=$ifFailThenDefault;
+        return $this;
+    }
+
+    public function initial($initial=null) {
+        $this->initial=$initial;
         return $this;
     }
 
@@ -153,6 +241,10 @@ class ValidationOne
         $this->isArrayFlat=$flat;
         return $this;
     }
+    public function isColumn($isColumn) {
+        $this->isColumn=$isColumn;
+        return $this;
+    }
 
     /**
      * @param bool $ifFailDefault
@@ -160,6 +252,20 @@ class ValidationOne
      */
     public function ifFailThenDefault($ifFailDefault=true) {
         $this->ifFailThenDefault=$ifFailDefault;
+        return $this;
+    }
+    /**
+     * @param bool $ifFailThenOrigin
+     * @return ValidationOne ValidationOne
+     */
+    public function ifFailThenOrigin($ifFailThenOrigin=true) {
+        $this->ifFailThenDefault=true;
+        $this->ifFailThenOrigin=$ifFailThenOrigin;
+        return $this;
+    }
+
+    public function successMessage($id,$msg,$level="success") {
+        $this->successMessage=['id'=>$id,'msg'=>$msg,'level'=>$level];
         return $this;
     }
 
@@ -187,6 +293,25 @@ class ValidationOne
     }
 
     /**
+     * The value musn't be empty. It's equals than condition('ne','..','','error')
+     * @param string $msg
+     * @return $this
+     */
+    public function notempty($msg='') {
+        $this->condition('ne',($msg=='')?'%field is empty':$msg,'','error');
+        return $this;
+    }
+
+    /**
+     * @param FormOne $form
+     * @return ValidationOne
+     */
+    public function useForm($form) {
+        $this->formOne=$form;
+        return $this;
+    }
+
+    /**
      * It's a friendly id used to replace the "id" used in message. For example: "id customer" instead of "idcustomer"
      * @param $id
      * @return ValidationOne
@@ -198,32 +323,46 @@ class ValidationOne
 
     /**
      * It returns the number of the family.
-     * @param string $type integer,unixtime,boolean,decimal,float,varchar,string,date,datetime
-     * @return int 1=string,2=date,3=boolean,0=number
+     * @param string|array $type integer,unixtime,boolean,decimal,float,varchar,string,date,datetime
+     * @return int|int[] 1=string,2=date,3=boolean,0=number
      */
     private function getTypeFamily($type) {
-        switch (1==1) {
-            case (strpos($this->STRARR,$type)!==false):
-                $r=1; // string
-                break;
-            case (strpos($this->DATARR,$type)!==false):
-                $r=2; // date
-                break;
-            case ($type=='boolean'):
-                $r=3; // boolean
-                break;
-            default:
-                $r=0; // number
+        if (is_array($type)) {
+            $r=[];
+            foreach($type as $key=>$t) {
+                $r[$key]=$this->getTypeFamily($t);
+            }
+        } else {
+            switch (1 == 1) {
+                case (strpos($this->STRARR, $type) !== false):
+                    $r = 1; // string
+                    break;
+                case (strpos($this->DATARR, $type) !== false):
+                    $r = 2; // date
+                    break;
+                case ($type == 'boolean'):
+                    $r = 3; // boolean
+                    break;
+                default:
+                    $r = 0; // number
+            }
         }
         return $r;
     }
+
     /**
-     * @param string $type integer,unixtime,boolean,decimal,float,varchar,string,date,datetime
+     * @param string|array $type integer,unixtime,boolean,decimal,float,varchar,string,date,datetime
      * @return ValidationOne $this
      */
     public function type($type) {
-        $this->typeFam=$this->getTypeFamily($type);
-        $this->type=$type;
+        if(is_array($type)) {
+            $this->typeFams=$this->getTypeFamily($type);
+            $this->types=$type;
+        } else {
+            $this->typeFam=$this->getTypeFamily($type);
+            $this->type=$type;
+
+        }
         return $this;
     }
 
@@ -239,14 +378,20 @@ class ValidationOne
      *          fn.object.Class.method where object is a global $object<br>
      *          fn.class.Class.method<br>
      *          fn.class.\namespace\Class.method<br>
-     * @param string $message<br>
+     * @param string $message <br>
      *      Message could uses the next variables '%field','%realfield','%value','%comp','%first','%second'
      * @param null $value
      * @param string $level (error,warning,info,success)
+     * @param null $key
      * @return ValidationOne
      */
-    public function condition($type, $message="", $value=null, $level='error') {
-        $this->validation[]=new ValidationItem($type,$message,$value,$level);
+    public function condition($type, $message="", $value=null, $level='error',$key=null) {
+        if ($key!==null) {
+            $this->conditions[$key][]=new ValidationItem($type,$message,$value,$level);
+        } else {
+            $this->conditions[]=new ValidationItem($type,$message,$value,$level);
+        }
+
         return $this;
 
     }
@@ -258,20 +403,37 @@ class ValidationOne
     public function resetChain() {
 
         $this->default=null;
+        $this->initial=null;
+
         $this->type='string'; // it's important, string is the default value because it's not processed.
         $this->typeFam=1; // string
         $this->isArray=false;
         $this->abortOnError=true;
         $this->isArrayFlat=false;
+        $this->isColumn=false;
         $this->hasMessage=false;
         $this->ifFailThenDefault=$this->defaultIfFail;
-        $this->validation=[];
-
+        $this->ifFailThenOrigin=false;
+        $this->conditions=[];
         $this->override=false;
         $this->resetValidation();
         $this->required=$this->defaultRequired;
         $this->friendId=null;
+        $this->successMessage=null;
+        $this->countError=0;
+        $this->addToForm=false;
     }
+
+    private $container=[];
+
+    public function store() {
+        $id=1;
+        $this->container[$id]=[];
+        $new=&$this->container[$id]; //it's an instance
+        $new['isArray']=$this->isArray;
+    }
+
+
     //</editor-fold>
     /**
      * You could add a message (including errors,warning..) and store in a $id
@@ -288,108 +450,88 @@ class ValidationOne
      * It cleans the stacked validations. It doesn't delete the errors.
      */
     public function resetValidation() {
-        $this->validation=array();
+        $this->conditions=array();
     }
 
     //<editor-fold desc="fetch and end of chain commands">
 
-    /**
-     * Returns null if the value is not present, false if the value is incorrect and the value if its correct
-     * @param $field
-     * @param bool $array
-     * @param string $fileTmp
-     * @param string $fileNew
-     * @return array|int|null|string
-     * @internal param $folder
-     * @internal param string $type
-     */
-    public static function getFile($field,$array=false,&$fileTmp="",&$fileNew="")
-    {
-        if (!$array) {
-            $fileNew=@$_FILES[$field]['name'];
-            if ($fileNew!="") {
-                // its uploading a file
-                $fileTmp=@$_FILES[$field]['tmp_name'];
-                $filename=@$_POST[$field.'_file']; // previous filename if any
-                return $filename;
+    private function afterFetch($r, $fieldId,$msg) {
+
+        if (!$this->isEmpty) {
+            if ($this->ifFailThenOrigin) {
+                $this->default = $r;
+            }
+            if (!$this->isArray) {
+                $this->originalValue = $r;
+                $r = $this->basicValidation($r, $fieldId, $msg);
             } else {
-                $filename=@$_POST[$field.'_file']; // previous filename if any
-                $fileTmp='';
-                $fileNew='';
-                return $filename;
-            }
-        } else {
-            $c=count($_FILES[$field]['name']);
-            $filenames=array();
-            for($i=0;$i<$c;$i++) {
-                $filename=@$_FILES[$field]['name'][$i];
-                if ($filename!="") {
-                    $filename=$filename.'&&'.@$_FILES[$field]['tmp_name'][$i].'&&'.@$_POST[$field.'_file'][$i];
+                $this->originalValue = $r;
+                if (is_array($r) || $r === null) {
+                    if ($r !== null) {
+                        foreach ($r as $key => &$v) {
+                            $currentField = ($this->isArrayFlat) ? $fieldId : $fieldId . "[" . $key . "]";
+                            $v = $this->basicValidation($v, $currentField, $msg, $key);
+                        }
+                    }
                 } else {
-                    $filename='&&'.'&&'.@$_POST[$field.'_file'][$i];
-                }
-                $filenames[]=$filename;
-            }
-            return $filenames;
-        }
-    }
-    public function get($field,$msg=null) {
-        $fieldId=$this->prefix.$field;
-        $r=$this->getField($fieldId,INPUT_GET,$msg);
-        return $this->utilFetch($r,$fieldId);
-    }
-    public function post($field,$msg=null) {
-        $fieldId=$this->prefix.$field;
-        $r=$this->getField($fieldId,INPUT_POST,$msg);
-        return $this->utilFetch($r,$fieldId);
-    }
-    public function request($field,$msg=null) {
-        $fieldId=$this->prefix.$field;
-        $r=$this->getField($fieldId,INPUT_REQUEST,$msg);
-        return $this->utilFetch($r,$fieldId);
-    }
-
-    /**
-     * It fetches a value.
-     * @param int $inputType INPUT_POST|INPUT_GET|INPUT_REQUEST
-     * @param string $field
-     * @param null|string $msg
-     * @return mixed
-     */
-    public function fetch($inputType,$field,$msg=null) {
-        $fieldId=$this->prefix.$field;
-        $r=$this->getField($fieldId,$inputType,$msg);
-        return $this->utilFetch($r,$fieldId);
-    }
-
-    private function utilFetch($r,$fieldId) {
-        if ($this->isArray) {
-            if (is_array($r)) {
-                foreach ($r as $items) {
-                    $this->runConditions($items, $fieldId);
+                    $this->addMessageInternal('%field is not an array', '', $fieldId, 0, 'error');
                 }
             }
-        } else {
-            $this->runConditions($r,$fieldId);
+            if ($this->isArray) {
+                if (is_array($r)) {
+                    foreach ($r as $key => &$items) {
+                        $currentField = ($this->isArrayFlat) ? $fieldId : $fieldId . "[" . $key . "]";
+                        $this->runConditions($items, $currentField, $key);
+
+                        if ($this->ifFailThenDefault) {
+                            if ($this->messageList->get($currentField)->countError())
+                                $items = (is_array($this->default)) ? $this->default[$key] : $this->default;
+                        }
+                    }
+                }
+            } else {
+                $this->runConditions($r, $fieldId);
+                if ($this->ifFailThenDefault) {
+                    if ($this->messageList->errorcount)
+                        $r = $this->default;
+                }
+            }
         }
-        if ($this->ifFailThenDefault) {
-            if ($this->messageList->errorcount)
-                $r=$this->default;
+
+        if ($this->messageList->errorcount==$this->countError && $this->successMessage!==null) {
+            $this->addMessage($this->successMessage['id'],$this->successMessage['msg'],$this->successMessage['level']);
+        }
+        if ($this->addToForm) {
+            $this->callFormBack($fieldId);
         }
         $this->resetChain();
         return $r;
     }
-    public function set($value,$fieldId="setfield",$msg="") {
+    private function callFormBack($fieldId) {
+        $this->formOne->callBack($this,$fieldId);
+
+    }
+
+    public function set($value,$fieldId="setfield",$msg="",&$isEmpty=false) {
+        $this->isEmpty=$isEmpty;
         if ($this->override) {
             $this->messageList->items[$fieldId]=new MessageItem();
         }
+        if (is_object($value)) {
+            $value=(array)$value;
+        }
+        $this->countError=$this->messageList->errorcount;
         if (is_array($value)) {
             foreach($value as $key=>&$v) {
                 $this->originalValue=$v;
                 $currentField=($this->isArrayFlat)?$fieldId:$fieldId."[".$key."]";
-                $v=$this->basicValidation($v,$currentField,$msg);
+                $v=$this->basicValidation($v,$currentField,$msg,$key);
                 //if ($this->abortOnError && $this->messageList->errorcount) break;
-                $this->runConditions($v,$currentField);
+                $this->runConditions($v,$currentField,$key);
+                if ($this->messageList->errorcount===0) {
+                    if ($this->messageList->get($currentField)->countError())
+                        $v=@$this->default[$key];
+                }
             }
         } else {
             $this->originalValue=$value;
@@ -397,6 +539,16 @@ class ValidationOne
             if ($this->abortOnError!=false || $this->messageList->errorcount==0) {
                 $this->runConditions($value, $fieldId);
             }
+            if ($this->ifFailThenDefault) {
+                if ($this->messageList->get($fieldId)->countError())
+                    $value=$this->default;
+            }
+        }
+        if ($this->messageList->errorcount==$this->countError && $this->successMessage!==null) {
+            $this->addMessage($this->successMessage['id'],$this->successMessage['msg'],$this->successMessage['level']);
+        }
+        if ($this->addToForm) {
+            $this->callFormBack($fieldId);
         }
         $this->resetChain();
         return $value;
@@ -409,8 +561,9 @@ class ValidationOne
      * @param ValidationItem $cond
      * @param $fail
      * @param $genMsg
+     * @param $key
      */
-    private function runNumericCondition($r,$cond,&$fail,&$genMsg) {
+    private function runNumericCondition($r,$cond,&$fail,&$genMsg,$key) {
         switch ($cond->type) {
             case 'req':
                 if (!$r) {
@@ -475,13 +628,16 @@ class ValidationOne
 
         }
     }
+
     /**
      * @param $r
      * @param ValidationItem $cond
      * @param $fail
      * @param $genMsg
+     * @param $key
      */
-    private function runStringCondition($r,$cond,&$fail,&$genMsg) {
+    private function runStringCondition($r,$cond,&$fail,&$genMsg,$key) {
+
         switch ($cond->type) {
             case 'req':
                 if (!$r) {
@@ -592,13 +748,15 @@ class ValidationOne
         }
 
     }
+
     /**
      * @param $r
      * @param ValidationItem $cond
      * @param $fail
      * @param $genMsg
+     * @param $key
      */
-    private function runDateCondition($r,$cond,&$fail,&$genMsg) {
+    private function runDateCondition($r,$cond,&$fail,&$genMsg,$key) {
         switch ($cond->type) {
             case 'req':
                 if (!$r) {
@@ -651,13 +809,15 @@ class ValidationOne
         }
 
     }
+
     /**
      * @param $r
      * @param ValidationItem $cond
      * @param $fail
      * @param $genMsg
+     * @param $key
      */
-    private function runBoolCondition($r,$cond,&$fail,&$genMsg) {
+    private function runBoolCondition($r,$cond,&$fail,&$genMsg,$key) {
         switch ($cond->type) {
             case 'req':
                 if (!$r) {
@@ -692,13 +852,15 @@ class ValidationOne
         }
 
     }
+
     /**
      * @param $r
      * @param ValidationItem $cond
      * @param $fail
      * @param $genMsg
+     * @param null $key
      */
-    private function runFnCondition($r,$cond,&$fail,&$genMsg) {
+    private function runFnCondition($r,$cond,&$fail,&$genMsg,$key=null) {
         // is a function
         $arr=explode(".",$cond->type);
         switch ($arr[1]) {
@@ -763,34 +925,67 @@ class ValidationOne
                 trigger_error("validation fn not defined");
         }
     }
-    private function runConditions($r, $fieldId) {
+    private function runConditions($r, $fieldId,$key=null) {
         $genMsg='';
-        foreach($this->validation as $cond) {
-            $fail=false;
-
-            if (strpos($cond->type,"fn.")===0) {
-                // if it starts with fn. then it's a function condition
-                $this->runFnCondition($r,$cond,$fail,$genMsg);
-            } else {
-                switch ($this->typeFam) {
-                    case 0: // number
-                        $this->runNumericCondition($r,$cond,$fail,$genMsg);
-                        break;
-                    case 1: // string
-                        $this->runStringCondition($r,$cond,$fail,$genMsg);
-                        break;
-                    case 2: // date
-                        $this->runDateCondition($r,$cond,$fail,$genMsg);
-                        break;
-                    case 3: // bool
-                        $this->runBoolCondition($r,$cond,$fail,$genMsg);
-                        break;
-                } // switch
+        if ($key===null || $this->isColumn) {
+            foreach ($this->conditions as $cond) {
+                $fail = false;
+                if (strpos($cond->type, "fn.") === 0) {
+                    // if it starts with fn. then it's a function condition
+                    $this->runFnCondition($r, $cond, $fail, $genMsg);
+                } else {
+                    switch ($this->typeFam) {
+                        case 0: // number
+                            $this->runNumericCondition($r, $cond, $fail, $genMsg,$key);
+                            break;
+                        case 1: // string
+                            $this->runStringCondition($r, $cond, $fail, $genMsg,$key);
+                            break;
+                        case 2: // date
+                            $this->runDateCondition($r, $cond, $fail, $genMsg,$key);
+                            break;
+                        case 3: // bool
+                            $this->runBoolCondition($r, $cond, $fail, $genMsg,$key);
+                            break;
+                    } // switch
+                }
+                if ($fail) {
+                    $this->addMessageInternal($cond->msg, $genMsg, $fieldId, $r, $cond->value, $cond->level,$key);
+                    if (!$this->abortOnError) {
+                        break; // no continue anymore.
+                    }
+                }
             }
-            if ($fail) {
-                $this->addMessageInternal($cond->msg,$genMsg,$fieldId,$r,$cond->value, $cond->level);
-                if (!$this->abortOnError) {
-                    break; // no continue anymore.
+        } else {
+            if (isset($this->conditions[$key])) {
+                $fail = false;
+                foreach ($this->conditions[$key] as $cond) {
+
+                    if (strpos($cond->type, "fn.") === 0) {
+                        // if it starts with fn. then it's a function condition
+                        $this->runFnCondition($r, $cond, $fail, $genMsg,$key);
+                    } else {
+                        switch ($this->typeFams[$key]) {
+                            case 0: // number
+                                $this->runNumericCondition($r, $cond, $fail, $genMsg,$key);
+                                break;
+                            case 1: // string
+                                $this->runStringCondition($r, $cond, $fail, $genMsg,$key);
+                                break;
+                            case 2: // date
+                                $this->runDateCondition($r, $cond, $fail, $genMsg,$key);
+                                break;
+                            case 3: // bool
+                                $this->runBoolCondition($r, $cond, $fail, $genMsg,$key);
+                                break;
+                        } // switch
+                    }
+                    if ($fail) {
+                        $this->addMessageInternal($cond->msg, $genMsg, $fieldId, $r, $cond->value, $cond->level,$key);
+                        if (!$this->abortOnError) {
+                            break; // no continue anymore.
+                        }
+                    }
                 }
             }
         }
@@ -798,72 +993,27 @@ class ValidationOne
     //</editor-fold>
 
     /**
-     * Returns null if the value is not present, false if the value is incorrect and the value if its correct
-     * @param $field
-     * @param int|string $inputType INPUT_REQUEST|INPUT_POST|INPUT_GET or it could be the value (for set)
-     * @param null $msg
-     * @return array|mixed|null
-     */
-    private function getField($field,$inputType=INPUT_REQUEST,$msg=null) {
-        $r=null;
-
-        switch ($inputType) {
-            case INPUT_POST:
-                if (!isset($_POST[$field])) {
-                    if ($this->required) $this->addMessageInternal($msg,"Field is missing",$field,"","",'error');
-                    return $this->default;
-                }
-                $r=$_POST[$field];
-                $r=($r===NULLVAL)?null:$r;
-                break;
-            case INPUT_GET:
-                if (!isset($_GET[$field])) {
-                    if ($this->required) $this->addMessageInternal($msg,"Field is missing",$field,"","",'error');
-                    return $this->default;
-                }
-                $r=$_GET[$field];
-                $r=($r===NULLVAL) ?null:$r;
-                break;
-            case INPUT_REQUEST:
-                if (isset($_POST[$field]) ) {
-                    $r=$_POST[$field];
-                }  else {
-                    if (!isset($_GET[$field]) ) {
-                        if ($this->required) $this->addMessageInternal($msg,"Field is missing",$field,"","",'error');
-                        return $this->default;
-                    }
-                    $r=$_GET[$field];
-                    $r=($r===NULLVAL) ?null:$r;
-                }
-                break;
-            default:
-                $r=$inputType;
-        }
-        if (!$this->isArray) {
-            $this->originalValue=$r;
-            return $this->basicValidation($r, $field, $msg);
-        } else {
-            $this->originalValue=$r;
-            foreach($r as $key=>&$v) {
-                $currentField=($this->isArrayFlat)?$field:$field."[".$key."]";
-                $v=$this->basicValidation($v,$currentField,$msg);
-            }
-            return $r;
-        }
-    }
-    /**
-     * @param string $value
+     * @param mixed $valueToEval
      * @param string $field
      * @param string $msg
+     * @param null $key
      * @return bool|DateTime|float|int|mixed|null
      */
-    private function basicValidation($value, $field, $msg="") {
-        switch($this->type) {
+    public function basicValidation($valueToEval, $field, $msg="",$key=null) {
+        $localDefault=$items=(is_array($this->default))?$this->default[$key]:$this->default;
+        if ($key!==null && isset($this->types[$key])) {
+            $type=$this->types[$key];
+            $value=$valueToEval;
+        } else {
+            $type=$this->type;
+            $value=$valueToEval;
+        }
+        switch($type) {
             case 'integer':
             case 'unixtime':
-                if (!is_numeric($value)) {
+                if (!is_numeric($value) && $value!=='') {
                     $this->hasMessage=true;
-                    $this->addMessageInternal($msg,'%field is not numeric',$field,$value,null,'error');
+                    $this->addMessageInternal($msg,'%field is not numeric',$field,$value,null,'error',$key);
                     return null;
                 }
                 return (int)$value;
@@ -872,7 +1022,7 @@ class ValidationOne
                 return (bool)$value;
                 break;
             case 'decimal':
-                if (!is_numeric($value)) {
+                if (!is_numeric($value) && $value!=='') {
                     $this->hasMessage=true;
                     $this->addMessageInternal($msg,'$field is not decimal',$field,$value,null,'error');
                     return null;
@@ -880,7 +1030,7 @@ class ValidationOne
                 return (double)$value;
                 break;
             case 'float':
-                if (!is_numeric($value)) {
+                if (!is_numeric($value)  && $value!=='') {
                     $this->hasMessage=true;
                     $this->addMessageInternal($msg,'$field is not float',$field,$value,null,'error');
                     return null;
@@ -890,7 +1040,8 @@ class ValidationOne
             case 'varchar':
             case 'string':
                 // if string is empty then it uses the default value. It's useful for filter
-                return ($value==="")?$this->default:$value;
+
+                return ($value==="")?$localDefault:$value;
                 break;
             case 'date':
             case 'datetime':
@@ -916,17 +1067,26 @@ class ValidationOne
     }
 
     //<editor-fold desc="error control">
+
     /**
      * It adds an error
      * @param string $msg first message. If it's empty or null then it uses the second message<br>
-     *      Message could uses the next variables '%field','%realfield','%value','%comp','%first','%second'
+     *      Message could uses the next variables. Ex "%field is empty"<br>
+     *      %field = name of the field, it could be the friendid or the actual name<br>
+     *      %realfield = name of the field (not the friendid)<br>
+     *      %value = current value of the field<br>
+     *      %comp = value to compare (if any)<br>
+     *      %first = first value to compare (if the compare value is an array)<br>
+     *      %second = second value to compare (if the compare value is an array)<br>
+     *      %key = key used (for input array)<br>
      * @param string $msg2 second message
      * @param string $fieldId id of the field
      * @param mixed $value value supplied
      * @param mixed $vcomp value to compare.
      * @param string $level (error,warning,info,success) error level
+     * @param null $key
      */
-    private function addMessageInternal($msg, $msg2, $fieldId, $value, $vcomp, $level='error') {
+    private function addMessageInternal($msg, $msg2, $fieldId, $value, $vcomp, $level='error',$key=null) {
         $txt=($msg)?$msg:$msg2;
         if (is_array($vcomp)) {
             $first=@$vcomp[0];
@@ -937,14 +1097,14 @@ class ValidationOne
             $second=$vcomp;
         }
         if (is_array($this->originalValue)) {
-            $txt=str_replace(['%field','%realfield','%value','%comp','%first','%second']
+            $txt=str_replace(['%field','%realfield','%value','%comp','%first','%second','%key']
                 ,[($this->friendId===null)?$fieldId:$this->friendId,$fieldId
-                    ,$value,$vcomp,$first,$second],$txt);
+                    ,is_array($value)?"[]":$value,$vcomp,$first,$second,$key],$txt);
             //$this->originalValue=$value;
         } else {
-            $txt=str_replace(['%field','%realfield','%value','%comp','%first','%second']
+            $txt=str_replace(['%field','%realfield','%value','%comp','%first','%second','%key']
                 ,[($this->friendId===null)?$fieldId:$this->friendId,$fieldId
-                    ,$this->originalValue,$vcomp,$first,$second],$txt);
+                    ,$this->originalValue,$vcomp,$first,$second,$key],$txt);
         }
         $this->messageList->addItem($fieldId,$txt, $level);
     }

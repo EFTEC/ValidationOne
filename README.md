@@ -91,11 +91,19 @@ Error has always the priority, then warning, info and success.  If you want to r
 
 You can obtain a message as an array of objects of the type MessageItem, as an array of string, or as an a single string (first message)
 
+## Pipeline
 
+* Input value, it could come from set()/post()/get()/request()
+* What if the value doesn't exist?
+* * 
 
 
 ## version list
 
+* 2018-10-22 1.10 New Features
+* * Added ValidationInputOne, now the fetchs are done by  this class (SRP principle)
+* * Added a fix with the input, when the value expected is an array but it's returned a single value
+ 
 * 2018-10-15 1.9 Added some extra features
 * 2018-10-15 1.8 Some fixes and phpdocs, a new example
 * 2018-10-15 1.7 Added method addMessage() in ValidationOne. Now ErrorItem/ErrorList is called MessageItem and MessageList

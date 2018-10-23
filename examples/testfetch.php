@@ -30,7 +30,7 @@ $r=getVal()->def(null)
     ->condition('eq','%field %value is not equal to %comp ',50)->get("id");
 
 echo "<h1>Testing to fetch value from get</h1>";
-echo "<a href='?id=12345'>click here for test a value</a><br><br>";
+echo "<a href='?frm_id=12345'>click here for test a value</a><br><br>";
 
 echo "The value of id is [<b>".print_r($r,true)."</b>]<br><br>";
 

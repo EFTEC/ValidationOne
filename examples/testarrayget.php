@@ -18,6 +18,10 @@ class Example {
     }
 }
 
+echo "<h1>Testing to fetch value from get (test array)</h1>";
+echo "<a href='?frm_id[0]=1&frm_id[1]=2&frm_id[2]=3'>click here for test a value</a><br><br>";
+
+
 $example=new Example();
 
 function getExample() {
@@ -28,17 +32,25 @@ function getExample() {
 
 
     //getVal()->reset();
-$r = getVal()->def(['ERROR'])
+$r = getVal()->def('ERROR')
+    ->friendId("Id Field")
     ->type('integer')->ifFailThenDefault()
-    ->isArray(true)->get('id',"some error message on %field");
+    ->isColumn(true)
+    ->successMessage('','info:Fetch successful')
+    ->isArray(false)->get('id',"some error message on %field");
 
 
+
+echo "The fetch obtained is :";
 var_dump($r);
+echo "<hr>All messages:<br>";
+echo json_encode(getVal()->messageList->allArray(),JSON_PRETTY_PRINT);
+echo "<hr>Messages keys:<br>";
+echo json_encode(getVal()->messageList->allIds(),JSON_PRETTY_PRINT);
 
-$timeEnd = microtime(true);
-echo json_encode(getVal()->messageList->items,JSON_PRETTY_PRINT);
-echo "<hr>";
-echo json_encode(getMessageList()->allArray(),JSON_PRETTY_PRINT);
-echo json_encode(getMessageList()->get('id[2]')->allErrorOrWarning(),JSON_PRETTY_PRINT);
-echo (getMessageList()->get('id[2]')->firstError())."<br>";
+
+echo "<hr>All error or warning:<br>";
+echo json_encode(messages()->get('id[2]')->allErrorOrWarning(),JSON_PRETTY_PRINT);
+echo "<hr>First error on id[2]:<br>";
+echo (messages()->get('id[2]')->firstError())."<br>";
 
