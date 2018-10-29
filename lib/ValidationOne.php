@@ -12,7 +12,7 @@ if (!defined("NULLVAL")) define('NULLVAL','__nullval__');
  * Class Validation
  * @package eftec
  * @author Jorge Castro Castillo
- * @version 1.11 2018-oct-22
+ * @version 1.12 2018-oct-29
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see https://github.com/EFTEC/ValidationOne
  */
@@ -169,6 +169,20 @@ class ValidationOne
             ->getField($fieldId,$inputType,$msg,$this->isMissing);
         return $this->afterFetch($r,$fieldId,$msg);
 
+    }
+    /**
+     * Returns null if the value is not present, false if the value is incorrect and the value if its correct
+     * @param $field
+     * @param bool $array
+     * @param string $fileTmp
+     * @param string $fileNew
+     * @return array|int|null|string
+     * @internal param $folder
+     * @internal param string $type
+     */
+    public function getFile($field,$array=false,&$fileTmp="",&$fileNew="") {
+        $tmp=$this->input();
+        return $tmp::getFile($field,$array,$fileTmp,$fileNew);
     }
 
 

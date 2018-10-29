@@ -99,6 +99,7 @@ You can obtain a message as an array of objects of the type MessageItem, as an a
 
 
 ## version list
+* 2018-10-29 1.12 getFile now it's available via ValidationOne()
 * 2018-10-22 1.11 Some fixes. Now isEmpty is called isMissing
 * 2018-10-22 1.10 New Features
 * * Added ValidationInputOne, now the fetchs are done by  this class (SRP principle)
