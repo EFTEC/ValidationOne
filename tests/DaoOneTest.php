@@ -8,16 +8,6 @@ use PHPUnit\Framework\TestCase;
 class DaoOneTest extends TestCase
 {
 
-    public function __construct($name = null, array $data = [], $dataName = '')
-    {
- 
-    }
-
-    public function test___construct()
-    {
-
-    }
-
     public function test_db()
     {
 	    $r=getVal()->def(-1)
