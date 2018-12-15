@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace eftec;
 
@@ -12,7 +13,7 @@ if (!defined("NULLVAL")) define('NULLVAL','__nullval__');
  * Class Validation
  * @package eftec
  * @author Jorge Castro Castillo
- * @version 1.12 2018-oct-29
+ * @version 1.13 2018-dic-15 
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see https://github.com/EFTEC/ValidationOne
  */

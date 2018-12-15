@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace eftec;
 
@@ -6,7 +7,7 @@ namespace eftec;
  * Class InputOne
  * @package eftec
  * @author Jorge Castro Castillo
- * @version 1.0 2018-oct-21
+ * @version 1.0 2018-dic-15 
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see https://github.com/EFTEC/ValidationOne
  */
@@ -137,12 +138,10 @@ class ValidationInputOne
         return $r;
     }
     public function post($field,$msg=null,&$isMissing=false) {
-        $fieldId=$this->prefix.$field;
         $r=$this->getField($field,INPUT_POST,$msg,$isMissing);
         return $r;
     }
     public function request($field,$msg=null,&$isMissing=false) {
-        $fieldId=$this->prefix.$field;
         $r=$this->getField($field,INPUT_REQUEST,$msg,$isMissing);
         return $r;
     }

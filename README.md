@@ -3,6 +3,7 @@ It's a PHP library for fetch and validate fields and store messages in different
 
 
 [![Packagist](https://img.shields.io/packagist/v/eftec/validationone.svg)](https://packagist.org/packages/eftec/validationone)
+[![Total Downloads](https://poser.pugx.org/eftec/validationone/downloads)](https://packagist.org/packages/eftec/validationone)
 [![Maintenance](https://img.shields.io/maintenance/yes/2018.svg)]()
 [![composer](https://img.shields.io/badge/composer-%3E1.6-blue.svg)]()
 [![php](https://img.shields.io/badge/php->5.6-green.svg)]()
@@ -38,14 +39,24 @@ $r = $val->def('ERROR')
     ->condition("eq", "It's not equals to 10", 10)
     ->condition("eq", "It's not equals to 30 (info)", 30, 'info')
     ->ifFailThenDefault()
-    ->get('id');
+    ->get('id'); // <-- end of the chain
 ```
 
 But, where is the error?.  It's in messagelist
 
 ```php
-var_dump($val->messagelist->allArray())
+var_dump($val->messagelist->allArray()) // here we show all messages of any kind of type. 
 ```
+However, we could also show a message by type (error, warning..) and only message by specific identifier.
+
+```php
+var_dump($val->messageList->get('id')->allErrorOrWarning())) // All error or warning contained in the key "id".
+```
+
+Why the messages are store in some structure?. Is it not easy to simply return the error?   .
+
+The answer is a form. Le't say we have a form with 3 fields. If one of them fails, then 
+the error must be visible for each field separately.  Also the whole form could have it's own message.
 
 ### condition ($type, $message="", $value=null, $level='error')
 
@@ -80,7 +91,7 @@ Messages are cataloged as follow
 | id      | Description                                                          | Example                               |
 |---------|----------------------------------------------------------------------|---------------------------------------|
 | error   | The message is an error and it must be solved. It is a show stopper. | Database is down                      |
-| warning | The message is a warning that maybe it could be ignored.             | The size of the field is at the limit |
+| warning | The message is a warning that maybe it could be ignored.             | The registry was stored but with warnings |
 | info    | The message is an information                                        | Log is stored                         |
 | success | The message is a succesful operation                                 | Order Accepted                        |                             |
 
@@ -99,6 +110,7 @@ You can obtain a message as an array of objects of the type MessageItem, as an a
 
 
 ## version list
+* 2018-12-15 1.3 Added phpunit and travis.
 * 2018-10-29 1.12 getFile now it's available via ValidationOne()
 * 2018-10-22 1.11 Some fixes. Now isEmpty is called isMissing
 * 2018-10-22 1.10 New Features
@@ -123,3 +135,6 @@ You can obtain a message as an array of objects of the type MessageItem, as an a
 ## Note
  
 It's distributed as dual license, as lgpl-v3 and commercial.
+
+You can use freely in your close source project. However, if you change this library, then the changes must be disclosed.
+
