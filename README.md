@@ -104,13 +104,14 @@ You can obtain a message as an array of objects of the type MessageItem, as an a
 
 ## Pipeline
 
-* Input value, it could come from set()/post()/get()/request()
+* Input value, it could come from set()/post()/get()/request()/getFile()
 * What if the value doesn't exist?
 * * 
 
 
 ## version list
-* 2018-12-15 1.3 Added phpunit and travis.
+* 2019-03-08 1.14 Added getFile() to upload a file.
+* 2018-12-15 1.13 Added phpunit and travis.
 * 2018-10-29 1.12 getFile now it's available via ValidationOne()
 * 2018-10-22 1.11 Some fixes. Now isEmpty is called isMissing
 * 2018-10-22 1.10 New Features
