@@ -54,7 +54,7 @@ $r=getVal()->def('ERROR')
     ->ifFailThenDefault()
     ->get("id");
 
-echo "el valor es ".print_r($r,true)."<br>";
+echo "The value is ".print_r($r,true)."<br>";
 
 dump(getVal()->messageList->get('id')->allErrorOrWarning());
 

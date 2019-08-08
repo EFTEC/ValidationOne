@@ -75,9 +75,20 @@ class ValidationInputOne
 	}
 
 	/**
+	 * @param string $field
+	 * @param null $msg
+	 * @param bool $isMissing
+	 * @return array|bool|\DateTime|float|int|mixed|null
+	 */
+	public function get($field="",$msg=null,&$isMissing=false) {
+		$r=$this->getField($field,INPUT_GET,$msg,$isMissing);
+		return $r;
+	}
+
+	/**
 	 * Returns null if the value is not present, false if the value is incorrect and the value if its correct
 	 * @param string $field id of the field, without the prefix.
-	 * @param int|string $inputType INPUT_REQUEST|INPUT_POST|INPUT_GET or it could be the value (for set)
+	 * @param int|string $inputType=[INPUT_REQUEST,INPUT_POST,INPUT_GET][$i] or it could be the value (for set)
 	 * @param null|string $msg
 	 * @param bool $isMissing
 	 * @return array|mixed|null
@@ -87,6 +98,8 @@ class ValidationInputOne
 
 		$fieldId=$this->prefix.$field;
 		$r=null;
+
+
 		switch ($inputType) {
 			case INPUT_POST:
 				if (!isset($_POST[$fieldId])) {
@@ -98,12 +111,14 @@ class ValidationInputOne
 				$r=($r===NULLVAL)?null:$r;
 				break;
 			case INPUT_GET:
+
 				if (!isset($_GET[$fieldId])) {
 					$isMissing=true;
 					if ($this->required) $this->addMessageInternal($msg,"Field is missing",$fieldId,"","",'error');
 					return ($this->initial===null)?$this->default:$this->initial;
 				}
 				$r=$_GET[$fieldId];
+           
 				$r=($r===NULLVAL) ?null:$r;
 				break;
 			case INPUT_REQUEST:
@@ -124,38 +139,6 @@ class ValidationInputOne
 				$isMissing=false;
 				$r=null;
 		}
-		return $r;
-	}
-
-	/**
-	 * @param string $field
-	 * @param null $msg
-	 * @param bool $isMissing
-	 * @return array|bool|\DateTime|float|int|mixed|null
-	 */
-	public function get($field="",$msg=null,&$isMissing=false) {
-		$r=$this->getField($field,INPUT_GET,$msg,$isMissing);
-		return $r;
-	}
-	public function post($field,$msg=null,&$isMissing=false) {
-		$r=$this->getField($field,INPUT_POST,$msg,$isMissing);
-		return $r;
-	}
-	public function request($field,$msg=null,&$isMissing=false) {
-		$r=$this->getField($field,INPUT_REQUEST,$msg,$isMissing);
-		return $r;
-	}
-
-	/**
-	 * It fetches a value.
-	 * @param int $inputType INPUT_POST|INPUT_GET|INPUT_REQUEST
-	 * @param string $field
-	 * @param null|string $msg
-	 * @param bool $isMissing
-	 * @return mixed
-	 */
-	public function fetch($inputType,$field,$msg=null,&$isMissing=false) {
-		$r=$this->getField($field,$inputType,$msg,$isMissing);
 		return $r;
 	}
 
@@ -191,22 +174,27 @@ class ValidationInputOne
 		$this->messageList->addItem($fieldId,$txt, $level);
 	}
 
+	public function post($field,$msg=null,&$isMissing=false) {
+		$r=$this->getField($field,INPUT_POST,$msg,$isMissing);
+		return $r;
+	}
+
+	public function request($field,$msg=null,&$isMissing=false) {
+		$r=$this->getField($field,INPUT_REQUEST,$msg,$isMissing);
+		return $r;
+	}
+
 	/**
-	 * Sanitize a filename removing .. and other nasty characters.
-	 * if mb_string is available then it also allows multibyte string characters such as accents.
-	 * @param string $filename
-	 * @return false|string|null
+	 * It fetches a value.
+	 * @param int $inputType INPUT_POST|INPUT_GET|INPUT_REQUEST
+	 * @param string $field
+	 * @param null|string $msg
+	 * @param bool $isMissing
+	 * @return mixed
 	 */
-	public static function sanitizeFileName($filename) {
-		if (empty($filename)) return "";
-		if (function_exists("mb_ereg_replace")) {
-			$filename = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $filename);
-			$filename = mb_ereg_replace("([\.]{2,})", '', $filename);
-		} else {
-			$filename = preg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $filename);
-			$filename = preg_replace("([\.]{2,})", '', $filename);
-		}
-		return $filename;
+	public function fetch($inputType,$field,$msg=null,&$isMissing=false) {
+		$r=$this->getField($field,$inputType,$msg,$isMissing);
+		return $r;
 	}
 
 	/**
@@ -255,6 +243,24 @@ class ValidationInputOne
 			}
 			return $filenames;
 		}
+	}
+
+	/**
+	 * Sanitize a filename removing .. and other nasty characters.
+	 * if mb_string is available then it also allows multibyte string characters such as accents.
+	 * @param string $filename
+	 * @return false|string|null
+	 */
+	public static function sanitizeFileName($filename) {
+		if (empty($filename)) return "";
+		if (function_exists("mb_ereg_replace")) {
+			$filename = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $filename);
+			$filename = mb_ereg_replace("([\.]{2,})", '', $filename);
+		} else {
+			$filename = preg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $filename);
+			$filename = preg_replace("([\.]{2,})", '', $filename);
+		}
+		return $filename;
 	}
 
 

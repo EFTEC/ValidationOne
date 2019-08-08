@@ -25,7 +25,7 @@ It is an example of functionality.  A normal example is more complex, even if it
 Let's say we want to validate a value an input value (get) called "id", we could do the next things:
 
 * the default value is the text "**ERROR**"
-* the type of the value is an **integer**, so it must returns an integer.   It also could be an integer,decimal,string,date and boolean
+* the type of the value is an **integer**, so it must returns an integer.   It also could be an integer,decimal,string,date,datestring and boolean
 * we add a condition, the value must be equals (**eq**) to **10**. If fails then it returns a message (as **error**)
 * we add another condition, if the value must be equals (**eq**) to **30**. If fails then it returns an **info** (not an error)
 * If the operation fails then it returns the default value.
@@ -65,7 +65,7 @@ the error must be visible for each field separately.  Also the whole form could 
 
         number:req,eq,ne,gt,lt,gte,lte,between
         string:req,eq,ne,minlen,maxlen,betweenlen,notnull
-        date:req,eq,ne,gt,lt,gte,lte,between>
+        date:req,eq,ne,gt,lt,gte,lte,between
         boolean:req,eq,ne,true,false
         function:
             fn.static.Class.methodstatic
@@ -110,6 +110,9 @@ You can obtain a message as an array of objects of the type MessageItem, as an a
 
 
 ## version list
+* 2019-08-07 1.15 
+* * Added the type datestring and datetimestring. It reads a string and it converts into another string (as date or datetime)
+* * Code formatted
 * 2019-03-08 1.14 Added getFile() to upload a file.
 * 2018-12-15 1.13 Added phpunit and travis.
 * 2018-10-29 1.12 getFile now it's available via ValidationOne()
