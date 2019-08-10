@@ -82,7 +82,7 @@ class ValidationOneTest extends TestCase
             ->type('datestring')
             ->condition('req')
             ->set('31/12/2010');
-
+        
         $this->assertEquals('2010-12-31'
             ,$r,'it must be equals to 2010-12-31');
         $this->assertEquals(0,count(getVal()->messageList->allErrorOrWarningArray()),'it must have 0 errors or warnings');
@@ -106,5 +106,44 @@ class ValidationOneTest extends TestCase
         $this->assertEquals('2010-12-31T11:12:13Z'
             ,$r,'it must be equals to 31/12/2010 11:12:13');
         $this->assertEquals(0,count(getVal()->messageList->allErrorOrWarningArray()),'it must have 0 errors or warnings');
+
+        // ***********************
+        $_POST['frm_date']='31/12/2010 11:12:13';
+        getVal()->messageList->resetAll();
+        $r=getVal()
+            ->type('datetimestring')
+            ->condition('req')
+            ->post('date');
+        //->setTimezone(new DateTimeZone("UTC"));
+        $this->assertEquals('2010-12-31T11:12:13Z'
+            ,$r,'it must be equals to 31/12/2010 11:12:13');
+        $this->assertEquals(0,count(getVal()->messageList->allErrorOrWarningArray()),'it must have 0 errors or warnings');
+
+        // *********************** testing errors, required and without a default value
+        $_POST['frm_date']='31/12/2010a';
+        getVal()->messageList->resetAll();
+        $r=getVal()
+            ->type('datetimestring')
+            ->condition('req')
+            ->post('date');
+        //->setTimezone(new DateTimeZone("UTC"));
+        $this->assertEquals(null
+            ,$r,'it must be equals to null');
+        $this->assertEquals(1,count(getVal()->messageList->allErrorOrWarningArray()),'it must have 0 errors or warnings');
+
+        // *********************** testing errors, not required and with a default value
+        $_POST['frm_date']='31/12/2010a';
+        getVal()->messageList->resetAll();
+        $r=getVal()
+            ->type('datetimestring')
+            ->def('31/12/2010 11:22:11')
+            ->required(false)
+            ->ifFailThenDefault()
+            ->post('date');
+        //->setTimezone(new DateTimeZone("UTC"));
+        $this->assertEquals('2010-12-31T11:22:11Z'
+            ,$r,'it must be equals to 2010-12-31T11:22:11Z');
+        $this->assertEquals(1,count(getVal()->messageList->allErrorOrWarningArray()),'it must have 0 errors or warnings');
+
     }
 }
