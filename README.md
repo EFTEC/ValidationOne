@@ -110,6 +110,7 @@ You can obtain a message as an array of objects of the type MessageItem, as an a
 
 
 ## version list
+* 2019-10-01 1.17 Fixed a bug. If the input is zero, then it is considered as null.
 * 2019-08-10 1.16 Solved a problem with the datestring/datetimestring.
 * 2019-08-07 1.15 
 * * Added the type datestring and datetimestring. It reads a string and it converts into another string (as date or datetime)

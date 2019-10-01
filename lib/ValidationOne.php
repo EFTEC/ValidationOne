@@ -18,13 +18,13 @@ if (!defined("NULLVAL")) {
  *
  * @package       eftec
  * @author        Jorge Castro Castillo
- * @version       1.16 2019-08-10.
+ * @version       1.17 2019-10-01.
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see           https://github.com/EFTEC/ValidationOne
  */
 class ValidationOne
 {
-    /** @var string It is the (expected) input format */
+    /** @var string It is the (expected) input format for date (short) */
     public $dateShort = 'd/m/Y';
     /** @var string It is the (expected) input format (with date and time) */
     public $dateLong = 'd/m/Y H:i:s';
@@ -122,6 +122,34 @@ class ValidationOne
         }
         $this->prefix = $prefix;
         $this->resetChain();
+    }
+
+    /**
+     * It sets the date format (for input and output).<br>
+     * Input is the expected value to fetch<br>
+     * Output is the result of the value<br>
+     * 
+     * @param null|string $dateInput Example 'd/m/Y'
+     * @param null|string $dateTimeInput Example 'd/m/Y H:i:s'
+     * @param null|string $dateOutput Example 'Y-m-d' (used for datestring and datetimestring)
+     * @param null|string $dateTimeOutput Example 'Y-m-d\TH:i:s\Z' (used for datestring and datetimestring)
+     *
+     * @return $this
+     */
+    public function setDateFormat($dateInput=null,$dateTimeInput=null,$dateOutput=null,$dateTimeOutput=null) {
+        if($dateInput!==null) {
+            $this->dateShort=$dateInput;
+        }
+        if($dateTimeInput!==null) {
+            $this->dateLong=$dateTimeInput;
+        }
+        if($dateOutput!==null) {
+            $this->dateOutputString=$dateOutput;
+        }
+        if($dateTimeOutput!==null) {
+            $this->dateLongOutputString=$dateTimeOutput;
+        }
+        return $this;
     }
 
     /**
@@ -465,6 +493,7 @@ class ValidationOne
      * @param FormOne $form
      *
      * @return ValidationOne
+     * @noinspection PhpUnused
      */
     public function useForm($form)
     {
@@ -662,6 +691,7 @@ class ValidationOne
                 
                 $this->originalValue = $input;
                 $input = $this->basicValidation($input, $fieldId, $msg);
+        
                 
                 if (is_array($input)) {
                     foreach ($input as $key => &$items) {
@@ -674,7 +704,8 @@ class ValidationOne
                             }
                         }
                     }
-                }                
+                }
+                $output=$this->endConversion($input);
             } else {
                 $this->originalValue = $input;
                 if (is_array($input) || $input === null) {
@@ -693,10 +724,14 @@ class ValidationOne
                         $input =  $this->default;
                     }
                 }
+                $output=$input;
             } // isArray
+            
         } else {
             // we convert the input into a datetime object.
-            $input=$this->inputToDate($input);
+            //$input=$this->endConversion( $this->inputToDate($input));
+
+            $output=$input;
         } // is missing
         if ($this->messageList->errorcount == $this->countError && $this->successMessage !== null) {
             $this->addMessage($this->successMessage['id'], $this->successMessage['msg'],
@@ -705,7 +740,7 @@ class ValidationOne
         if ($this->addToForm) {
             $this->callFormBack($fieldId);
         }
-        $output=$this->endConversion($input);
+        
         $this->resetChain();
         return $output;
     }
@@ -717,7 +752,7 @@ class ValidationOne
      */
     private function endConversion($input) {
         // end conversion, we convert the input or default value.
-        if($input!=null) {
+        if($input!==null) {
             switch ($this->type) {
                 case 'datestring':
                     $output = $input->format($this->dateOutputString);
@@ -781,31 +816,6 @@ class ValidationOne
                     break;
                 case 'datetimestringxx':
                     $value = DateTime::createFromFormat($this->dateLong, $input)->format($this->dateLongOutputString);
-                    break;
-                default:
-                    $value = $input;
-            }
-        } else {
-            $value = $input;
-        }
-        return $value;
-    }
-
-    private function inputToDateOutput($input)
-    {
-        if (is_string($input)) {
-            switch ($this->type) {
-                case 'date':
-                case 'datestring':
-                    $value = DateTime::createFromFormat($this->dateOutputString, $input);
-                    if ($value === false) {
-                        return $value;
-                    }
-                    $value->settime(0, 0);
-                    break;
-                case 'datetime':
-                case 'datetimestring':
-                    $value = DateTime::createFromFormat($this->dateLongOutputString, $input);
                     break;
                 default:
                     $value = $input;
@@ -1329,52 +1339,6 @@ class ValidationOne
         }
     }
 
-    /**
-     * It converts a date (expressed as string) into a date (as string too).
-     *
-     * @param string  $dateTxt
-     * @param boolean $withTime if the date includes time.
-     *
-     * @return string
-     */
-    private function dateToString($dateTxt, $withTime = false)
-    {
-        if ($withTime) {
-            $tmp = DateTime::createFromFormat($this->dateLong, $dateTxt);
-            if ($tmp !== false) {
-                return $tmp->format($this->dateLongOutputString);
-            }
-        } else {
-            $tmp = DateTime::createFromFormat($this->dateShort, $dateTxt);
-            if ($tmp !== false) {
-                return $tmp->format($this->dateOutputString);
-            }
-        }
-        return "";
-    }
-
-    /**
-     * @param string $dateTxt
-     * @param bool   $withTime
-     *
-     * @return string
-     */
-    private function stringToDate($dateTxt, $withTime = false)
-    {
-        if ($withTime) {
-            $tmp = DateTime::createFromFormat($this->dateLongOutputString, $dateTxt);
-            if ($tmp !== false) {
-                return $tmp->format($this->dateLong);
-            }
-        } else {
-            $tmp = DateTime::createFromFormat($this->dateOutputString, $dateTxt);
-            if ($tmp !== false) {
-                return $tmp->format($this->dateShort);
-            }
-        }
-        return "";
-    }
-
     private function runConditions($value, $fieldId, $key = null)
     {
         $genMsg = '';
@@ -1493,7 +1457,7 @@ class ValidationOne
     public function basicValidation($input, $field, $msg = "", $key = null)
     {
         if ($this->ifFailThenDefault) {
-            $localDefault = (is_array($this->default)) ? $this->default[$key] : $this->default;
+            $localDefault = (is_array($this->default)) ? @$this->default[$key] : $this->default;
         } else {
             $localDefault = null;
         }
