@@ -1530,7 +1530,7 @@ class ValidationOne
                         if ($tmpOutput === false) {
                             $tmpOutput = DateTime::createFromFormat($this->dateShort, $localDefault);
                             if($tmpOutput!=false) {
-                                $tmpOutput->settime(0, 0, 0, 0);    
+                                $tmpOutput->settime(0, 0, 0);    
                             } else {
                                 $tmpOutput=null;
                             }
