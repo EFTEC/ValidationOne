@@ -1537,7 +1537,7 @@ class ValidationOne
                         }    
                         return $tmpOutput;
                     }
-                    $valueDate->settime(0, 0, 0, 0); // datetime without time
+                    $valueDate->settime(0, 0, 0); // datetime without time
                 }
             
                 return $valueDate;
