@@ -1,7 +1,7 @@
 {
     "name": "eftec/validationone",
     "description": "It's a php library for fetch and validate fields ",
-    "version": "1.17",
+    "version": "1.18",
     "type": "library",
     "keywords": ["php","library","validation"],
     "homepage": "https://github.com/EFTEC/ValidationOne",
@@ -25,6 +25,6 @@
         "eftec/formone": "Allows to create form and integrates with the validation"
     },
     "require-dev": {
-        "phpunit/phpunit": "^5.7"
+        "phpunit/phpunit": "^5.7 || ^6.5"
     }    
 }
