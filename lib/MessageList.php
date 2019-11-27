@@ -17,6 +17,8 @@ class MessageList
     var $errorcount=0;
     /** @var int Number of warnings stored globally */
     var $warningcount=0;
+    /** @var int Number of errors or warning stored globally */
+    var $errorOrWarning=0;
     /** @var int Number of information stored globally */
     var $infocount=0;
     /** @var int Number of success stored globally */
@@ -37,6 +39,7 @@ class MessageList
     public function resetAll() {
         $this->errorcount=0;
         $this->warningcount=0;
+        $this->errorOrWarning=0;
         $this->infocount=0;
         $this->successcount=0;
         $this->items=array();
@@ -59,11 +62,13 @@ class MessageList
         switch ($level) {
             case 'error':
                 $this->errorcount++;
+                $this->errorOrWarning++;
                 if ($this->firstError===null) $this->firstError=$message;
                 $this->items[$id]->addError($message);
                 break;
             case 'warning':
                 $this->warningcount++;
+                $this->errorOrWarning++;
                 if ($this->firstWarning===null) $this->firstWarning=$message;
                 $this->items[$id]->addWarning($message);
                 break;

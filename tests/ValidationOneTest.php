@@ -37,10 +37,15 @@ class ValidationOneTest extends TestCase
 
         $this->assertEquals('abcdefghijklmnopqrst12345',$r,'it must be equals to 12345');
         $this->assertEquals('it must contains the text hello',getVal()->messageList->allErrorArray()[0]);
+        $this->assertEquals('it must contains the text hello',getVal()->messageList->firstErrorText());
         $this->assertEquals('setfield abcdefghijklmnopqrst12345 is not equal to abc',getVal()->messageList->allErrorArray()[1]);
         $this->assertEquals(2,count(getVal()->messageList->allErrorArray()),'it must be 2 errors');
+        $this->assertEquals(2,(getVal()->messageList->errorcount),'it must be 2 errors');
         $this->assertEquals(1,count(getVal()->messageList->allWarningArray()),'it must be 1 warning');
+        $this->assertEquals(1,getVal()->messageList->warningcount,'it must be 1 warning');
+        $this->assertEquals(3,getVal()->messageList->errorOrWarning,'it must be 3 errors or warnings');
     }
+    
     public function testDate()
     {
         getVal()->messageList->resetAll();

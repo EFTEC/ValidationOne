@@ -46,6 +46,9 @@ class MessageItem
     public function countError() {
         return count($this->errorMsg);
     }
+    public function countErrorOrWaring() {
+        return $this->countError()+$this->countWarning();
+    }
     public function countWarning() {
         return count($this->warningMsg);
     }

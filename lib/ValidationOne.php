@@ -85,6 +85,8 @@ class ValidationOne
     private $originalValue = null;
     /** @var string It's a friendly id used to replace the "id" used in message. For example: "id customer" instead of "idcustomer" */
     private $friendId = null;
+    /** @var null|mixed It is the value used if the value is null or empty. If null then the value is not changed.  */
+    private $missingSet=null;
     /** @var ValidationItem[] */
     public $conditions = [];
 
@@ -332,7 +334,6 @@ class ValidationOne
      * @param bool $negative if true then it returns the negative default value.
      *
      * @return ValidationOne $this
-     * @throws Exception
      */
     public function defNatural($negative = false)
     {
@@ -413,7 +414,7 @@ class ValidationOne
         $this->isColumn = $isColumn;
         return $this;
     }
-
+    
     /**
      * @param bool $ifFailDefault
      *
@@ -436,6 +437,23 @@ class ValidationOne
     {
         $this->ifFailThenDefault = true;
         $this->ifFailThenOrigin = $ifFailThenOrigin;
+        return $this;
+    }
+
+    /**
+     *
+     * If the value is missing (null or empty) then it sets a value. If it does not set then it uses the default natural value.
+     *
+     * @param Mixes $value The value to set if the value is missing.
+     *
+     * @return ValidationOne
+     */
+    public function ifMissingThenSet($value=null) {
+        if ($value===null) {
+            $this->missingSet=$this->defNatural();
+            return $this;
+        }
+        $this->missingSet=$value;
         return $this;
     }
 
@@ -595,7 +613,7 @@ class ValidationOne
      * @param string $message   <br>
      *                          Message could uses the next variables '%field','%realfield','%value','%comp','%first','%second'
      * @param null   $conditionValue Value used for some conditions. This value could be an array too.
-     * @param string $level (error,warning,info,success)
+     * @param string $level=['error','warning','info','success'][$i]
      * @param null   $key If key is not null then it is used for add more than one condition by key
      *
      * @return ValidationOne
@@ -642,6 +660,7 @@ class ValidationOne
         $this->isMissing = false;
         $this->countError = 0;
         $this->addToForm = false;
+        $this->missingSet = null;
     }
 
     /**
@@ -683,6 +702,9 @@ class ValidationOne
 
     private function afterFetch($input, $fieldId, $msg)
     {
+        if ($this->missingSet!==null && ($input===null && $input==='')) {
+            $input=$this->missingSet;
+        } 
         if (!$this->isMissing) {
             if ($this->ifFailThenOrigin) {
                 $this->default = $input;

@@ -36,6 +36,7 @@ $val=new ValidationOne();
 
 $r = $val->def('ERROR')
     ->type('integer')
+    ->ifMissingThenDefault()
     ->condition("eq", "It's not equals to 10", 10)
     ->condition("eq", "It's not equals to 30 (info)", 30, 'info')
     ->ifFailThenDefault()
@@ -110,6 +111,10 @@ You can obtain a message as an array of objects of the type MessageItem, as an a
 
 
 ## version list
+
+* 2019-11-27 1.19 
+  * Added new field MessageList.errorOrWarning 
+  * Added new method MessageItem.countErrorOrWaring()
 * 2019-10.01 1.18 Added compatibility for  phpunit/phpunit 5.7 and 6.5
 * 2019-10-01 1.17 Fixed a bug. If the input is zero, then it is considered as null.
 * 2019-08-10 1.16 Solved a problem with the datestring/datetimestring.
