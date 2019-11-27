@@ -112,6 +112,8 @@ You can obtain a message as an array of objects of the type MessageItem, as an a
 
 ## version list
 
+* 2019-11-27 1.20
+  * Fixed name countErrorOrWaring->countErrorOrWarning
 * 2019-11-27 1.19 
   * Added new field MessageList.errorOrWarning 
   * Added new method MessageItem.countErrorOrWaring()
