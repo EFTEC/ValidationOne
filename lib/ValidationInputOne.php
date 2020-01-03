@@ -90,7 +90,7 @@ class ValidationInputOne
      * @param string $field id of the field, without the prefix.
      * @param int|string $inputType=[INPUT_REQUEST,INPUT_POST,INPUT_GET][$i] or it could be the value (for set)
      * @param null|string $msg
-     * @param bool $isMissing
+     * @param bool $isMissing (ref). It's true if the value is missing (it's not set).
      * @return array|mixed|null
      */
     public function getField($field,$inputType=INPUT_REQUEST,$msg=null,&$isMissing=false) {

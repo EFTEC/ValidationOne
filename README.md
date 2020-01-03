@@ -4,7 +4,7 @@ It's a PHP library for fetch and validate fields and store messages in different
 [![Build Status](https://travis-ci.org/EFTEC/ValidationOne.svg?branch=master)](https://travis-ci.org/EFTEC/ValidationOne)
 [![Packagist](https://img.shields.io/packagist/v/eftec/validationone.svg)](https://packagist.org/packages/eftec/ValidationOne)
 [![Total Downloads](https://poser.pugx.org/eftec/validationone/downloads)](https://packagist.org/packages/eftec/ValidationOne)
-[![Maintenance](https://img.shields.io/maintenance/yes/2019.svg)]()
+[![Maintenance](https://img.shields.io/maintenance/yes/2020.svg)]()
 [![composer](https://img.shields.io/badge/composer-%3E1.8-blue.svg)]()
 [![php](https://img.shields.io/badge/php->5.6-green.svg)]()
 [![php](https://img.shields.io/badge/php-7.x-green.svg)]()
@@ -59,29 +59,124 @@ Why the messages are store in some structure?. Is it not easy to simply return t
 The answer is a form. Le't say we have a form with 3 fields. If one of them fails, then 
 the error must be visible for each field separately.  Also the whole form could have it's own message.
 
-### condition ($type, $message="", $value=null, $level='error')
+### condition ($condition, $message = "", $conditionValue = null, $level = 'error', $key = null)
 
-* @param string $type  
+It adds a condition that it depends on the **type** of the input.
 
+* @param string $condition
 
-        number:req,eq,ne,gt,lt,gte,lte,between
-        string:req,eq,ne,minlen,maxlen,betweenlen,notnull
-        date:req,eq,ne,gt,lt,gte,lte,between
-        boolean:req,eq,ne,true,false
-        function:
-            fn.static.Class.methodstatic
-            fn.global.function
-            fn.object.Class.method where object is a global $object
-            fn.class.Class.method
-            fn.class.\namespace\Class.method
-
+	<b>number</b>:req,eq,ne,gt,lt,gte,lte,between,null,notnull<br>
+	<b>string</b>:req,eq,ne,minlen,maxlen,betweenlen,null,notnull,contain,notcontain
+	,alpha,alphanum,text,regexp,email,url,domain<br>
+	<b>date</b>:req,eq,ne,gt,lt,gte,lte,between<br>
+	<b>datestring</b>:req,eq,ne,gt,lt,gte,lte,between<br>
+	<b>boolean</b>:req,eq,ne,true,false<br>
+	<b>file</b>:minsize,maxsize,req,image,doc,compression,architecture,ext<br>
+	<b>function:</b><br>
+	fn.static.Class.methodstatic<br>
+	fn.global.function<br>
+	fn.object.Class.method where object is a global $object<br>
+	fn.class.Class.method<br>
+	fn.class.\namespace\Class.method<br>
+	
 * @param string $message  
 
-       Message could uses the next variables '%field','%realfield','%value','%comp','%first','%second'  
+    Message could uses the next variables '%field','%realfield','%value','%comp','%first','%second'  
 
-* @param null $value
+* @param null $conditionValue
 * @param string $level (error,warning,info,success)
+* @param string $key If key is not null then it is used for add more than one condition by key
 * @return ValidationOne
+
+Example:
+
+```php
+$validation->def(null)
+    ->type('integer')
+    ->condition('eq','%field %value is not equal to %comp ',50)
+    ->condition('eq','%field %value is not equal to %comp ',60)
+    ->set('aaa','variable2');	
+```
+
+#### Input type x Conditions
+
+| Input type                                   | Condition                                                          |   |
+|----------------------------------------------|--------------------------------------------------------------------|---|
+| number                                       | req,eq,ne,gt,lt,gte,lte,between,null,notnull                       |   |
+| string                                       | req,eq,ne,minlen,maxlen,betweenlen,null,notnull,contain,notcontain |   |
+| ,alpha,alphanum,text,regexp,email,url,domain |                                                                    |   |
+| date                                         | req,eq,ne,gt,lt,gte,lte,between                                    |   |
+| datestring                                   | req,eq,ne,gt,lt,gte,lte,between                                    |   |
+| boolean                                      | req,eq,ne,true,false                                               |   |
+| file                                         | minsize,maxsize,req,image,doc,compression,architecture,ext         |   |
+| *                                            | function                                                           |   |
+| *                                            | fn.static.Class.methodstatic                                       |   |
+| *                                            | fn.global.function                                                 |   |
+| *                                            | fn.object.Class.method where object is a global $object            |   |
+| *                                            | fn.class.Class.method                                              |   |
+| *                                            | fn.class.\namespace\Class.method                                   |   |
+
+#### Conditions.
+
+| Condition                                               | Description                                            | Value Example          |
+|---------------------------------------------------------|--------------------------------------------------------|------------------------|
+| architecture                                            | The extension of the file must be an architecture file |                        |
+| between                                                 | The number must be between two values                  | [0,20]                 |
+| betweenlen                                              | The lenght of the text must be between two values      | [0,20]                 |
+| compression                                             | The extension of the file must be an compression file  |                        |
+| contain                                                 | The text must contain a value                          | "text"                 |
+| doc                                                     | The extension of the file must be an document file     |                        |
+| eq                                                      | The value must be equals to                            | "text"                 |
+| ext                                                     | The extension must be in a list of extensions          | ["ext1","ext2","ext3"] |
+| false                                                   | The value must be false                                |                        |
+| fn.class.\namespace\Class.method                        | The method of a class must returns true                |                        |
+| fn.class.Class.method                                   | The method of a class must returns true                |                        |
+| fn.global.function                                      | The global function must returns true                  |                        |
+| fn.object.Class.method where object is a global $object | The method of a global object must returns true        |                        |
+| fn.static.Class.methodstatic                            | The static method of a class must returns true         |                        |
+| function                                                | The function must returns true                         |                        |
+| gt                                                      | The value must be greater than                         | 123                    |
+| gte                                                     | The value must be greater or equal than                | 123                    |
+| image                                                   | The extension of the file must be an image file        |                        |
+| lt                                                      | The value must be less than                            | 123                    |
+| lte                                                     | The value must be less or equal than                   | 123                    |
+| maxlen                                                  | The maximum lenght of a string                         | 123                    |
+| maxsize                                                 | The maximum size of a file                             | 123                    |
+| minlen                                                  | The minimum lenght of a string                         | 123                    |
+| minsize                                                 | The minimum size of a file                             | 123                    |
+| ne                                                      | The value must not be equals                           | 123                    |
+| notcontain                                              | The value must not contain a value                     | "text"                 |
+| notnull                                                 | The value must not be null                             |                        |
+| null                                                    | The value must be null                                 |                        |
+| req                                                     | The value must be equal                                | "text"                 |
+| true                                                    | The value must be true                                 |                        |
+
+
+Examples:
+
+```php
+$validation->def(null)
+    ->type('integer')
+    ->condition('eq','%field %value is not equal to %comp ',50)
+    ->condition('between','%field %value must be between 1 and 50 ',[1,50])
+    ->condition('eq','%field %value is not equal to %comp ',60)
+    ->condition('fn.static.Example.customval','la funcion no funciona')
+    ->condition('req')
+    ->condition('lt',"es muy grande",2000,'warning')
+    ->condition('eq','%field %value is not equal to %comp',50)
+    ->condition('fn.static.Example.fnstatic','la funcion estatica no funciona')
+    ->condition('fn.static.\somespace\Someclass.methodStatic',null)
+    ->condition('fn.global.customval','la funcion global no funciona')
+    ->condition('fn.object.example.fnnostatic','la funcion object no funciona')
+    ->condition('fn.class.\somespace\Someclass.method','la funcion someclass no funciona')
+    ->condition('fn.class.Example.fnnostatic','la funcion class no funciona');
+
+// ->condition('fn.static.Example.customval','la funcion no funciona') 
+function customval($value,$compareValue) {
+    return true;
+}
+
+```
 
 ## MessageList
 
@@ -112,6 +207,10 @@ You can obtain a message as an array of objects of the type MessageItem, as an a
 
 ## version list
 
+* 2020-01-03 1.21
+    * ValidationOne::runConditions() now allows (for file type), conditions architecture and compression
+    * ValidationOne::getFileExtension() now could return the extension as mime
+    * ValidationOne::getFileMime() new method that returns the mime type of a file.
 * 2019-11-27 1.20
   * Fixed name countErrorOrWaring->countErrorOrWarning
 * 2019-11-27 1.19 

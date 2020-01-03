@@ -18,7 +18,7 @@ if (!defined("NULLVAL")) {
  *
  * @package       eftec
  * @author        Jorge Castro Castillo
- * @version       1.18 2019-10-01.
+ * @version       1.21 2020-01-03.
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see           https://github.com/EFTEC/ValidationOne
  */
@@ -72,6 +72,7 @@ class ValidationOne
     private $hasMessage = false;
     /** @var bool if the validation fails then it returns the default value */
     private $ifFailThenDefault = false;
+    private $isNullValid=false;
     /** @var bool if the validation fails then it returns the original (input) value */
     private $ifFailThenOrigin = false;
     /** @var null|string */
@@ -307,6 +308,9 @@ class ValidationOne
         return $this;
     }
 
+    public function isNullValid($isValid) {
+        $this->IsNullValid=$isValid;
+    }
     /**
      * (Optional). It sets an initial value.<br>
      * If the value is missing (that it's different to empty or null), then it uses this value.
@@ -595,7 +599,7 @@ class ValidationOne
 
     /**
      * @param string $condition =['alpha','alphanum','between','betweenlen','contain','doc','domain','email','eq','ext'
-     *                          ,'false','gt','gte','image','lt','lte','maxlen','maxsize','minlen','minsize','ne'
+     *                          ,'false','gt','gte','image'.'doc','compression','architecture','lt','lte','maxlen','maxsize','minlen','minsize','ne'
      *                          ,'notcontain','notnull','null','regexp','req','text','true','url','fn.*'][$i]
      *                          <b>number</b>:req,eq,ne,gt,lt,gte,lte,between,null,notnull<br>
      *                          <b>string</b>:req,eq,ne,minlen,maxlen,betweenlen,null,notnull,contain,notcontain
@@ -603,7 +607,7 @@ class ValidationOne
      *                          <b>date</b>:req,eq,ne,gt,lt,gte,lte,between<br>
      *                          <b>datestring</b>:req,eq,ne,gt,lt,gte,lte,between<br>
      *                          <b>boolean</b>:req,eq,ne,true,false<br>
-     *                          <b>file</b>:minsize,maxsize,req,image,doc,ext<br>
+     *                          <b>file</b>:minsize,maxsize,req,image,doc,compression,architecture,ext<br>
      *                          <b>function:</b><br>
      *                          fn.static.Class.methodstatic<br>
      *                          fn.global.function<br>
@@ -650,6 +654,7 @@ class ValidationOne
         $this->isColumn = false;
         $this->hasMessage = false;
         $this->ifFailThenDefault = $this->defaultIfFail;
+        $this->isNullValid=false;
         $this->ifFailThenOrigin = false;
         $this->conditions = [];
         $this->override = false;
@@ -1205,23 +1210,121 @@ class ValidationOne
     }
 
     /**
-     * Get the extension (without) dot of a file always in lowercase
+     * Get the extension without dot of a file always in lowercase
      *
      * @param string $path
+     * @param bool   $asMime if true then it returns 
      *
      * @return string mixed
      */
-    private function getFileExtension($path)
+    public function getFileExtension($path,$asMime=false)
     {
         if (empty($path)) {
             return '';
         }
-        $ext = pathinfo($path, PATHINFO_EXTENSION);
-        return strtolower($ext);
+        $ext = strtolower( pathinfo($path, PATHINFO_EXTENSION));
+        if(!$asMime) {
+            return $ext;
+        }
+        switch ($ext) {
+            case 'aac': $mime ='audio/aac'; break;
+            case 'abw': $mime ='application/x-abiword'; break;
+            case 'avi': $mime ='video/x-msvideo'; break;
+            case 'bmp': $mime ='image/bmp'; break;
+            case 'bz': $mime ='application/x-bzip'; break;
+            case 'bz2': $mime ='application/x-bzip2'; break;
+            case 'css': $mime ='text/css'; break;
+            case 'csv': $mime ='text/csv'; break;
+            case 'doc': $mime ='application/msword'; break;
+            case 'docx': $mime ='application/vnd.openxmlformats-officedocument.wordprocessingml.document'; break;
+            case 'dwg': $mime='image/vnd.dwg'; break;
+            case 'eot': $mime ='application/vnd.ms-fontobject'; break;
+            case 'epub': $mime ='application/epub+zip'; break;
+            case 'gif': $mime ='image/gif'; break;
+            case 'html':
+            case 'htm': $mime ='text/html'; break;
+            case 'ico': $mime ='image/x-icon'; break;
+            case 'ics': $mime ='text/calendar'; break;
+            case 'jar': $mime ='application/java-archive'; break;
+            case 'jpg':
+            case 'jpeg': $mime ='image/jpeg'; break;
+            case 'js': $mime ='application/javascript'; break;
+            case 'json': $mime ='application/json'; break;
+            case 'midi':
+            case 'mid': $mime ='audio/midi audio/x-midi'; break;
+            case 'mpeg':
+            case 'mpg': $mime ='video/mpeg'; break;
+            case 'mpkg': $mime ='application/vnd.apple.installer+xml'; break;
+            case 'odp': $mime ='application/vnd.oasis.opendocument.presentation'; break;
+            case 'ods': $mime ='application/vnd.oasis.opendocument.spreadsheet'; break;
+            case 'odt': $mime ='application/vnd.oasis.opendocument.text'; break;
+            case 'oga':
+            case 'ogg': $mime ='audio/ogg'; break;
+            case 'ogv': $mime ='video/ogg'; break;
+            case 'ogx': $mime ='application/ogg'; break;
+            case 'otf': $mime ='font/otf'; break;
+            case 'png': $mime ='image/png'; break;
+            case 'pdf': $mime ='application/pdf'; break;
+            case 'ppt': $mime ='application/vnd.ms-powerpoint'; break;
+            case 'pptx': $mime ='application/vnd.openxmlformats-officedocument.presentationml.presentation'; break;
+            case 'rar': $mime ='application/x-rar-compressed'; break;
+            case 'rtf': $mime ='application/rtf'; break;
+            case 'sh': $mime ='application/x-sh'; break;
+            case 'svg': $mime ='image/svg+xml'; break;
+            case 'swf': $mime ='application/x-shockwave-flash'; break;
+            case 'tar': $mime ='application/x-tar'; break;
+            case 'tiff':
+            case 'tif': $mime ='image/tiff'; break;
+            case 'ts': $mime ='application/typescript'; break;
+            case 'ttf': $mime ='font/ttf'; break;
+            case 'txt': $mime ='text/plain'; break;
+            case 'vsd': $mime ='application/vnd.visio'; break;
+            case 'wav': $mime ='audio/wav'; break;
+            case 'weba': $mime ='audio/webm'; break;
+            case 'webm': $mime ='video/webm'; break;
+            case 'webp': $mime ='image/webp'; break;
+            case 'woff': $mime ='font/woff'; break;
+            case 'woff2': $mime ='font/woff2'; break;
+            case 'xhtml': $mime ='application/xhtml+xml'; break;
+            case 'xls': $mime ='application/vnd.ms-excel'; break;
+            case 'xlsm':$mime='application/vnd.ms-excel.sheet.macroEnabled.12'; break;
+            case 'xlsx': $mime ='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'; break;
+            case 'xml': $mime ='application/xml'; break;
+            case 'xul': $mime ='application/vnd.mozilla.xul+xml'; break;
+            case 'zip': $mime ='application/zip'; break;
+            case '3gp': $mime ='video/3gpp'; break;
+            case '3g2': $mime ='video/3gpp2'; break;
+            case '7z': $mime ='application/x-7z-compressed'; break;
+            default: $mime = 'application/octet-stream' ;
+
+        }
+        return $mime;
     }
 
     /**
-     * @param                $value  =['req','minsize','maxsize','image','doc','ext'][$i]
+     * It returns the mime type of a full filename.  If not found or error, it returns false<br>
+     * Example:<br>
+     * $this->getFileMime("/folder/filename.txt"); // it could return "text/plain"
+     * 
+     * @param string $fullFilename
+     *
+     * @return bool|mixed|string
+     */
+    public function getFileMime($fullFilename) {
+        if (function_exists("finfo_file")) {
+            $finfo = @finfo_open(FILEINFO_MIME_TYPE); // return mime type ala mimetype extension
+            $mime = @finfo_file($finfo, $fullFilename);
+            @finfo_close($finfo);
+            return $mime;
+        } else if (function_exists("mime_content_type")) {
+            return @mime_content_type($fullFilename);
+        } 
+        return false;
+    }
+    
+
+    /**
+     * @param                $value  =['req','minsize','maxsize','image','doc','compression','architecture','ext'][$i]
      * @param ValidationItem $cond   Where cond->value equals to the timestamp of the date/time
      * @param boolean        $fail
      * @param string         $genMsg (default error message, it could be replaced
@@ -1259,7 +1362,7 @@ class ValidationOne
                     $genMsg = '%field is not a right image';
                 } else {
                     $ext = $this->getFileExtension($fileName);
-                    if (!in_array($ext, ['jpg', 'png', 'gif', 'jpeg'])) {
+                    if (!in_array($ext, ['jpg', 'png', 'gif', 'jpeg' , 'bmp'])) {
                         $fail = true;
                         $genMsg = '%field is not allowed';
                     }
@@ -1267,7 +1370,21 @@ class ValidationOne
                 break;
             case 'doc':
                 $ext = $this->getFileExtension($fileName);
-                if (!in_array($ext, ['doc', 'docx', 'xls', 'xlsx', 'xlsxm', "ppt", "pptx"])) {
+                if (!in_array($ext, ['doc', 'docx', 'xls', 'xlsx', 'xlsm', 'ppt', 'pptx', 'pdf', 'txt', 'rtf'])) {
+                    $fail = true;
+                    $genMsg = '%field is not allowed';
+                }
+                break;
+            case 'compression':
+                $ext = $this->getFileExtension($fileName);
+                if (!in_array($ext, ['rar', 'zip', 'gzip', 'gz', '7z'])) {
+                    $fail = true;
+                    $genMsg = '%field is not allowed';
+                }
+                break;
+            case 'architecture':
+                $ext = $this->getFileExtension($fileName);
+                if (!in_array($ext, ['dwg', 'rvt','3ds','fbx','dxf','max','obj'])) {
                     $fail = true;
                     $genMsg = '%field is not allowed';
                 }
