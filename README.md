@@ -103,8 +103,7 @@ $validation->def(null)
 | Input type                                   | Condition                                                          |   |
 |----------------------------------------------|--------------------------------------------------------------------|---|
 | number                                       | req,eq,ne,gt,lt,gte,lte,between,null,notnull                       |   |
-| string                                       | req,eq,ne,minlen,maxlen,betweenlen,null,notnull,contain,notcontain
-                                                    ,alpha,alphanum,text,regexp,email,url,domain |   |
+| string                                       | req,eq,ne,minlen,maxlen,betweenlen,null,notnull,contain<br>,notcontain,alpha,alphanum,text,regexp,email,url,domain |   |
 | date                                         | req,eq,ne,gt,lt,gte,lte,between                                    |   |
 | datestring                                   | req,eq,ne,gt,lt,gte,lte,between                                    |   |
 | boolean                                      | req,eq,ne,true,false                                               |   |
