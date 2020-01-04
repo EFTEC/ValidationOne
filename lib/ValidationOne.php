@@ -18,7 +18,7 @@ if (!defined("NULLVAL")) {
  *
  * @package       eftec
  * @author        Jorge Castro Castillo
- * @version       1.21 2020-01-03.
+ * @version       1.22 2020-01-04.
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see           https://github.com/EFTEC/ValidationOne
  */
@@ -599,15 +599,15 @@ class ValidationOne
 
     /**
      * @param string $condition =['alpha','alphanum','between','betweenlen','contain','doc','domain','email','eq','ext'
-     *                          ,'false','gt','gte','image'.'doc','compression','architecture','lt','lte','maxlen','maxsize','minlen','minsize','ne'
-     *                          ,'notcontain','notnull','null','regexp','req','text','true','url','fn.*'][$i]
-     *                          <b>number</b>:req,eq,ne,gt,lt,gte,lte,between,null,notnull<br>
-     *                          <b>string</b>:req,eq,ne,minlen,maxlen,betweenlen,null,notnull,contain,notcontain
+     *                          ,'false','exist','notexist','gt','gte','image'.'doc','compression','architecture','lt','lte','maxlen','maxsize','minlen','minsize','ne'
+     *                          ,'notcontain','notnull','null','empty','notempty','regexp','req','text','true','url','fn.*'][$i]
+     *                          <b>number</b>:req,eq,ne,gt,lt,gte,lte,between,null,notnull,empty,notempty<br>
+     *                          <b>string</b>:req,eq,ne,minlen,maxlen,betweenlen,null,notnull,empty,notempty,contain,notcontain
      *                          ,alpha,alphanum,text,regexp,email,url,domain<br>
      *                          <b>date</b>:req,eq,ne,gt,lt,gte,lte,between<br>
      *                          <b>datestring</b>:req,eq,ne,gt,lt,gte,lte,between<br>
      *                          <b>boolean</b>:req,eq,ne,true,false<br>
-     *                          <b>file</b>:minsize,maxsize,req,image,doc,compression,architecture,ext<br>
+     *                          <b>file</b>:exist,notexist,minsize,maxsize,req,image,doc,compression,architecture,ext<br>
      *                          <b>function:</b><br>
      *                          fn.static.Class.methodstatic<br>
      *                          fn.global.function<br>
@@ -873,7 +873,7 @@ class ValidationOne
             $input = (array)$input;
         } 
         $this->countError = $this->messageList->errorcount;
-        if (is_array($input)) {
+        if (is_array($input) ) {
             foreach ($input as $key => &$v) {
                 $this->originalValue = $v;
                 $currentField = ($this->isArrayFlat) ? $fieldId : $fieldId . "[" . $key . "]";
@@ -887,6 +887,9 @@ class ValidationOne
                 }
             }
         } else {
+            if($this->type==='file' ) {
+                $input=[$input,$input]; // [new file,old file]
+            }
             $this->originalValue = $input;
             $input = $this->basicValidation($input, $fieldId, $msg);
             if ($this->abortOnError != false || $this->messageList->errorcount == 0) {
@@ -920,13 +923,8 @@ class ValidationOne
      */
     private function runNumericCondition($r, $cond, &$fail, &$genMsg)
     {
+        if($this->runSharedCondition($r,$cond,$fail,$genMsg)) return;
         switch ($cond->type) {
-            case 'req':
-                if (!$r) {
-                    $fail = true;
-                    $genMsg = '%field is required';
-                }
-                break;
             case 'lt':
                 if ($r >= $cond->value) {
                     $fail = true;
@@ -945,18 +943,6 @@ class ValidationOne
                     $genMsg = '%field is less or equal than %comp';
                 }
                 break;
-            case 'eq':
-                if ($r != $cond->value) {
-                    $fail = true;
-                    $genMsg = '%field is not equals than %comp';
-                }
-                break;
-            case 'ne':
-                if ($r == $cond->value) {
-                    $fail = true;
-                    $genMsg = '%field is equals than %comp';
-                }
-                break;
             case 'gte':
                 if ($r <= $cond->value) {
                     $fail = true;
@@ -969,19 +955,6 @@ class ValidationOne
                     $genMsg = '%field is not between ' . @$cond->value[0] . " and " . @$cond->value[1];
                 }
                 break;
-            case 'null':
-                if ($r !== null) {
-                    $fail = true;
-                    $genMsg = '%field is noy null';
-                }
-                break;
-            case 'notnull':
-                if ($r === null) {
-                    $fail = true;
-                    $genMsg = '%field is null';
-                }
-                break;
-
         }
     }
 
@@ -993,20 +966,9 @@ class ValidationOne
      */
     private function runStringCondition($r, $cond, &$fail, &$genMsg)
     {
-
+        if($this->runSharedCondition($r,$cond,$fail,$genMsg)) return;
         switch ($cond->type) {
-            case 'req':
-                if (!$r) {
-                    $fail = true;
-                    $genMsg = '%field is required';
-                }
-                break;
-            case 'eq':
-                if ($r != $cond->value) {
-                    $fail = true;
-                    $genMsg = '%field is not equals than %comp';
-                }
-                break;
+
             case 'contain':
                 if (strpos($r, $cond->value) === false) {
                     $fail = true;
@@ -1063,12 +1025,6 @@ class ValidationOne
                     $genMsg = '%field is not a domain';
                 }
                 break;
-            case 'ne':
-                if ($r == $cond->value) {
-                    $fail = true;
-                    $genMsg = '%field is equals than %comp';
-                }
-                break;
             case 'minlen':
                 if (strlen($r) < $cond->value) {
                     $fail = true;
@@ -1087,20 +1043,6 @@ class ValidationOne
                     $genMsg = '%field size is not between %first and %second ';
                 }
                 break;
-            case 'null':
-                if ($r !== null) {
-                    $fail = true;
-                    $genMsg = '%field is noy null';
-                }
-                break;
-            case 'notnull':
-                if ($r === null) {
-                    $fail = true;
-                    $genMsg = '%field is null';
-                }
-                break;
-            default:
-                trigger_error("type not defined {$cond->type} for string");
         }
 
     }
@@ -1113,13 +1055,8 @@ class ValidationOne
      */
     private function runDateCondition($r, $cond, &$fail, &$genMsg)
     {
+        if($this->runSharedCondition($r,$cond,$fail,$genMsg)) return;
         switch ($cond->type) {
-            case 'req':
-                if (!$r) {
-                    $fail = true;
-                    $genMsg = '%field is required';
-                }
-                break;
             case 'lt':
                 if ($r >= $cond->value) {
                     $fail = true;
@@ -1136,18 +1073,6 @@ class ValidationOne
                 if ($r <= $cond->value) {
                     $fail = true;
                     $genMsg = '%field is less or equal than %comp';
-                }
-                break;
-            case 'eq':
-                if ($r != $cond->value) {
-                    $fail = true;
-                    $genMsg = '%field is not equals than %comp';
-                }
-                break;
-            case 'ne':
-                if ($r == $cond->value) {
-                    $fail = true;
-                    $genMsg = '%field is equals than %comp';
                 }
                 break;
             case 'gte':
@@ -1171,9 +1096,10 @@ class ValidationOne
      * @param ValidationItem $cond   Where cond->value equals to the timestamp of the date/time
      * @param boolean        $fail   True if the operation fails
      * @param string         $genMsg If it fails, it returns a message.
+     *
+     * @return bool true if one condition matches, otherwise false.
      */
-    private function runBoolCondition($r, $cond, &$fail, &$genMsg)
-    {
+    private function runSharedCondition($r, $cond, &$fail, &$genMsg) {
         switch ($cond->type) {
             case 'req':
                 if (!$r) {
@@ -1182,25 +1108,80 @@ class ValidationOne
                 }
                 break;
             case 'eq':
-                if ($r != $cond->value) {
-                    $fail = true;
-                    $genMsg = '%field is not equals than %comp';
+                if(is_array($cond->value)) {
+                    if(!in_array($r,$cond->value)) {
+                        $fail = true;
+                        $genMsg = '%field is not equals than %comp';
+                        return true;
+                    }
+                } else {
+                    if ($r != $cond->value) {
+                        $fail = true;
+                        $genMsg = '%field is not equals than %comp';
+                        return true;
+                    }
                 }
                 break;
             case 'ne':
-                if ($r == $cond->value) {
-                    $fail = true;
-                    $genMsg = '%field is equals than %comp';
+                if(is_array($cond->value)) {
+                    if (in_array($r, $cond->value)) {
+                        $fail = true;
+                        $genMsg = '%field is in %comp';
+                        return true;
+                    }
+                    if ($r == $cond->value) {
+                        $fail = true;
+                        $genMsg = '%field is equals than %comp';
+                        return true;
+                    }
                 }
                 break;
+            case 'null':
+                if ($r !== null) {
+                    $fail = true;
+                    $genMsg = '%field is not null';
+                }
+                break;
+            case 'empty':
+                if (!empty($r)) {
+                    $fail = true;
+                    $genMsg = '%field is not empty';
+                }
+                break;
+            case 'notempty':
+                if (empty($r)) {
+                    $fail = true;
+                    $genMsg = '%field is empty';
+                }
+                break;
+            case 'notnull':
+                if ($r === null) {
+                    $fail = true;
+                    $genMsg = '%field is null';
+                }
+                break;
+        }        
+        return false;
+    }
+    /**
+     * @param int            $r      timestamp of the date/time
+     * @param ValidationItem $cond   Where cond->value equals to the timestamp of the date/time
+     * @param boolean        $fail   True if the operation fails
+     * @param string         $genMsg If it fails, it returns a message.
+     */
+    private function runBoolCondition($r, $cond, &$fail, &$genMsg)
+    {
+        if($this->runSharedCondition($r,$cond,$fail,$genMsg)) return;
+        
+        switch ($cond->type) {
             case 'true':
-                if ($r) {
+                if ($r===true) {
                     $fail = true;
                     $genMsg = '%field is not true';
                 }
                 break;
             case 'false':
-                if (!$r) {
+                if ($r===false) {
                     $fail = true;
                     $genMsg = '%field is not false';
                 }
@@ -1304,20 +1285,32 @@ class ValidationOne
     /**
      * It returns the mime type of a full filename.  If not found or error, it returns false<br>
      * Example:<br>
-     * $this->getFileMime("/folder/filename.txt"); // it could return "text/plain"
-     * 
-     * @param string $fullFilename
+     * $this->getFileMime("/folder/filename.txt"); // it could return "text/plain"<br>
+     * $this->getFileMime("/folder/filename.txt",true); // it could return "text"<br>
+     *
+     * @param string $fullFilename Full filename (with path) of the file to analyze.
+     * @param bool $onlyType if true then it only returns the first part of the mime.
+     *                       Example "text" instead of "text/plain"
      *
      * @return bool|mixed|string
      */
-    public function getFileMime($fullFilename) {
+    public function getFileMime($fullFilename,$onlyType=false) {
         if (function_exists("finfo_file")) {
             $finfo = @finfo_open(FILEINFO_MIME_TYPE); // return mime type ala mimetype extension
             $mime = @finfo_file($finfo, $fullFilename);
             @finfo_close($finfo);
+            if($onlyType) {
+                $mimeArr=@explode('/',$mime);
+                $mime=@$mimeArr[0];
+            }
             return $mime;
         } else if (function_exists("mime_content_type")) {
-            return @mime_content_type($fullFilename);
+            $mime=@mime_content_type($fullFilename);
+            if($onlyType) {
+                $mimeArr=@explode('/',$mime);
+                $mime=@$mimeArr[0];
+            }
+            return $mime;
         } 
         return false;
     }
@@ -1334,11 +1327,21 @@ class ValidationOne
     {
         $fileName = @$value[0];
         $fileNameTmp = @$value[1];
+
+        if($this->runSharedCondition($value,$cond,$fail,$genMsg)) return;
         switch ($cond->type) {
-            case 'req':
-                if (!$fileName) {
+            case 'exist':
+                $fileExist=@file_exists($fileNameTmp);
+                if(!$fileExist) {
+                    $genMsg = '%field does not exist';
                     $fail = true;
-                    $genMsg = '%field is required';
+                }
+                break;
+            case 'notexist':
+                $fileExist=!@file_exists($fileNameTmp);
+                if(!$fileExist) {
+                    $genMsg = '%field does exist';
+                    $fail = true;
                 }
                 break;
             case 'minsize':
@@ -1353,6 +1356,26 @@ class ValidationOne
                 if ($size > $cond->value) {
                     $fail = true;
                     $genMsg = '%field is big than %comp';
+                }
+                break;
+            case 'mime':
+                $mime=$this->getFileMime($fileNameTmp);
+                if(!is_array($cond->value)) {
+                    $cond->value=[$cond->value];
+                }
+                if (!in_array($mime,$cond->value)) {
+                    $fail = true;
+                    $genMsg = '%field incorrect media type';
+                }
+                break;
+            case 'mimetype':
+                $mime=$this->getFileMime($fileNameTmp,true);
+                if(!is_array($cond->value)) {
+                    $cond->value=[$cond->value];
+                }
+                if (!in_array($mime,$cond->value)) {
+                    $fail = true;
+                    $genMsg = '%field incorrect media type';
                 }
                 break;
             case 'image':
@@ -1714,7 +1737,7 @@ class ValidationOne
         if (is_array($vcomp)) {
             $first = @$vcomp[0];
             $second = @$vcomp[1];
-            $vcomp = @$vcomp[0]; // is not array anymore
+            $vcomp = json_encode($vcomp); // is not array anymore
         } else {
             $first = $vcomp;
             $second = $vcomp;

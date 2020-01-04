@@ -102,12 +102,13 @@ $validation->def(null)
 
 | Input type                                   | Condition                                                          |   |
 |----------------------------------------------|--------------------------------------------------------------------|---|
-| number                                       | req,eq,ne,gt,lt,gte,lte,between,null,notnull                       |   |
-| string                                       | req,eq,ne,minlen,maxlen,betweenlen,null,notnull,contain<br>,notcontain,alpha,alphanum,text,regexp,email,url,domain |   |
-| date                                         | req,eq,ne,gt,lt,gte,lte,between                                    |   |
-| datestring                                   | req,eq,ne,gt,lt,gte,lte,between                                    |   |
-| boolean                                      | req,eq,ne,true,false                                               |   |
+| number                                       | gt,lt,gte,lte,between                                          |   |
+| string                                       | minlen,maxlen,betweenlen,contain<br>,notcontain,alpha,alphanum,text,regexp,email,url,domain |   |
+| date                                         | gt,lt,gte,lte,between                                          |   |
+| datestring                                   | gt,lt,gte,lte,between                                          |   |
+| boolean                                      | true,false                                                     |   |
 | file                                         | minsize,maxsize,req,image,doc,compression,architecture,ext         |   |
+| *  (it applies for any type)                 | req,eq,ne,null,notnull,empty,notempty                                  |   |
 | *                                            | function                                                           |   |
 | *                                            | fn.static.Class.methodstatic                                       |   |
 | *                                            | fn.global.function                                                 |   |
@@ -125,9 +126,10 @@ $validation->def(null)
 | compression                                             | The extension of the file must be an compression file  |                        |
 | contain                                                 | The text must contain a value                          | "text"                 |
 | doc                                                     | The extension of the file must be an document file     |                        |
-| eq                                                      | The value must be equals to                            | "text"                 |
+| eq (the value to compare could be an single value or array)  | The value must be equals to                       | "text",["text","text2"]                 |
+| exist                                                   | The file must exists                                   |  |
 | ext                                                     | The extension must be in a list of extensions          | ["ext1","ext2","ext3"] |
-| false                                                   | The value must be false                                |                        |
+| false                                                   | The value must be false (===false)                     |                        |
 | fn.class.\namespace\Class.method                        | The method of a class must returns true                |                        |
 | fn.class.Class.method                                   | The method of a class must returns true                |                        |
 | fn.global.function                                      | The global function must returns true                  |                        |
@@ -143,12 +145,17 @@ $validation->def(null)
 | maxsize                                                 | The maximum size of a file                             | 123                    |
 | minlen                                                  | The minimum lenght of a string                         | 123                    |
 | minsize                                                 | The minimum size of a file                             | 123                    |
-| ne                                                      | The value must not be equals                           | 123                    |
+| mime (the value to compare could be an string or array) | The mime type of a file                                | "application/msword" or ["application/msword","image/gif"]|
+| mimetype                                                | The mime type (without subtype) of a file              | "application" or ["application,"image"]|
+| ne (the value to compare could be an single value or array)   | The value must not be equals.                    | 123,[123,345],["aa","bb"]                    |
 | notcontain                                              | The value must not contain a value                     | "text"                 |
+| notexist                                                | The file must not exist                               |  |
 | notnull                                                 | The value must not be null                             |                        |
 | null                                                    | The value must be null                                 |                        |
-| req                                                     | The value must be equal                                | "text"                 |
-| true                                                    | The value must be true                                 |                        |
+| empty                                                   | The value must be empty (i.e. "",0,null)               |                        |
+| notempty                                                | The value must not be empty (i.e. not equals to "",0,null)|                        |
+| req                                                     | The value must be equal                                |                        |
+| true                                                    | The value must be true (===true)                       |                        |
 
 
 Examples:
@@ -159,6 +166,7 @@ $validation->def(null)
     ->condition('eq','%field %value is not equal to %comp ',50)
     ->condition('between','%field %value must be between 1 and 50 ',[1,50])
     ->condition('eq','%field %value is not equal to %comp ',60)
+    ->condition('eq','%field %value is not equal to %comp ',[60,200]) // eq allows a single or array
     ->condition('fn.static.Example.customval','la funcion no funciona')
     ->condition('req')
     ->condition('lt',"es muy grande",2000,'warning')
@@ -206,6 +214,9 @@ You can obtain a message as an array of objects of the type MessageItem, as an a
 
 ## version list
 
+* 2020-01-04 1.22
+    * New conditions 'mime','minetype','exist','notexist',etc.
+    * Condition 'eq' and 'ne' allows a simple or an array of values.
 * 2020-01-03 1.21
     * ValidationOne::runConditions() now allows (for file type), conditions architecture and compression
     * ValidationOne::getFileExtension() now could return the extension as mime

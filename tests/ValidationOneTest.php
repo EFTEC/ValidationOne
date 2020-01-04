@@ -23,23 +23,71 @@ class ValidationOneTest extends TestCase
 	    //var_dump(getVal()->messageList->allErrorArray());
 	    $this->assertEquals(2,count(getVal()->messageList->allErrorArray()),'it must be 2 errors');
     }
+    public function test4()
+    {
+        getVal()->messageList->resetAll();
+        $r=getVal()->def("???")
+            ->type('string')
+            ->condition('eq',null,['foo','bar']) 
+            ->set("hello");
+
+        $this->assertEquals('hello',$r);
+        //var_dump(getVal()->messageList->allErrorArray());
+        $this->assertEquals('setfield is not equals than ["foo","bar"]',getVal()->messageList->firstErrorText());
+
+        getVal()->messageList->resetAll();
+        $r=getVal()->def("???")
+            ->type('string')
+            ->condition('ne',null,['foo','bar'])
+            ->set("foo");
+
+        $this->assertEquals('foo',$r);
+        //var_dump(getVal()->messageList->allErrorArray());
+        $this->assertEquals('setfield is in ["foo","bar"]',getVal()->messageList->firstErrorText());
+    }
+    public function test5()
+    {
+        getVal()->messageList->resetAll();
+        $r=getVal()->def("???")
+            ->type('file')
+            ->condition('exist')
+            ->set(__FILE__,'filename');
+
+        $this->assertEquals([__FILE__,__FILE__],$r);
+        //var_dump(getVal()->messageList->allErrorOrWarningArray());
+        $this->assertEquals(0,getVal()->messageList->errorOrWarning); // the file exists.
+        
+        getVal()->messageList->resetAll();
+        $r=getVal()->def("???")
+            ->type('file')
+            ->condition('exist')
+            ->set(__FILE__.'.bak');
+
+        $this->assertEquals([__FILE__.'.bak',__FILE__.'.bak'],$r);
+        $this->assertEquals(1,getVal()->messageList->errorOrWarning); // the file does not exist
+
+
+
+
+    }
 
     public function testFailCondition()
     {
         getVal()->messageList->resetAll();
         $r=getVal()->def("default")
             ->type('string')
-            ->condition('contain','it must contains the text hello','hello') // this calls a custom function
+            ->condition('contain','it must contains the text hello','hello') 
             ->condition('req')
             ->condition('maxlen',"it's too big",10,'warning')
             ->condition('eq','%field %value is not equal to %comp','abc')
             ->set('abcdefghijklmnopqrst12345');
 
-        $this->assertEquals('abcdefghijklmnopqrst12345',$r,'it must be equals to 12345');
+        $this->assertEquals('abcdefghijklmnopqrst12345',$r,'it must be equals to abcdefghijklmnopqrst12345');
         $this->assertEquals('it must contains the text hello',getVal()->messageList->allErrorArray()[0]);
         $this->assertEquals('it must contains the text hello',getVal()->messageList->firstErrorText());
-        $this->assertEquals('setfield abcdefghijklmnopqrst12345 is not equal to abc',getVal()->messageList->allErrorArray()[1]);
         $this->assertEquals(2,count(getVal()->messageList->allErrorArray()),'it must be 2 errors');
+        $this->assertEquals('setfield abcdefghijklmnopqrst12345 is not equal to abc',getVal()->messageList->allErrorArray()[1]);
+        
         $this->assertEquals(2,(getVal()->messageList->errorcount),'it must be 2 errors');
         $this->assertEquals(1,count(getVal()->messageList->allWarningArray()),'it must be 1 warning');
         $this->assertEquals(1,getVal()->messageList->warningcount,'it must be 1 warning');

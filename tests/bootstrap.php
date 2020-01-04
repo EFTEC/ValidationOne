@@ -3,6 +3,8 @@
 
 use eftec\ValidationOne;
 
+
+
 if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
     require_once __DIR__ . '/../vendor/autoload.php';
 } else {
@@ -23,6 +25,9 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
     spl_autoload_register(create_autoloader("eftec\\", __DIR__ . '/../lib/'));
     spl_autoload_register(create_autoloader("eftec\\tests\\", __DIR__ . '/'));
 }
+
+PHPUnit_Framework_Error_Deprecated::$enabled = false;
+
 
 function getVal($prefix='frm_') {
 	global $validation;
