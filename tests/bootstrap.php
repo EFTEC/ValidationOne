@@ -25,8 +25,10 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
     spl_autoload_register(create_autoloader("eftec\\", __DIR__ . '/../lib/'));
     spl_autoload_register(create_autoloader("eftec\\tests\\", __DIR__ . '/'));
 }
+if (class_exists('PHPUnit_Framework_Error_Deprecated')) {
+    PHPUnit_Framework_Error_Deprecated::$enabled = false;    
+}
 
-PHPUnit_Framework_Error_Deprecated::$enabled = false;
 
 
 function getVal($prefix='frm_') {
