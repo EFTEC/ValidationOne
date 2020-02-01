@@ -1,8 +1,6 @@
 <?php
 namespace eftec\tests;
 use DateTime;
-use eftec\DaoOne;
-use Exception;
 use PHPUnit\Framework\TestCase;
 
 
@@ -22,6 +20,18 @@ class ValidationOneTest extends TestCase
 	    $this->assertEquals(12345,$r,'it must be equals to 12345');
 	    //var_dump(getVal()->messageList->allErrorArray());
 	    $this->assertEquals(2,count(getVal()->messageList->allErrorArray()),'it must be 2 errors');
+    }
+    public function test6() {
+        getVal()->configChain(false,false);
+        getVal()->resetValidation(true);
+
+            
+        getVal()->notempty('this value must not be empty')
+            ->set('','id');
+        $this->assertEquals(1,getVal()->getMessageId('id')->countError());
+        $this->assertEquals('this value must not be empty',getVal()->messageList->firstErrorText());
+        getVal()->configChain(false,false);
+        
     }
     public function test4()
     {
@@ -93,7 +103,41 @@ class ValidationOneTest extends TestCase
         $this->assertEquals(1,getVal()->messageList->warningcount,'it must be 1 warning');
         $this->assertEquals(3,getVal()->messageList->errorOrWarning,'it must be 3 errors or warnings');
     }
-    
+    public function testOthers() {
+        $r = getVal()
+            ->ifMissingThenSet('hi world')
+            ->get('nope');
+        $this->assertEquals('hi world',$r);
+        $r=getVal()->type('datestring')->setDateFormatEnglish()->set('02/01/2020');
+        $this->assertEquals('2020-02-01',$r);
+        $r=getVal()->type('datestring')->defNatural()->get('nope');
+        $now=new DateTime();
+        
+        $this->assertEquals($now->format('Y-m-d'),$r);
+
+        getVal()->setDateFormatDefault(); // to default configuration
+
+    }
+    public function testDateEmptyOrMissing() {
+        getVal()->messageList->resetAll();
+        $r = getVal()
+            ->type('datetimestring')
+            ->def('')
+            ->ifFailThenDefault()
+            ->set(null);
+        $this->assertEquals('',$r);
+        $r = getVal()
+            ->type('datetimestring')
+            ->get('missingfield');
+        $this->assertEquals('',$r);
+        $r = getVal()
+            ->type('datetimestring')
+            ->def(null)
+            ->ifFailThenDefault()
+            ->set(null);
+        $this->assertEquals(null,$r);
+        
+    }
     public function testDate()
     {
         getVal()->messageList->resetAll();

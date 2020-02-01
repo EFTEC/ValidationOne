@@ -1,7 +1,5 @@
 <?php
 
-use eftec\ValidationOne;
-
 
 include "common.php";
 // ****************************************
@@ -19,14 +17,14 @@ var_dump(getVal()->messageList->allErrorOrWarningArray());
 getVal()->messageList->resetAll();
 
 // ****************************************
-echo "<hr>";
+echo "<hr><b>Expecting an error:</b><br>";
 
 getVal()->dateShort='d-m-Y';
 //getVal()->dateOutputString='d D M Y';
 
 $r=getVal()->def(null)
     ->type('datestring')
-    ->condition('lte','%valuevalues are not less than %comp','2000-31-12')
+    ->condition('lte','[%value] value is not less than %comp',new DateTime('2019-12-31'))
     ->set('31-12-2019');
 
 

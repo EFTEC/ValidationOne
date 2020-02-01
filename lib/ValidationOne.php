@@ -1,4 +1,5 @@
-<?php /** @noinspection PhpUndefinedClassInspection */
+<?php /** @noinspection DuplicatedCode */
+/** @noinspection PhpUndefinedClassInspection */
 
 //declare(strict_types=1);
 
@@ -18,7 +19,7 @@ if (!defined("NULLVAL")) {
  *
  * @package       eftec
  * @author        Jorge Castro Castillo
- * @version       1.22 2020-01-04.
+ * @version       1.23 2020-02-01.
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see           https://github.com/EFTEC/ValidationOne
  */
@@ -152,6 +153,29 @@ class ValidationOne
         if($dateTimeOutput!==null) {
             $this->dateLongOutputString=$dateTimeOutput;
         }
+        return $this;
+    }
+
+    /**
+     * It sets the input values (datestring and datetimestring) in "m/d/Y" and "m/d/Y H:i:s" format instead of "d/m/Y" and "d/m/Y H:i:s" <br>
+     * The output is still "Y-m-D" and 'Y-m-d\TH:i:s\Z'<br>
+     * This configuration persists across different calls so you could set it once (during the configuration).
+     *
+     * @return $this
+     */
+    public function setDateFormatEnglish() {
+        $this->setDateFormat('m/d/Y','m/d/Y H:i:s','Y-m-d','Y-m-d\TH:i:s\Z');
+        return $this;
+    }
+
+    /**
+     * It sets the input values (datestring and datetimestring) in "d/m/Y" and "d/m/Y H:i:s" format<br>
+     * It is the default value.
+     * 
+     * @return $this
+     */
+    public function setDateFormatDefault() {
+        $this->setDateFormat('d/m/Y','d/m/Y H:i:s','Y-m-d','Y-m-d\TH:i:s\Z');
         return $this;
     }
 
@@ -291,7 +315,8 @@ class ValidationOne
      * b) if the value is not set and it's required, then it returns an error and it sets this value, otherwise null<br>
      * c) if the value is not set and it's an array, then it sets a single value or it sets a value per key of array.
      * d) if value is null, then the default value is the same input value.<br>
-     * Note: This value must be in the same format than the (expected) input.
+     * <b>Note:</b> This value must be in the same format than the (expected) output.<br>
+     * <b>Note:</b> Default value is not converted but returned directly.
      *
      * @param mixed|array $value
      * @param bool|null   $ifFailThenDefault True if the system returns the default value if error.
@@ -308,8 +333,13 @@ class ValidationOne
         return $this;
     }
 
+    /**
+     * TODO: use future.
+     * 
+     * @param $isValid
+     */
     public function isNullValid($isValid) {
-        $this->IsNullValid=$isValid;
+        $this->isNullValid=$isValid;
     }
     /**
      * (Optional). It sets an initial value.<br>
@@ -333,11 +363,13 @@ class ValidationOne
      * date = DateTime() (null if negative=true)<br>
      * boolean = true (false if negative=true)<br>
      * file = '' (null if negative=true)<br>
-     * datestring = '1970-01-01T00:00:00Z' (null if negative=true)<br>
-     *
+     * datestring = (current date) '1970-01-01T00:00:00Z' (null if negative=true)<br>
+     * <b>Note:</b> Default value is not converted but returned directly.
+     * 
      * @param bool $negative if true then it returns the negative default value.
      *
      * @return ValidationOne $this
+     * @noinspection PhpDocMissingThrowsInspection
      */
     public function defNatural($negative = false)
     {
@@ -361,10 +393,10 @@ class ValidationOne
             case 5:
                 $defaultDate = new DateTime();
                 if ($this->type == 'datetimestring') {
-                    $defaultDate=$defaultDate->format($this->dateLong);
+                    $defaultDate=$defaultDate->format($this->dateLongOutputString);
                 } else {
                     $defaultDate->setTime(0,0,0);
-                    $defaultDate=$defaultDate->format($this->dateShort);
+                    $defaultDate=$defaultDate->format($this->dateOutputString);
                 }
                 $this->default = (!$negative) ? $defaultDate : null;
                 break;
@@ -445,8 +477,12 @@ class ValidationOne
     }
 
     /**
-     *
-     * If the value is missing (null or empty) then it sets a value. If it does not set then it uses the default natural value.
+     * If the value is missing (null or empty) then it sets a value. If it does not set then it uses
+     * the default natural value.<br>
+     * <b>Example:</b><br>
+     * <pre>
+     * $this->ifMissingThenSet("some value");
+     * </pre>
      *
      * @param Mixes $value The value to set if the value is missing.
      *
@@ -551,7 +587,7 @@ class ValidationOne
                 $r[$key] = $this->getTypeFamily($t);
             }
         } else {
-            switch (1 == 1) {
+            switch (true) {
                 case (strpos($this->STRARR, $type) !== false):
                     $r = 1; // string
                     break;
@@ -637,12 +673,12 @@ class ValidationOne
     }
 
     /**
-     * It resets the chain (if any)
-     * It also reset any validating pending to be executed.
+     * It resets the chain (if any)<br>
+     * It also reset any validating pending to be executed.<br>
+     * <b>Note:</b> It does not delete the messages (if any)
      */
     public function resetChain()
     {
-
         $this->default = null;
         $this->initial = null;
 
@@ -696,10 +732,21 @@ class ValidationOne
     }
 
     /**
-     * It cleans the stacked validations. It doesn't delete the errors.
+     * It cleans the stacked validations. It also could delete the messages
+     *
+     * @param bool $deleteMessage [default] if true then it deletes all messages (by default it's false).<br>
+     *                            It does not delete the messages if they are defined by the global
+     *                            function messages().
      */
-    public function resetValidation()
+    public function resetValidation($deleteMessage=false)
     {
+        if($deleteMessage) {
+            if (function_exists('messages')) {
+                $this->messageList = messages();
+            } else {
+                $this->messageList = new MessageList();
+            }
+        }
         $this->conditions = array();
     }
 
@@ -707,7 +754,7 @@ class ValidationOne
 
     private function afterFetch($input, $fieldId, $msg)
     {
-        if ($this->missingSet!==null && ($input===null && $input==='')) {
+        if ($this->missingSet!==null && ($input===null || $input==='')) {
             $input=$this->missingSet;
         } 
         if (!$this->isMissing) {
@@ -782,10 +829,10 @@ class ValidationOne
         if($input!==null) {
             switch ($this->type) {
                 case 'datestring':
-                    $output = $input->format($this->dateOutputString);
+                    $output = ($input instanceof DateTime) ? $input->format($this->dateOutputString) : $input;
                     break;
                 case 'datetimestring':
-                    $output = $input->format($this->dateLongOutputString);
+                    $output = ($input instanceof DateTime) ? $input->format($this->dateLongOutputString) : $input;
                     break;
                 default:
                     $output = $input;
@@ -932,8 +979,10 @@ class ValidationOne
                 }
                 break;
             case 'lte':
+
                 if ($r > $cond->value) {
                     $fail = true;
+                 
                     $genMsg = '%field is great than %comp';
                 }
                 break;
@@ -1129,6 +1178,7 @@ class ValidationOne
                         $genMsg = '%field is in %comp';
                         return true;
                     }
+                } else {
                     if ($r == $cond->value) {
                         $fail = true;
                         $genMsg = '%field is equals than %comp';
@@ -1670,8 +1720,8 @@ class ValidationOne
             case 'datetimestring':
                 
                 if(is_string($value) && !$value && $this->required===false) {
-                    $valueDate=$this->inputToDate($localDefault); // we return the local value unmodified
-                    return $valueDate;
+                    // we return the local value unmodified
+                    return $this->inputToDate($localDefault);
                 }
                 $valueDate = ($value instanceof DateTime) 
                     ? $value 

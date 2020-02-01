@@ -214,6 +214,12 @@ You can obtain a message as an array of objects of the type MessageItem, as an a
 
 ## version list
 
+* 2020-02-01 1.23
+    *  Solved a problem in endConversion() when the default value is "" or null (or not a DateTime object), the type is 
+"datetimestring" and the value is missing.
+    * Practically all methods were tested.
+    * resetValidation() now allows to delete all messages.
+    * Fixed the validation "ne"
 * 2020-01-04 1.22
     * New conditions 'mime','minetype','exist','notexist',etc.
     * Condition 'eq' and 'ne' allows a simple or an array of values.
