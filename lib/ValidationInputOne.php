@@ -104,7 +104,7 @@ class ValidationInputOne
             case INPUT_POST:
                 if (!isset($_POST[$fieldId])) {
                     $isMissing=true;
-                    if ($this->required) $this->addMessageInternal($msg,"Field is missing",$fieldId,"","",'error');
+                    if ($this->required) $this->addMessageInternal($msg,"Field is missing",$field,"","",'error');
                     return ($this->initial===null)?$this->default:$this->initial;
                 }
                 $r=$_POST[$fieldId];
@@ -114,7 +114,7 @@ class ValidationInputOne
 
                 if (!isset($_GET[$fieldId])) {
                     $isMissing=true;
-                    if ($this->required) $this->addMessageInternal($msg,"Field is missing",$fieldId,"","",'error');
+                    if ($this->required) $this->addMessageInternal($msg,"Field is missing",$field,"","",'error');
                     return ($this->initial===null)?$this->default:$this->initial;
                 }
                 $r=$_GET[$fieldId];
@@ -127,7 +127,7 @@ class ValidationInputOne
                 }  else {
                     if (!isset($_GET[$fieldId]) ) {
                         $isMissing=true;
-                        if ($this->required) $this->addMessageInternal($msg,"Field is missing",$fieldId,"","",'error');
+                        if ($this->required) $this->addMessageInternal($msg,"Field is missing",$field,"","",'error');
                         return ($this->initial===null)?$this->default:$this->initial;
                     }
                     $r=$_GET[$fieldId];

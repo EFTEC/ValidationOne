@@ -98,6 +98,25 @@ $validation->def(null)
     ->set('aaa','variable2');	
 ```
 
+#### types
+
+| type           | description                                                                                             |
+|----------------|---------------------------------------------------------------------------------------------------------|
+| integer        | (numeric) it allows a number without decimal                                                            |
+| unixtime       | (numeric) it allows a number without decimal                                                            |
+| boolean        | (boolean) it stores true or false. The input could vary (empty, zero or   null = false, otherwise true) |
+| decimal        | (numeric) it allows a number with decimal                                                               |
+| float          | (numeric) it allows a number with decimal                                                               |
+| varchar        | (string) it allows any input                                                                            |
+| string         | (string) it allows any input                                                                            |
+| date           | (date) the input could be a DateTime or a string. The value is stored as   an object DateTime           |
+| datetime       | (date) the input could be a DateTime or a string. The value is stored as   an object DateTime           |
+| datestring     | (date) the input could be a DateTime or a string. The value is stored as   an string                    |
+| datetimestring | (date) the input could be a DateTime or a string. The value is stored as   an string                    |
+| file           | (file) the input is a string and it's store as an string but it adds an   special validations           |
+
+
+
 #### Input type x Conditions
 
 | Input type                                   | Condition                                                          |   |
@@ -209,11 +228,13 @@ You can obtain a message as an array of objects of the type MessageItem, as an a
 
 * Input value, it could come from set()/post()/get()/request()/getFile()
 * What if the value doesn't exist?
-* * 
 
 
 ## version list
 
+* 2020-04-07 1.23.1
+    * Solved a problem with validation and input. It failed to validate.
+    * Solved a problem where the default value is a string and the type is a datetimestring.
 * 2020-02-01 1.23
     *  Solved a problem in endConversion() when the default value is "" or null (or not a DateTime object), the type is 
 "datetimestring" and the value is missing.

@@ -19,7 +19,7 @@ if (!defined("NULLVAL")) {
  *
  * @package       eftec
  * @author        Jorge Castro Castillo
- * @version       1.23 2020-02-01.
+ * @version       1.23.1 2020-04-07.
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see           https://github.com/EFTEC/ValidationOne
  */
@@ -252,7 +252,12 @@ class ValidationOne
     {
 
         $this->countError = $this->messageList->errorcount;
-
+        if ($this->type=='datestring' || $this->type=='datetimestring') {
+            // if the default value is a string and the input is expected a DateTime, then we convert it.
+            if(is_string($this->default)) {
+                $this->default=$this->inputToDate($this->default);
+            }
+        }
         $this->input()->default = $this->default;
         $this->input()->originalValue = $this->originalValue;
         $this->input()->ifFailThenOrigin = $this->ifFailThenOrigin;
@@ -778,6 +783,13 @@ class ValidationOne
                             }
                         }
                     }
+                } else {
+                    $this->runConditions($input, $fieldId);
+                    if ($this->ifFailThenDefault) {
+                        if ($this->messageList->get($fieldId)->countError()) {
+                            $input = $this->default;
+                        }
+                    }
                 }
                 $output=$this->endConversion($input);
             } else {
@@ -825,6 +837,7 @@ class ValidationOne
      * @return null
      */
     private function endConversion($input) {
+        
         // end conversion, we convert the input or default value.
         if($input!==null) {
             switch ($this->type) {
