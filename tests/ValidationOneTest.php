@@ -103,6 +103,13 @@ class ValidationOneTest extends TestCase
         $this->assertEquals(1,getVal()->messageList->warningcount,'it must be 1 warning');
         $this->assertEquals(3,getVal()->messageList->errorOrWarning,'it must be 3 errors or warnings');
     }
+    public function test7() {
+        $r=getVal()
+            ->type('string')
+            ->isNullValid(true)
+            ->set(null,'field');
+        $this->assertEquals(null,$r);
+    }
     public function testOthers() {
         $r = getVal()
             ->ifMissingThenSet('hi world')

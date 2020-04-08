@@ -232,6 +232,8 @@ You can obtain a message as an array of objects of the type MessageItem, as an a
 
 ## version list
 
+* 2020-04-07 1.23.2
+    * Solved a problem with datetimestring and a defnatural
 * 2020-04-07 1.23.1
     * Solved a problem with validation and input. It failed to validate.
     * Solved a problem where the default value is a string and the type is a datetimestring.

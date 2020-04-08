@@ -19,8 +19,10 @@ $field3=getVal()->type('string')
 $field4=getVal()->type('string')
     ->required(true)
     ->post('field4');
-$field5=getVal()->type('datestring')
-    ->post('field5');
+$field5=getVal()->type('datetimestring')
+    ->def(new DateTime())
+    ->ifFailThenDefault(true)
+    ->fetch(INPUT_POST,'field5');
 $submit=getVal()->type('string')->post('submit');
 
 
