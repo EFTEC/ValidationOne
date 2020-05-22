@@ -1,5 +1,13 @@
-<?php /** @noinspection DuplicatedCode */
-/** @noinspection PhpUndefinedClassInspection */
+<?php
+/** @noinspection PhpParameterByRefIsNotUsedAsReferenceInspection
+ * @noinspection ClassMethodNameMatchesFieldNameInspection
+ * @noinspection TypeUnsafeArraySearchInspection
+ * @noinspection TypeUnsafeComparisonInspection
+ * @noinspection AlterInForeachInspection
+ * @noinspection NotOptimalRegularExpressionsInspection
+ * @noinspection DuplicatedCode
+ * @noinspection PhpUndefinedClassInspection
+ */
 
 //declare(strict_types=1);
 
@@ -8,6 +16,7 @@ namespace eftec;
 use DateTime;
 use Exception;
 use ReflectionMethod;
+use RuntimeException;
 
 /** @var string  sometimes we want to sets an empty as empty. For example <select><option> this nullval is equals to null */
 if (!defined("NULLVAL")) {
@@ -19,7 +28,7 @@ if (!defined("NULLVAL")) {
  *
  * @package       eftec
  * @author        Jorge Castro Castillo
- * @version       1.23.2 2020-04-07.
+ * @version       1.24 2020-05-21.
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see           https://github.com/EFTEC/ValidationOne
  */
@@ -34,13 +43,12 @@ class ValidationOne
     /** @var string It is the output format (for datetimestring) */
     public $dateLongOutputString = 'Y-m-d\TH:i:s\Z';
     /** @var MessageList */
-    var $messageList;
+    public $messageList;
 
     /** @var ValidationInputOne */
-    var $input;
+    public $input;
     /** @var bool if debug then it fills an array called debugLog */
-    var $debug = false;
-    var $debugLog = [];
+    public $debug = false;
 
     //private $NUMARR='integer,unixtime,boolean,decimal,float';
     /** @var ValidationItem[] */
@@ -52,8 +60,8 @@ class ValidationOne
     /** @var string members of the family DATESTRING */
     private $DATSARR = 'datestring,datetimestring';
     /** @var mixed default value */
-    private $default = null;
-    private $initial = null;
+    private $default;
+    private $initial;
     /** @var string=['integer','unixtime','boolean','decimal','float','varchar','string','date','datetime','datestring','datetimestring'][$i] */
     private $type = 'string';
     /** @var array used to store types (if the input is an array) */
@@ -77,30 +85,30 @@ class ValidationOne
     /** @var bool if the validation fails then it returns the original (input) value */
     private $ifFailThenOrigin = false;
     /** @var null|string */
-    private $successMessage = null;
+    private $successMessage;
     /** @var bool It override previous errors (for the "id" used) */
     private $override = false;
     /** @var bool If true then the field is required otherwise it generates an error */
     private $required = false;
     /** @var mixed It keeps a copy of the original value (after get/post/fetch or set) */
-    private $originalValue = null;
+    private $originalValue;
     /** @var string It's a friendly id used to replace the "id" used in message. For example: "id customer" instead of "idcustomer" */
-    private $friendId = null;
+    private $friendId;
     /** @var null|mixed It is the value used if the value is null or empty. If null then the value is not changed. */
-    private $missingSet = null;
+    private $missingSet;
     private $container = [];
 
     /**
      * @var FormOne It is a optional feature that uses FormOne. It's used for callback.
      * @see https://github.com/EFTEC/FormOne
      */
-    private $formOne = null;
+    private $formOne;
     private $addToForm = false;
     /** @var bool if true and the validation fails, then it returns the default value */
     private $defaultIfFail = false;
     private $defaultRequired = false;
     /** @var string Prefix used for the input */
-    private $prefix = '';
+    private $prefix;
     /** @var bool value is missing */
     private $isMissing = false;
     /* interal counter of error per chain */
@@ -250,9 +258,8 @@ class ValidationOne
      */
     private function endChainFetch($inputType, $fieldId, $msg = null)
     {
-
         $this->countError = $this->messageList->errorcount;
-        if ($this->type == 'datestring' || $this->type == 'datetimestring') {
+        if ($this->type === 'datestring' || $this->type === 'datetimestring') {
             // if the default value is a string and the input is expected a DateTime, then we convert it.
             if (is_string($this->default)) {
                 $this->default = $this->inputToDate($this->default);
@@ -263,17 +270,14 @@ class ValidationOne
         $this->input()->ifFailThenOrigin = $this->ifFailThenOrigin;
         $this->input()->initial = $this->initial;
         foreach ($this->conditions as $c) {
-            if ($c->type == "req") {
+            if ($c->type === "req") {
                 $this->required = true;
                 break;
             }
         }
-        $r = $this->input()
-            ->required($this->required)
-            ->friendId($this->friendId)
-            ->getField($fieldId, $inputType, $msg, $this->isMissing);
+        $r = $this->input()->required($this->required)->friendId($this->friendId)->getField($fieldId, $inputType, $msg,
+                $this->isMissing);
         return $this->afterFetch($r, $fieldId, $msg);
-
     }
 
     /**
@@ -342,7 +346,6 @@ class ValidationOne
                 $this->default = $input;
             }
             if (!$this->isArray) {
-
                 $this->originalValue = $input;
                 $input = $this->basicValidation($input, $fieldId, $msg);
 
@@ -351,18 +354,14 @@ class ValidationOne
                         $currentField = ($this->isArrayFlat) ? $fieldId : $fieldId . "[" . $key . "]";
                         $this->runConditions($items, $currentField, $key);
 
-                        if ($this->ifFailThenDefault) {
-                            if ($this->messageList->get($currentField)->countError()) {
-                                $items = (is_array($this->default)) ? $this->default[$key] : $this->default;
-                            }
+                        if ($this->ifFailThenDefault && $this->messageList->get($currentField)->countError()) {
+                            $items = (is_array($this->default)) ? $this->default[$key] : $this->default;
                         }
                     }
                 } else {
                     $this->runConditions($input, $fieldId);
-                    if ($this->ifFailThenDefault) {
-                        if ($this->messageList->get($fieldId)->countError()) {
-                            $input = $this->default;
-                        }
+                    if ($this->ifFailThenDefault && $this->messageList->get($fieldId)->countError()) {
+                        $input = $this->default;
                     }
                 }
                 $output = $this->endConversion($input);
@@ -379,12 +378,10 @@ class ValidationOne
                     $this->addMessageInternal('%field is not an array', '', $fieldId, 0, 'error');
                 }
                 $this->runConditions($input, $fieldId);
-                if ($this->ifFailThenDefault) {
-                    if ($this->messageList->errorcount) {
-                        $input = $this->default;
-                    }
+                if ($this->ifFailThenDefault && $this->messageList->errorcount) {
+                    $input = $this->default;
                 }
-                
+
                 $output = $this->endConversion($input);
                 //$output = $input;
             } // isArray
@@ -478,12 +475,10 @@ class ValidationOne
                     // we return the local value unmodified
                     return $this->inputToDate($localDefault);
                 }
-                $valueDate = ($value instanceof DateTime)
-                    ? $value
+                $valueDate = ($value instanceof DateTime) ? $value
                     : DateTime::createFromFormat($this->dateLong, $value);
 
                 if ($valueDate === false) {
-
                     // the format is not date and time, maybe it's only date
                     /** @var DateTime $valueDate */
                     $valueDate = DateTime::createFromFormat($this->dateShort, $value);
@@ -491,8 +486,7 @@ class ValidationOne
                         // nope, it's neither date and it is required
                         $this->hasMessage = true;
                         $this->addMessageInternal($msg, '%field is not a date', $field, $value, null, 'error');
-                        $tmpOutput = ($localDefault instanceof DateTime)
-                            ? $localDefault
+                        $tmpOutput = ($localDefault instanceof DateTime) ? $localDefault
                             : DateTime::createFromFormat($this->dateLong, $localDefault);
                         if ($tmpOutput === false) {
                             $tmpOutput = DateTime::createFromFormat($this->dateShort, $localDefault);
@@ -536,7 +530,7 @@ class ValidationOne
      */
     private function addMessageInternal($msg, $msg2, $fieldId, $value, $vcomp, $level = 'error', $key = null)
     {
-        $txt = ($msg) ? $msg : $msg2;
+        $txt = ($msg) ?: $msg2;
         if (is_array($vcomp)) {
             $first = @$vcomp[0];
             $second = @$vcomp[1];
@@ -546,29 +540,26 @@ class ValidationOne
             $second = $vcomp;
         }
         if (is_array($this->originalValue)) {
-            $txt = str_replace(['%field', '%realfield', '%value', '%comp', '%first', '%second', '%key']
-                , [
-                    ($this->friendId === null) ? $fieldId : $this->friendId,
-                    $fieldId
-                    ,
-                    is_array($value) ? "[]" : $value,
-                    $vcomp,
-                    $first,
-                    $second,
-                    $key
-                ], $txt);
+            $txt = str_replace(['%field', '%realfield', '%value', '%comp', '%first', '%second', '%key'], [
+                ($this->friendId === null) ? $fieldId : $this->friendId,
+                $fieldId,
+                is_array($value) ? "[]" : $value,
+                $vcomp,
+                $first,
+                $second,
+                $key
+            ], $txt);
             //$this->originalValue=$value;
         } else {
-            $txt = str_replace(['%field', '%realfield', '%value', '%comp', '%first', '%second', '%key']
-                , [
-                    ($this->friendId === null) ? $fieldId : $this->friendId,
-                    $fieldId,
-                    $this->addMessageSer($this->originalValue),
-                    $this->addMessageSer($vcomp),
-                    $this->addMessageSer($first),
-                    $this->addMessageSer($second),
-                    $key
-                ], $txt);
+            $txt = str_replace(['%field', '%realfield', '%value', '%comp', '%first', '%second', '%key'], [
+                ($this->friendId === null) ? $fieldId : $this->friendId,
+                $fieldId,
+                $this->addMessageSer($this->originalValue),
+                $this->addMessageSer($vcomp),
+                $this->addMessageSer($first),
+                $this->addMessageSer($second),
+                $key
+            ], $txt);
         }
         $this->messageList->addItem($fieldId, $txt, $level);
     }
@@ -628,7 +619,6 @@ class ValidationOne
                         case 'file': // file
                             $this->runFileCondition($value, $cond, $fail, $genMsg);
                             break;
-
                     } // switch
                 }
                 if ($fail) {
@@ -638,48 +628,44 @@ class ValidationOne
                     }
                 }
             } //foreach
-        } else {
-            if (isset($this->conditions[$key])) {
-                $fail = false;
-                foreach ($this->conditions[$key] as $cond) {
-
-                    if (strpos($cond->type, "fn.") === 0) {
-                        // if it starts with fn. then it's a function condition
-                        $this->runFnCondition($value, $cond, $fail, $genMsg);
-                    } else {
-                        switch ($this->typeFams[$key]) {
-                            case 'integer':
-                            case 'unixtime':
-                            case 'decimal':
-                            case 'float':
-                                $this->runNumericCondition($value, $cond, $fail, $genMsg);
-                                break;
-                            case 'varchar':
-                            case 'string': // string
-                                $this->runStringCondition($value, $cond, $fail, $genMsg);
-                                break;
-                            case 'date':
-                            case 'datetime':// date
-                                $this->runDateCondition($value, $cond, $fail, $genMsg);
-                                break;
-                            case 'boolean': // bool
-                                $this->runBoolCondition($value, $cond, $fail, $genMsg);
-                                break;
-                            case 'file': // file
-                                $this->runFileCondition($value, $cond, $fail, $genMsg);
-                                break;
-                            case 'datestring':
-                            case 'datetimestring':// datestring
-                                $this->runDateCondition($value, $cond, $fail, $genMsg);
-                                break;
-                        } // switch
-                    }
-                    if ($fail) {
-                        $this->addMessageInternal($cond->msg, $genMsg, $fieldId, $value, $cond->value, $cond->level,
-                            $key);
-                        if (!$this->abortOnError) {
-                            break; // no continue anymore.
-                        }
+        } elseif (isset($this->conditions[$key])) {
+            $fail = false;
+            foreach ($this->conditions[$key] as $cond) {
+                if (strpos($cond->type, "fn.") === 0) {
+                    // if it starts with fn. then it's a function condition
+                    $this->runFnCondition($value, $cond, $fail, $genMsg);
+                } else {
+                    switch ($this->typeFams[$key]) {
+                        case 'integer':
+                        case 'unixtime':
+                        case 'decimal':
+                        case 'float':
+                            $this->runNumericCondition($value, $cond, $fail, $genMsg);
+                            break;
+                        case 'varchar':
+                        case 'string': // string
+                            $this->runStringCondition($value, $cond, $fail, $genMsg);
+                            break;
+                        case 'date':
+                        case 'datetime':// date
+                            $this->runDateCondition($value, $cond, $fail, $genMsg);
+                            break;
+                        case 'boolean': // bool
+                            $this->runBoolCondition($value, $cond, $fail, $genMsg);
+                            break;
+                        case 'file': // file
+                            $this->runFileCondition($value, $cond, $fail, $genMsg);
+                            break;
+                        case 'datestring':
+                        case 'datetimestring':// datestring
+                            $this->runDateCondition($value, $cond, $fail, $genMsg);
+                            break;
+                    } // switch
+                }
+                if ($fail) {
+                    $this->addMessageInternal($cond->msg, $genMsg, $fieldId, $value, $cond->value, $cond->level, $key);
+                    if (!$this->abortOnError) {
+                        break; // no continue anymore.
                     }
                 }
             }
@@ -721,7 +707,7 @@ class ValidationOne
                 // fn.object.$arr.method
                 try {
                     if (!isset($GLOBALS[$arr[2]])) {
-                        throw new Exception("variable {$arr[2]} not defined as global");
+                        throw new RuntimeException("variable {$arr[2]} not defined as global");
                     }
                     $obj = $GLOBALS[$arr[2]];
                     $reflectionMethod = new ReflectionMethod(get_class($obj), $arr[3]);
@@ -742,7 +728,7 @@ class ValidationOne
                         $reflectionMethod = new ReflectionMethod(null, 'get' . $className);
                         $called = $reflectionMethod->invoke(null);
                         if ($called === null || $called === false) {
-                            throw new Exception("unable to call injection");
+                            throw new RuntimeException("unable to call injection");
                         }
                     } else {
                         $obj = new $className();
@@ -830,12 +816,10 @@ class ValidationOne
                         $genMsg = '%field is not equals than %comp';
                         return true;
                     }
-                } else {
-                    if ($r != $cond->value) {
-                        $fail = true;
-                        $genMsg = '%field is not equals than %comp';
-                        return true;
-                    }
+                } elseif ($r != $cond->value) {
+                    $fail = true;
+                    $genMsg = '%field is not equals than %comp';
+                    return true;
                 }
                 break;
             case 'ne':
@@ -845,12 +829,10 @@ class ValidationOne
                         $genMsg = '%field is in %comp';
                         return true;
                     }
-                } else {
-                    if ($r == $cond->value) {
-                        $fail = true;
-                        $genMsg = '%field is equals than %comp';
-                        return true;
-                    }
+                } elseif ($r == $cond->value) {
+                    $fail = true;
+                    $genMsg = '%field is equals than %comp';
+                    return true;
                 }
                 break;
             case 'null':
@@ -893,7 +875,6 @@ class ValidationOne
             return;
         }
         switch ($cond->type) {
-
             case 'contain':
                 if (strpos($r, $cond->value) === false) {
                     $fail = true;
@@ -963,13 +944,13 @@ class ValidationOne
                 }
                 break;
             case 'betweenlen':
-                if (strlen($r) < $cond->value[0] || strlen($r) > $cond->value[1]) {
+                $rl = strlen($r);
+                if ($rl < $cond->value[0] || $rl > $cond->value[1]) {
                     $fail = true;
                     $genMsg = '%field size is not between %first and %second ';
                 }
                 break;
         }
-
     }
 
     /**
@@ -1015,7 +996,6 @@ class ValidationOne
                 }
                 break;
         }
-
     }
 
     /**
@@ -1044,7 +1024,6 @@ class ValidationOne
                 }
                 break;
         }
-
     }
 
     /**
@@ -1158,7 +1137,6 @@ class ValidationOne
                 $genMsg = '%field has an incorrect condition';
                 break;
         }
-
     }
 
     /**
@@ -1184,15 +1162,15 @@ class ValidationOne
                 $mime = @$mimeArr[0];
             }
             return $mime;
-        } else {
-            if (function_exists("mime_content_type")) {
-                $mime = @mime_content_type($fullFilename);
-                if ($onlyType) {
-                    $mimeArr = @explode('/', $mime);
-                    $mime = @$mimeArr[0];
-                }
-                return $mime;
+        }
+
+        if (function_exists("mime_content_type")) {
+            $mime = @mime_content_type($fullFilename);
+            if ($onlyType) {
+                $mimeArr = @explode('/', $mime);
+                $mime = @$mimeArr[0];
             }
+            return $mime;
         }
         return false;
     }
@@ -1409,7 +1387,6 @@ class ValidationOne
                 break;
             default:
                 $mime = 'application/octet-stream';
-
         }
         return $mime;
     }
@@ -1424,7 +1401,6 @@ class ValidationOne
      */
     private function endConversion($input)
     {
-
         // end conversion, we convert the input or default value.
         if ($input !== null) {
             switch ($this->type) {
@@ -1526,16 +1502,14 @@ class ValidationOne
         $this->input()->ifFailThenOrigin = $this->ifFailThenOrigin;
         $this->input()->initial = $this->initial;
         foreach ($this->conditions as $c) {
-            if ($c->type == "req") {
+            if ($c->type === "req") {
                 $this->required = true;
                 break;
             }
         }
 
-        $r = $this->input()
-            ->required($this->required)
-            ->friendId($this->friendId)
-            ->getFile($fieldId, $array, $msg, $this->isMissing);
+        $r = $this->input()->required($this->required)->friendId($this->friendId)->getFile($fieldId, $array, $msg,
+                $this->isMissing);
         //->getField($fieldId,$inputType,$msg,$this->isMissing);
         return $this->afterFetch($r, $fieldId, $msg);
         //return $this->input()->getFile($field,$array);
@@ -1708,7 +1682,6 @@ class ValidationOne
      * @param bool $negative if true then it returns the negative default value.
      *
      * @return ValidationOne $this
-     * @noinspection PhpDocMissingThrowsInspection
      */
     public function defNatural($negative = false)
     {
@@ -1724,14 +1697,14 @@ class ValidationOne
                 $this->default = (!$negative) ? new DateTime() : null;
                 break;
             case 3:
-                $this->default = (!$negative) ? true : false;
+                $this->default = !$negative;
                 break;
             case 4:
                 $this->default = (!$negative) ? '' : null; // file
                 break;
             case 5:
                 $defaultDate = new DateTime();
-                if ($this->type == 'datetimestring') {
+                if ($this->type === 'datetimestring') {
                     $defaultDate = $defaultDate->format($this->dateLong);
                 } else {
                     $defaultDate->setTime(0, 0, 0);
@@ -1829,7 +1802,6 @@ class ValidationOne
             $this->conditions[] = new ValidationItem($condition, $message, $conditionValue, $level);
         }
         return $this;
-
     }
 
     /**
@@ -1875,7 +1847,6 @@ class ValidationOne
         } else {
             $this->typeFam = $this->getTypeFamily($type);
             $this->type = $type;
-
         }
         return $this;
     }
@@ -1903,10 +1874,10 @@ class ValidationOne
                 case (strpos($this->DATARR, $type) !== false):
                     $r = 2; // date
                     break;
-                case ($type == 'boolean'):
+                case ($type === 'boolean'):
                     $r = 3; // boolean
                     break;
-                case ($type == 'file'):
+                case ($type === 'file'):
                     $r = 4; // file
                     break;
                 case (strpos($this->DATSARR, $type) !== false):
@@ -1959,10 +1930,8 @@ class ValidationOne
                 $v = $this->basicValidation($v, $currentField, $msg, $key);
                 //if ($this->abortOnError && $this->messageList->errorcount) break;
                 $this->runConditions($v, $currentField, $key);
-                if ($this->messageList->errorcount === 0) {
-                    if ($this->messageList->get($currentField)->countError()) {
-                        $v = @$this->default[$key];
-                    }
+                if (($this->messageList->errorcount === 0) && $this->messageList->get($currentField)->countError()) {
+                    $v = @$this->default[$key];
                 }
             }
         } else {
@@ -1974,10 +1943,8 @@ class ValidationOne
             if ($this->abortOnError != false || $this->messageList->errorcount == 0) {
                 $this->runConditions($input, $fieldId);
             }
-            if ($this->ifFailThenDefault) {
-                if ($this->messageList->get($fieldId)->countError()) {
-                    $input = $this->default;
-                }
+            if ($this->ifFailThenDefault && $this->messageList->get($fieldId)->countError()) {
+                $input = $this->default;
             }
         }
         if ($this->messageList->errorcount == $this->countError && $this->successMessage !== null) {

@@ -6,6 +6,40 @@ define('BASEVAR',$baseVar);
 
 const BASEVAR2=BASEVAR;
 
+$group1=["a1"=>"a1","a2"=>"a1","a3"=>"a1","a4"=>"a1"];
+$group2=["a1"=>"a1","a2"=>"a1","a3"=>"a1","a4"=>"a1"];
+$timeStart = microtime(true);
+
+$r=[];
+for($i=0;$i<100000;$i++) {
+    $r=array_merge($r,$group2);
+}
+
+$timeEnd= microtime(true);
+
+var_dump($timeEnd-$timeStart);
+echo "<hr>";
+
+$timeStart = microtime(true);
+
+$r=[];
+for($i=0;$i<100000;$i++) {
+    foreach($group2 as $item) {
+        $r[]=$item;
+    }
+}
+
+$timeEnd= microtime(true);
+
+var_dump($timeEnd-$timeStart);
+die(1);
+
+foreach($items as $item) {
+    $r[]=$item;
+}
+
+
+
 function testfunc_param($paramVar) {
     $localVar = $paramVar;
     return $localVar;
