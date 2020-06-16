@@ -28,7 +28,7 @@ if (!defined("NULLVAL")) {
  *
  * @package       eftec
  * @author        Jorge Castro Castillo
- * @version       1.24 2020-05-21.
+ * @version       1.24.2 2020-06-16
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see           https://github.com/EFTEC/ValidationOne
  */
@@ -276,7 +276,7 @@ class ValidationOne
             }
         }
         $r = $this->input()->required($this->required)->friendId($this->friendId)->getField($fieldId, $inputType, $msg,
-                $this->isMissing);
+            $this->isMissing);
         return $this->afterFetch($r, $fieldId, $msg);
     }
 
@@ -341,6 +341,7 @@ class ValidationOne
         if ($this->missingSet !== null && ($input === null || $input === '')) {
             $input = $this->missingSet;
         }
+
         if (!$this->isMissing) {
             if ($this->ifFailThenOrigin) {
                 $this->default = $input;
@@ -348,7 +349,7 @@ class ValidationOne
             if (!$this->isArray) {
                 $this->originalValue = $input;
                 $input = $this->basicValidation($input, $fieldId, $msg);
-
+     
                 if (is_array($input)) {
                     foreach ($input as $key => &$items) {
                         $currentField = ($this->isArrayFlat) ? $fieldId : $fieldId . "[" . $key . "]";
@@ -366,6 +367,7 @@ class ValidationOne
                 }
                 $output = $this->endConversion($input);
             } else {
+
                 $this->originalValue = $input;
                 if (is_array($input) || $input === null) {
                     if ($input !== null) {
@@ -377,9 +379,20 @@ class ValidationOne
                 } else {
                     $this->addMessageInternal('%field is not an array', '', $fieldId, 0, 'error');
                 }
-                $this->runConditions($input, $fieldId);
-                if ($this->ifFailThenDefault && $this->messageList->errorcount) {
-                    $input = $this->default;
+                if (is_array($input)) {
+                    foreach ($input as $key => &$items) {
+                        $currentField = ($this->isArrayFlat) ? $fieldId : $fieldId . "[" . $key . "]";
+                        $this->runConditions($items, $currentField, $key);
+
+                        if ($this->ifFailThenDefault && $this->messageList->get($currentField)->countError()) {
+                            $items = (is_array($this->default)) ? $this->default[$key] : $this->default;
+                        }
+                    }
+                } else {
+                    $this->runConditions($input, $fieldId);
+                    if ($this->ifFailThenDefault && $this->messageList->get($fieldId)->countError()) {
+                        $input = $this->default;
+                    }
                 }
 
                 $output = $this->endConversion($input);
@@ -630,34 +643,46 @@ class ValidationOne
             } //foreach
         } elseif (isset($this->conditions[$key])) {
             $fail = false;
+            if (!is_array($this->conditions[$key])) {
+                $this->conditions[$key]=[$this->conditions[$key]];
+            }
             foreach ($this->conditions[$key] as $cond) {
+
                 if (strpos($cond->type, "fn.") === 0) {
                     // if it starts with fn. then it's a function condition
                     $this->runFnCondition($value, $cond, $fail, $genMsg);
                 } else {
-                    switch ($this->typeFams[$key]) {
+                    $tf=is_array($this->typeFams) ? $this->typeFams[$key] : $this->typeFams;
+                    switch ($tf) {
                         case 'integer':
                         case 'unixtime':
                         case 'decimal':
                         case 'float':
+                        case 0:
                             $this->runNumericCondition($value, $cond, $fail, $genMsg);
                             break;
                         case 'varchar':
                         case 'string': // string
+                        case 1:
                             $this->runStringCondition($value, $cond, $fail, $genMsg);
                             break;
                         case 'date':
                         case 'datetime':// date
+                        case 2:
                             $this->runDateCondition($value, $cond, $fail, $genMsg);
                             break;
                         case 'boolean': // bool
+                        case 3:
                             $this->runBoolCondition($value, $cond, $fail, $genMsg);
                             break;
                         case 'file': // file
+                        case 4:
                             $this->runFileCondition($value, $cond, $fail, $genMsg);
                             break;
                         case 'datestring':
                         case 'datetimestring':// datestring
+                        case 5:
+                            // branch 5
                             $this->runDateCondition($value, $cond, $fail, $genMsg);
                             break;
                     } // switch
@@ -944,6 +969,7 @@ class ValidationOne
                 }
                 break;
             case 'betweenlen':
+                
                 $rl = strlen($r);
                 if ($rl < $cond->value[0] || $rl > $cond->value[1]) {
                     $fail = true;
@@ -1509,7 +1535,7 @@ class ValidationOne
         }
 
         $r = $this->input()->required($this->required)->friendId($this->friendId)->getFile($fieldId, $array, $msg,
-                $this->isMissing);
+            $this->isMissing);
         //->getField($fieldId,$inputType,$msg,$this->isMissing);
         return $this->afterFetch($r, $fieldId, $msg);
         //return $this->input()->getFile($field,$array);
@@ -1767,6 +1793,19 @@ class ValidationOne
     }
 
     /**
+     * It adds a condition to the variable. If the conditions doesn't meet, then it stores a message and raise an error
+     * level. The conditions depends on the type of the variable. Also, some conditions requires one or two values.
+     * <b>Example:</b>
+     * <pre>
+     * $field2=getVal()->type('string')
+     *      ->condition('minlen','',3)
+     *      ->condition('maxlen','',10)
+     *      ->post('field2');
+     * $field2=getVal()->type('int')
+     *      ->condition('between','',[0,100])
+     *      ->post('percentage');
+     * </pre>
+     *
      * @param string $condition      =['alpha','alphanum','between','betweenlen','contain','doc','domain','email','eq','ext'
      *                               ,'false','exist','notexist','gt','gte','image'.'doc','compression','architecture','lt','lte','maxlen','maxsize','minlen','minsize','ne'
      *                               ,'notcontain','notnull','null','empty','notempty','regexp','req','text','true','url','fn.*'][$i]

@@ -19,7 +19,7 @@ if (isset($_GET['button'])) {
         ->ifFailThenOrigin()
         ->successMessage('', 'info:Fetch successful')
         ->isColumn(true)
-        ->isArray(false)->get('field1');
+        ->isArray(true)->get('field1');
     $col2 = getVal()->def(['ERROR','ERROR','ERROR'])
         ->friendId("Field #2")
         ->type('string')
@@ -28,7 +28,7 @@ if (isset($_GET['button'])) {
         ->ifFailThenOrigin()
         ->successMessage('', 'info:Fetch successful')
         ->isColumn(true)
-        ->isArray(false)->get('field2');
+        ->isArray(true)->get('field2');
 
     echo "The fetch obtained is :";
     var_dump($col1);

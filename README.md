@@ -232,6 +232,10 @@ You can obtain a message as an array of objects of the type MessageItem, as an a
 
 ## version list
 
+* 2020-05-21 1.24.2
+    * Fixed a problem with conditions and array (when it is initiated).    
+* 2020-05-21 1.24.1
+    * Fixed a problem with conditions and array.      
 * 2020-05-21 1.24
     * Cleanups
 * 2020-04-07 1.23.2

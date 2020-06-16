@@ -13,10 +13,10 @@ class ValidationOneTest extends TestCase
     public function test_db()
     {
         getVal()->messageList->resetAll();
-        $r = getVal()->def(-1)->type('integer')->condition('fn.static.Example.customval', 'la funcion no funciona',
-                20) // this calls a custom function
-            ->condition('req')->condition('lt', "es muy grande", 2000, 'warning')->condition('eq',
-                '%field %value is not equal to %comp ', 50)->set(12345);
+        $r = getVal()->def(-1)->type('integer')
+            ->condition('fn.static.Example.customval', 'la funcion no funciona', 20) // this calls a custom function
+        ->condition('req')->condition('lt', "es muy grande", 2000, 'warning')
+            ->condition('eq', '%field %value is not equal to %comp ', 50)->set(12345);
 
         $this->assertEquals(12345, $r, 'it must be equals to 12345');
         //var_dump(getVal()->messageList->allErrorArray());
@@ -72,6 +72,33 @@ class ValidationOneTest extends TestCase
         $this->assertEquals('setfield is in ["foo","bar"]', getVal()->messageList->firstErrorText());
     }
 
+    public function testMultipleCondition()
+    {
+        getVal()->messageList->resetAll();
+        $r = getVal()->def("???")->type('integer')->condition('between', 'value must be between zero and 100', [0, 100])
+            ->condition('eq', 'value must be equals to 5', 5)->set('123', 'id1');
+        $this->assertEquals(2, getVal()->messageList->errorOrWarning);
+        $this->assertEquals([
+            0 => 'value must be between zero and 100',
+            1 => 'value must be equals to 5'
+        ], getVal()->messageList->allErrorOrWarningArray());
+        getVal()->messageList->resetAll();
+   
+        
+        getVal()->def("")// what if the value is not read?, we should show something (or null)
+        ->ifFailThenDefault(false)// if fails then we show the same value however it triggers an error
+        ->type("varchar")// it is required to ind
+        ->condition("req", "this value (%field) is required")
+            ->condition("minlen", "The minimum lenght is 3", 3)
+            ->condition("maxlen", "The maximum lenght is 100", 100)
+            ->set('','name');
+        $this->assertEquals([
+            0 => 'this value (name) is required',
+            1 => 'The minimum lenght is 3'
+        ], getVal()->messageList->allErrorOrWarningArray());
+        getVal()->messageList->resetAll();
+    }
+
     public function test5()
     {
         getVal()->messageList->resetAll();
@@ -94,8 +121,8 @@ class ValidationOneTest extends TestCase
     {
         getVal()->messageList->resetAll();
         $r = getVal()->def("default")->type('string')->condition('contain', 'it must contains the text hello', 'hello')
-            ->condition('req')->condition('maxlen', "it's too big", 10, 'warning')->condition('eq',
-                '%field %value is not equal to %comp', 'abc')->set('abcdefghijklmnopqrst12345');
+            ->condition('req')->condition('maxlen', "it's too big", 10, 'warning')
+            ->condition('eq', '%field %value is not equal to %comp', 'abc')->set('abcdefghijklmnopqrst12345');
 
         $this->assertEquals('abcdefghijklmnopqrst12345', $r, 'it must be equals to abcdefghijklmnopqrst12345');
         $this->assertEquals('it must contains the text hello', getVal()->messageList->allErrorArray()[0]);
@@ -153,8 +180,9 @@ class ValidationOneTest extends TestCase
             'it must have 0 errors or warnings');
         getVal()->messageList->resetAll();
 
-        $r = getVal()->type('date')->condition('req')->condition('lt', 'greater than',
-                DateTime::createFromFormat('d/m/Y h:i:s', '31/12/2009 00:00:00'))->set('31/12/2010');
+        $r = getVal()->type('date')->condition('req')
+            ->condition('lt', 'greater than', DateTime::createFromFormat('d/m/Y h:i:s', '31/12/2009 00:00:00'))
+            ->set('31/12/2010');
         $this->assertEquals(DateTime::createFromFormat('d/m/Y h:i:s', '31/12/2010 00:00:00'), $r,
             'it must be equals to 31/12/2010');
         $this->assertEquals(0, count(getVal()->messageList->allErrorOrWarningArray()),
@@ -180,8 +208,9 @@ class ValidationOneTest extends TestCase
             'it must have 0 errors or warnings');
         getVal()->messageList->resetAll();
 
-        $r = getVal()->type('datestring')->condition('req')->condition('lt', 'greater than',
-                DateTime::createFromFormat('d/m/Y h:i:s', '31/12/2009 00:00:00'))->set('31/12/2010');
+        $r = getVal()->type('datestring')->condition('req')
+            ->condition('lt', 'greater than', DateTime::createFromFormat('d/m/Y h:i:s', '31/12/2009 00:00:00'))
+            ->set('31/12/2010');
         $this->assertEquals('2010-12-31', $r, 'it must be equals to 2010-12-31');
         $this->assertEquals(0, count(getVal()->messageList->allErrorOrWarningArray()),
             'it must have 0 errors or warnings');
