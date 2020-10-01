@@ -20,8 +20,7 @@ use DateTime;
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see           https://github.com/EFTEC/ValidationOne
  */
-class ValidationInputOne
-{
+class ValidationInputOne {
     /** @var MessageList */
     public $messageList;
     public $prefix = '';
@@ -34,7 +33,6 @@ class ValidationInputOne
     public $initial;
     public $ifFailThenOrigin = false;
 
-
     /** @var mixed It keeps a copy of the original value (after get/post/fetch or set) */
     public $originalValue;
     /** @var string It's a friendly id used to replace the "id" used in message. For example: "id customer" instead of "idcustomer" */
@@ -46,8 +44,7 @@ class ValidationInputOne
      * @param string      $prefix
      * @param MessageList $messageList Optional. It autowires to a message list (if any), otherwise it creates a new one.
      */
-    public function __construct($prefix = '', $messageList = null)
-    {
+    public function __construct($prefix = '', $messageList = null) {
         $this->prefix = $prefix;
         if ($messageList !== null) {
             $this->messageList = $messageList;
@@ -68,8 +65,7 @@ class ValidationInputOne
      * @return ValidationInputOne
      * @see ValidationOne::def()
      */
-    public function required($required = true)
-    {
+    public function required($required = true) {
         $this->required = $required;
         return $this;
     }
@@ -81,8 +77,7 @@ class ValidationInputOne
      *
      * @return ValidationInputOne
      */
-    public function friendId($id)
-    {
+    public function friendId($id) {
         $this->friendId = $id;
         return $this;
     }
@@ -94,8 +89,7 @@ class ValidationInputOne
      *
      * @return array|bool|DateTime|float|int|mixed|null
      */
-    public function get($field = "", $msg = null, &$isMissing = false)
-    {
+    public function get($field = "", $msg = null, &$isMissing = false) {
         return $this->getField($field, INPUT_GET, $msg, $isMissing);
     }
 
@@ -108,12 +102,11 @@ class ValidationInputOne
      * @param bool        $isMissing (ref). It's true if the value is missing (it's not set).
      *
      * @return array|mixed|null
+     * @noinspection DuplicatedCode
      */
-    public function getField($field, $inputType = INPUT_REQUEST, $msg = null, &$isMissing = false)
-    {
+    public function getField($field, $inputType = INPUT_REQUEST, $msg = null, &$isMissing = false) {
         $fieldId = $this->prefix . $field;
         $r = null;
-
 
         switch ($inputType) {
             case INPUT_POST:
@@ -174,8 +167,7 @@ class ValidationInputOne
      * @param mixed  $vcomp   value to compare.
      * @param string $level   (error,warning,info,success) error level
      */
-    private function addMessageInternal($msg, $msg2, $fieldId, $value, $vcomp, $level = 'error')
-    {
+    private function addMessageInternal($msg, $msg2, $fieldId, $value, $vcomp, $level = 'error') {
         $txt = ($msg) ?: $msg2;
         if (is_array($vcomp)) {
             $first = @$vcomp[0];
@@ -207,13 +199,11 @@ class ValidationInputOne
         $this->messageList->addItem($fieldId, $txt, $level);
     }
 
-    public function post($field, $msg = null, &$isMissing = false)
-    {
+    public function post($field, $msg = null, &$isMissing = false) {
         return $this->getField($field, INPUT_POST, $msg, $isMissing);
     }
 
-    public function request($field, $msg = null, &$isMissing = false)
-    {
+    public function request($field, $msg = null, &$isMissing = false) {
         return $this->getField($field, INPUT_REQUEST, $msg, $isMissing);
     }
 
@@ -227,8 +217,7 @@ class ValidationInputOne
      *
      * @return mixed
      */
-    public function fetch($inputType, $field, $msg = null, &$isMissing = false)
-    {
+    public function fetch($inputType, $field, $msg = null, &$isMissing = false) {
         return $this->getField($field, $inputType, $msg, $isMissing);
     }
 
@@ -244,8 +233,7 @@ class ValidationInputOne
      * @internal param $folder
      * @internal param string $type
      */
-    public function getFile($field, $array = false, &$msg = null, &$isMissing = false)
-    {
+    public function getFile($field, $array = false, &$msg = null, &$isMissing = false) {
         $fieldId = $this->prefix . $field;
         if (!$array) {
             $fileNew = self::sanitizeFileName(@$_FILES[$fieldId]['name']);
@@ -291,8 +279,7 @@ class ValidationInputOne
      *
      * @return false|string|null
      */
-    public static function sanitizeFileName($filename)
-    {
+    public static function sanitizeFileName($filename) {
         if (empty($filename)) {
             return "";
         }
@@ -305,6 +292,5 @@ class ValidationInputOne
         }
         return $filename;
     }
-
 
 }

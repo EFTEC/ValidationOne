@@ -1,4 +1,5 @@
-<?php
+<?php /** @noinspection UnknownInspectionInspection */
+
 /** @noinspection PhpUnused */
 
 namespace eftec;
@@ -12,8 +13,7 @@ namespace eftec;
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see           https://github.com/EFTEC/ValidationOne
  */
-class MessageItem
-{
+class MessageItem {
     /** @var string[] */
     private $errorMsg;
     /** @var string[] */
@@ -26,56 +26,66 @@ class MessageItem
     /**
      * MessageItem constructor.
      */
-    public function __construct()
-    {
+    public function __construct() {
         $this->errorMsg = [];
         $this->warningMsg = [];
         $this->infoMsg = [];
         $this->successMsg = [];
     }
 
-    public function addError($msg)
-    {
+    /**
+     * It adds an error.
+     *
+     * @param mixed $msg
+     */
+    public function addError($msg) {
         @$this->errorMsg[] = $msg;
     }
 
-    public function addWarning($msg)
-    {
+    /**
+     * It adds a warning.
+     *
+     * @param mixed $msg
+     */
+    public function addWarning($msg) {
         @$this->warningMsg[] = $msg;
     }
 
-    public function addInfo($msg)
-    {
+    /**
+     * It adds an information.
+     *
+     * @param mixed $msg
+     */
+    public function addInfo($msg) {
         @$this->infoMsg[] = $msg;
     }
 
-    public function addSuccess($msg)
-    {
+    /**
+     * It adds a success.
+     *
+     * @param mixed $msg
+     */
+    public function addSuccess($msg) {
         @$this->successMsg[] = $msg;
     }
 
-    public function countError()
-    {
+    public function countError() {
         return count($this->errorMsg);
     }
 
-    public function countErrorOrWarning()
-    {
+    public function countErrorOrWarning() {
         return $this->countError() + $this->countWarning();
     }
 
-    public function countWarning()
-    {
+    public function countWarning() {
         return count($this->warningMsg);
     }
 
-    public function countInfo()
-    {
+    public function countInfo() {
         return count($this->infoMsg);
     }
 
-    public function countSuccess()
-    {
+    public function countSuccess() {
         return count($this->successMsg);
     }
 
@@ -86,8 +96,7 @@ class MessageItem
      *
      * @return null|string
      */
-    public function firstError($default = null)
-    {
+    public function firstError($default = null) {
         if (isset($this->errorMsg[0])) {
             return $this->errorMsg[0];
         }
@@ -101,8 +110,7 @@ class MessageItem
      *
      * @return null|string
      */
-    public function firstErrorOrWarning($default = null)
-    {
+    public function firstErrorOrWarning($default = null) {
         $r = $this->firstError();
         if ($r === null) {
             $r = $this->firstWarning();
@@ -117,8 +125,7 @@ class MessageItem
      *
      * @return null|string
      */
-    public function firstWarning($default = null)
-    {
+    public function firstWarning($default = null) {
         if (isset($this->warningMsg[0])) {
             return $this->warningMsg[0];
         }
@@ -132,8 +139,7 @@ class MessageItem
      *
      * @return null|string
      */
-    public function firstInfo($default = null)
-    {
+    public function firstInfo($default = null) {
         if (isset($this->infoMsg[0])) {
             return $this->infoMsg[0];
         }
@@ -147,8 +153,7 @@ class MessageItem
      *
      * @return null|string
      */
-    public function firstSuccess($default = null)
-    {
+    public function firstSuccess($default = null) {
         if (isset($this->successMsg[0])) {
             return $this->successMsg[0];
         }
@@ -167,8 +172,7 @@ class MessageItem
      *
      * @return string
      */
-    public function first($defaultMsg = '')
-    {
+    public function first($defaultMsg = '') {
         $r = $this->firstError();
         if ($r !== null) {
             return $r;
@@ -193,8 +197,7 @@ class MessageItem
      *
      * @return string[]
      */
-    public function allError()
-    {
+    public function allError() {
         return $this->errorMsg;
     }
 
@@ -203,8 +206,7 @@ class MessageItem
      *
      * @return string[]
      */
-    public function allErrorOrWarning()
-    {
+    public function allErrorOrWarning() {
         return @array_merge($this->errorMsg, $this->warningMsg);
     }
 
@@ -213,8 +215,7 @@ class MessageItem
      *
      * @return string[]
      */
-    public function allWarning()
-    {
+    public function allWarning() {
         return $this->warningMsg;
     }
 
@@ -223,8 +224,7 @@ class MessageItem
      *
      * @return string[]
      */
-    public function allInfo()
-    {
+    public function allInfo() {
         return $this->infoMsg;
     }
 
@@ -233,8 +233,7 @@ class MessageItem
      *
      * @return string[]
      */
-    public function allSuccess()
-    {
+    public function allSuccess() {
         return $this->successMsg;
     }
 }

@@ -1,9 +1,7 @@
-<?php
+<?php /** @noinspection UnknownInspectionInspection */
 /** @noinspection SlowArrayOperationsInLoopInspection */
 
 /** @noinspection PhpUnused */
-
-
 
 namespace eftec;
 
@@ -16,8 +14,7 @@ namespace eftec;
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see           https://github.com/EFTEC/ValidationOne
  */
-class MessageList
-{
+class MessageList {
     /** @var  MessageItem[] Array of containers */
     public $items;
     /** @var int Number of errors stored globally */
@@ -38,13 +35,11 @@ class MessageList
     /**
      * MessageList constructor.
      */
-    public function __construct()
-    {
+    public function __construct() {
         $this->items = array();
     }
 
-    public function resetAll()
-    {
+    public function resetAll() {
         $this->errorcount = 0;
         $this->warningcount = 0;
         $this->errorOrWarning = 0;
@@ -62,11 +57,10 @@ class MessageList
      *
      * @param string $id      Identified of the container message (where the message will be stored)
      * @param string $message message to show. Example: 'the value is incorrect'
-     * @param string $level   = error|warning|info|success
+     * @param string $level   =['error','warning','info','success'][$i]
      */
-    public function addItem($id, $message, $level = 'error')
-    {
-        $id = ($id === '') ? "0" : $id;
+    public function addItem($id, $message, $level = 'error') {
+        $id = ($id === '') ? '0' : $id;
         if (!isset($this->items[$id])) {
             $this->items[$id] = new MessageItem();
         }
@@ -107,8 +101,7 @@ class MessageList
     /**
      * @return array
      */
-    public function allIds()
-    {
+    public function allIds() {
         return array_keys($this->items);
     }
 
@@ -119,9 +112,8 @@ class MessageList
      *
      * @return MessageItem
      */
-    public function get($id)
-    {
-        $id = ($id === '') ? "0" : $id;
+    public function get($id) {
+        $id = ($id === '') ? '0' : $id;
         if (!isset($this->items[$id])) {
             return new MessageItem(); // we returns an empty error.
         }
@@ -135,25 +127,24 @@ class MessageList
      *
      * @return string
      */
-    public function cssClass($id)
-    {
-        $id = ($id === '') ? "0" : $id;
+    public function cssClass($id) {
+        $id = ($id === '') ? '0' : $id;
         if (!isset($this->items[$id])) {
-            return "";
+            return '';
         }
         if (@$this->items[$id]->countError()) {
-            return "danger";
+            return 'danger';
         }
         if ($this->items[$id]->countWarning()) {
-            return "warning";
+            return 'warning';
         }
         if ($this->items[$id]->countInfo()) {
-            return "info";
+            return 'info';
         }
         if ($this->items[$id]->countSuccess()) {
-            return "success";
+            return 'success';
         }
-        return "";
+        return '';
     }
 
     /**
@@ -161,9 +152,8 @@ class MessageList
      *
      * @return string empty if there is none
      */
-    public function firstErrorText()
-    {
-        return ($this->errorcount === 0) ? "" : $this->firstError;
+    public function firstErrorText() {
+        return ($this->errorcount === 0) ? '' : $this->firstError;
     }
 
     /**
@@ -172,12 +162,11 @@ class MessageList
      *
      * @return string empty if there is none
      */
-    public function firstErrorOrWarning()
-    {
+    public function firstErrorOrWarning() {
         if ($this->errorcount) {
             return $this->firstError;
         }
-        return ($this->warningcount === 0) ? "" : $this->firstWarning;
+        return ($this->warningcount === 0) ? '' : $this->firstWarning;
     }
 
     /**
@@ -185,9 +174,8 @@ class MessageList
      *
      * @return string empty if there is none
      */
-    public function firstWarningText()
-    {
-        return ($this->warningcount === 0) ? "" : $this->firstWarning;
+    public function firstWarningText() {
+        return ($this->warningcount === 0) ? '' : $this->firstWarning;
     }
 
     /**
@@ -195,9 +183,8 @@ class MessageList
      *
      * @return string empty if there is none
      */
-    public function firstInfoText()
-    {
-        return ($this->infocount === 0) ? "" : $this->firstInfo;
+    public function firstInfoText() {
+        return ($this->infocount === 0) ? '' : $this->firstInfo;
     }
 
     /**
@@ -205,9 +192,8 @@ class MessageList
      *
      * @return string empty if there is none
      */
-    public function firstSuccessText()
-    {
-        return ($this->successcount === 0) ? "" : $this->firstSuccess;
+    public function firstSuccessText() {
+        return ($this->successcount === 0) ? '' : $this->firstSuccess;
     }
 
     /**
@@ -215,8 +201,7 @@ class MessageList
      *
      * @return string[] empty if there is none
      */
-    public function allErrorArray()
-    {
+    public function allErrorArray() {
         $r = array();
         foreach ($this->items as $v) {
             $r = array_merge($r, $v->allError());
@@ -229,8 +214,7 @@ class MessageList
      *
      * @return string[] empty if there is none
      */
-    public function allInfoArray()
-    {
+    public function allInfoArray() {
         $r = array();
         foreach ($this->items as $v) {
             $r = array_merge($r, $v->allInfo());
@@ -243,8 +227,7 @@ class MessageList
      *
      * @return string[] empty if there is none
      */
-    public function allWarningArray()
-    {
+    public function allWarningArray() {
         $r = array();
         foreach ($this->items as $v) {
             $r = array_merge($r, $v->allWarning());
@@ -257,8 +240,7 @@ class MessageList
      *
      * @return string[] empty if there is none
      */
-    public function AllSuccessArray()
-    {
+    public function AllSuccessArray() {
         $r = array();
         foreach ($this->items as $v) {
             $r = array_merge($r, $v->allSuccess());
@@ -271,8 +253,7 @@ class MessageList
      *
      * @return string[] empty if there is none
      */
-    public function allArray()
-    {
+    public function allArray() {
         $r = array();
         foreach ($this->items as $v) {
             $r = array_merge($r, $v->allError());
@@ -288,8 +269,7 @@ class MessageList
      *
      * @return string[] empty if there is none
      */
-    public function allErrorOrWarningArray()
-    {
+    public function allErrorOrWarningArray() {
         $r = array();
         foreach ($this->items as $v) {
             $r = array_merge($r, $v->allError());
