@@ -113,7 +113,7 @@ class ValidationInputOne {
                 if (!isset($_POST[$fieldId])) {
                     $isMissing = true;
                     if ($this->required) {
-                        $this->addMessageInternal($msg, "Field is missing", $field, "", "", 'error');
+                        $this->addMessageInternal($msg, "Field is missing", $field, "", "");
                     }
                     return ($this->initial === null) ? $this->default : $this->initial;
                 }
@@ -125,7 +125,7 @@ class ValidationInputOne {
                 if (!isset($_GET[$fieldId])) {
                     $isMissing = true;
                     if ($this->required) {
-                        $this->addMessageInternal($msg, "Field is missing", $field, "", "", 'error');
+                        $this->addMessageInternal($msg, "Field is missing", $field, "", "");
                     }
                     return ($this->initial === null) ? $this->default : $this->initial;
                 }
@@ -140,7 +140,7 @@ class ValidationInputOne {
                     if (!isset($_GET[$fieldId])) {
                         $isMissing = true;
                         if ($this->required) {
-                            $this->addMessageInternal($msg, "Field is missing", $field, "", "", 'error');
+                            $this->addMessageInternal($msg, "Field is missing", $field, "", "");
                         }
                         return ($this->initial === null) ? $this->default : $this->initial;
                     }
@@ -246,7 +246,7 @@ class ValidationInputOne {
 // its not uploading a file.
             $isMissing = true;
             if ($this->required) {
-                $this->addMessageInternal($msg, "Field is missing", $field, "", "", 'error');
+                $this->addMessageInternal($msg, "Field is missing", $field, "", "");
             }
             //return ($this->initial===null)?$this->default:$this->initial;
             return ($this->initial === null) ? $this->default : ['', ''];

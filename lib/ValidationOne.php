@@ -451,14 +451,14 @@ class ValidationOne {
             case 'decimal':
                 if (!is_numeric($value) && $value !== '') {
                     $this->hasMessage = true;
-                    $this->addMessageInternal($msg, '$field is not decimal', $field, $value, null, 'error');
+                    $this->addMessageInternal($msg, '$field is not decimal', $field, $value, null);
                     return $localDefault;
                 }
                 return (double)$value;
             case 'float':
                 if (!is_numeric($value) && $value !== '') {
                     $this->hasMessage = true;
-                    $this->addMessageInternal($msg, '$field is not float', $field, $value, null, 'error');
+                    $this->addMessageInternal($msg, '$field is not float', $field, $value, null);
                     return $localDefault;
                 }
                 return (float)$value;
@@ -485,20 +485,20 @@ class ValidationOne {
                     if ($valueDate === false) {
                         // nope, it's neither date and it is required
                         $this->hasMessage = true;
-                        $this->addMessageInternal($msg, '%field is not a date', $field, $value, null, 'error');
+                        $this->addMessageInternal($msg, '%field is not a date', $field, $value, null);
                         $tmpOutput = ($localDefault instanceof DateTime) ? $localDefault
                             : DateTime::createFromFormat($this->dateLong, $localDefault);
                         if ($tmpOutput === false) {
                             $tmpOutput = DateTime::createFromFormat($this->dateShort, $localDefault);
                             if ($tmpOutput != false) {
-                                $tmpOutput->settime(0, 0, 0);
+                                $tmpOutput->settime(0, 0);
                             } else {
                                 $tmpOutput = null;
                             }
                         }
                         return $tmpOutput;
                     }
-                    $valueDate->settime(0, 0, 0); // datetime without time
+                    $valueDate->settime(0, 0); // datetime without time
                 }
 
                 return $valueDate;
@@ -1700,7 +1700,7 @@ class ValidationOne {
                 if ($this->type === 'datetimestring') {
                     $defaultDate = $defaultDate->format($this->dateLong);
                 } else {
-                    $defaultDate->setTime(0, 0, 0);
+                    $defaultDate->setTime(0, 0);
                     $defaultDate = $defaultDate->format($this->dateShort);
                 }
                 $this->default = (!$negative) ? $defaultDate : null;
@@ -1751,7 +1751,7 @@ class ValidationOne {
      * @return $this
      */
     public function notempty($msg = '') {
-        $this->condition('ne', ($msg == '') ? '%field is empty' : $msg, '', 'error');
+        $this->condition('ne', ($msg == '') ? '%field is empty' : $msg, '');
         return $this;
     }
 

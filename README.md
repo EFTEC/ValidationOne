@@ -238,6 +238,7 @@ You can obtain a message as an array of objects of the type MessageItem, as an a
         * INPUT_POST = 0
         * INPUT_GET = 1
         * INPUT_REQUEST = 99
+    So, if you are using INPUT_GET,INPUT_POST OR INPUT_REQUEST, then they will still work.   
 * 2020-10-01 1.24.3
     * A small cleanup.   
 * 2020-05-21 1.24.2
