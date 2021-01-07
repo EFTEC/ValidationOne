@@ -28,7 +28,7 @@ if (!defined("NULLVAL")) {
  *
  * @package       eftec
  * @author        Jorge Castro Castillo
- * @version       1.24.2 2020-06-16
+ * @version       1.25 2021-01-07
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see           https://github.com/EFTEC/ValidationOne
  */
@@ -241,13 +241,13 @@ class ValidationOne {
      * @return array|bool|DateTime|float|int|mixed|null
      */
     public function get($field = "", $msg = null) {
-        return $this->endChainFetch(INPUT_GET, $field, $msg);
+        return $this->endChainFetch(1, $field, $msg);
     }
 
     /**
      * It ends the fetch of the information. It doesn't modify this information
      *
-     * @param int    $inputType INPUT_POST|INPUT_GET|INPUT_REQUEST
+     * @param int    $inputType INPUT_POST(0)|INPUT_GET(1)|INPUT_REQUEST(99)
      * @param string $fieldId
      * @param null   $msg
      *
@@ -1461,7 +1461,7 @@ class ValidationOne {
      * @return array|bool|DateTime|float|int|mixed|null
      */
     public function post($field, $msg = null) {
-        return $this->endChainFetch(INPUT_POST, $field, $msg);
+        return $this->endChainFetch(0, $field, $msg);
     }
 
     /**
@@ -1471,13 +1471,13 @@ class ValidationOne {
      * @return array|bool|DateTime|float|int|mixed|null
      */
     public function request($field, $msg = null) {
-        return $this->endChainFetch(INPUT_REQUEST, $field, $msg);
+        return $this->endChainFetch(99, $field, $msg); // 99 request
     }
 
     /**
      * It fetches a value.
      *
-     * @param int         $inputType INPUT_POST|INPUT_GET|INPUT_REQUEST
+     * @param int         $inputType INPUT_POST(0)|INPUT_GET(1)|INPUT_REQUEST(99)
      * @param string      $field
      * @param null|string $msg
      *

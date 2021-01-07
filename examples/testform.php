@@ -22,7 +22,7 @@ $field4=getVal()->type('string')
 $field5=getVal()->type('datetimestring')
     ->def(new DateTime())
     ->ifFailThenDefault(true)
-    ->fetch(INPUT_POST,'field5');
+    ->fetch(0,'field5');
 $submit=getVal()->type('string')->post('submit');
 
 

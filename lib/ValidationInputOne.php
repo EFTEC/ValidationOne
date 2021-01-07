@@ -90,26 +90,26 @@ class ValidationInputOne {
      * @return array|bool|DateTime|float|int|mixed|null
      */
     public function get($field = "", $msg = null, &$isMissing = false) {
-        return $this->getField($field, INPUT_GET, $msg, $isMissing);
+        return $this->getField($field, 1, $msg, $isMissing); // get
     }
 
     /**
      * Returns null if the value is not present, false if the value is incorrect and the value if its correct
      *
      * @param string      $field     id of the field, without the prefix.
-     * @param int|string  $inputType =[INPUT_REQUEST,INPUT_POST,INPUT_GET][$i] or it could be the value (for set)
+     * @param int|string  $inputType =[0,1,99][$i] // [INPUT_REQUEST 99,INPUT_POST 0,INPUT_GET 1] or it could be the value (for set)
      * @param null|string $msg
      * @param bool        $isMissing (ref). It's true if the value is missing (it's not set).
      *
      * @return array|mixed|null
      * @noinspection DuplicatedCode
      */
-    public function getField($field, $inputType = INPUT_REQUEST, $msg = null, &$isMissing = false) {
+    public function getField($field, $inputType = 99, $msg = null, &$isMissing = false) {
         $fieldId = $this->prefix . $field;
         $r = null;
 
         switch ($inputType) {
-            case INPUT_POST:
+            case 0: // post
                 if (!isset($_POST[$fieldId])) {
                     $isMissing = true;
                     if ($this->required) {
@@ -120,7 +120,7 @@ class ValidationInputOne {
                 $r = $_POST[$fieldId];
                 $r = ($r === NULLVAL) ? null : $r;
                 break;
-            case INPUT_GET:
+            case 1: //get
 
                 if (!isset($_GET[$fieldId])) {
                     $isMissing = true;
@@ -133,7 +133,7 @@ class ValidationInputOne {
 
                 $r = ($r === NULLVAL) ? null : $r;
                 break;
-            case INPUT_REQUEST:
+            case 99: // request
                 if (isset($_POST[$fieldId])) {
                     $r = $_POST[$fieldId];
                 } else {
@@ -200,17 +200,17 @@ class ValidationInputOne {
     }
 
     public function post($field, $msg = null, &$isMissing = false) {
-        return $this->getField($field, INPUT_POST, $msg, $isMissing);
+        return $this->getField($field, 0, $msg, $isMissing);
     }
 
     public function request($field, $msg = null, &$isMissing = false) {
-        return $this->getField($field, INPUT_REQUEST, $msg, $isMissing);
+        return $this->getField($field, 99, $msg, $isMissing);
     }
 
     /**
      * It fetches a value.
      *
-     * @param int         $inputType INPUT_POST|INPUT_GET|INPUT_REQUEST
+     * @param int         $inputType INPUT_POST(0)|INPUT_GET(1)|INPUT_REQUEST(99)
      * @param string      $field
      * @param null|string $msg
      * @param bool        $isMissing

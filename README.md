@@ -233,6 +233,11 @@ You can obtain a message as an array of objects of the type MessageItem, as an a
 
 ## version list
 
+* 2021-01-07 1.25
+    * PHP 8.0 discontinued the constants INPUT_GET, INPUT_POST and INPUT_REQUEST, so we will use instead the numbers
+        * INPUT_POST = 0
+        * INPUT_GET = 1
+        * INPUT_REQUEST = 99
 * 2020-10-01 1.24.3
     * A small cleanup.   
 * 2020-05-21 1.24.2
