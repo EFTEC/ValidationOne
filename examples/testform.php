@@ -13,11 +13,11 @@ $field2=getVal()->type('string')
     ->condition('maxlen','',10)
     ->post('field2');
 $field3=getVal()->type('string')
-    ->required(true)
+    ->exist(true)
 
     ->post('field3');
 $field4=getVal()->type('string')
-    ->required(true)
+    ->exist(true)
     ->post('field4');
 $field5=getVal()->type('datetimestring')
     ->def(new DateTime())

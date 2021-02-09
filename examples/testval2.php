@@ -40,7 +40,7 @@ $r = $val->def('ERROR')
 $r2 = $val->def('ERROR')
     ->type('integer')
     ->ifFailThenDefault()
-    ->required()->get('id',"Missing id field from get");
+    ->exist()->get('id',"Missing id field from get");
 
 
 $timeEnd = microtime(true);

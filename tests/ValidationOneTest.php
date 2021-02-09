@@ -71,6 +71,144 @@ class ValidationOneTest extends TestCase
         //var_dump(getVal()->messageList->allErrorArray());
         self::assertEquals('setfield is in ["foo","bar"]', getVal()->messageList->firstErrorText());
     }
+    public function testPostGetRequest() {
+        getVal()->messageList->resetAll();
+        $_POST['frm_FIELDREQ']="hello";
+        $_GET['frm_FIELDREQ']="hello-get";
+        $_FILES['frm_FIELDREQF']['tmp_name']='name.jpg';
+        $_FILES['frm_FIELDREQF']['name']='name.jpg';
+
+        $r=getVal()->type('string')->exist()->post('FIELDREQ');
+        self::assertEquals("hello",$r);
+        $r=getVal()->type('string')->exist()->get('FIELDREQ');
+        self::assertEquals("hello-get",$r);
+        $r=getVal()->type('string')->exist()->request('FIELDREQ');
+        self::assertEquals("hello",$r);
+        $r=getVal()->type('string')->exist()->getFile('FIELDREQF');
+        self::assertEquals(['name.jpg','name.jpg'],$r);
+    }
+    public function testPostGetRequestNoFound() {
+        getVal()->messageList->resetAll();
+        unset($_POST['frm_FIELDREQ'], $_GET['frm_FIELDREQ'], $_FILES['frm_FIELDREQF']);
+
+        $r=getVal()->type('string')->exist()->post('FIELDREQ');
+        self::assertEquals(1,getVal()->messageList->errorcount);
+        getVal()->messageList->resetAll();
+
+        $r=getVal()->type('string')->exist()->get('FIELDREQ');
+        self::assertEquals(1,getVal()->messageList->errorcount);
+        getVal()->messageList->resetAll();
+
+        $r=getVal()->type('string')->exist()->request('FIELDREQ');
+        self::assertEquals(1,getVal()->messageList->errorcount);
+        getVal()->messageList->resetAll();
+
+        $r=getVal()->type('string')->exist()->getFile('FIELDREQF');
+        self::assertEquals(1,getVal()->messageList->errorcount);
+        getVal()->messageList->resetAll();
+
+    }
+    public function testMessageList() {
+        getVal()->messageList->resetAll();
+        self::assertEquals(0,getVal()->messageList->errorcount);
+        getVal()->messageList->addItem('containere','errorm','error');
+        getVal()->messageList->addItem('containeri','infom','info');
+        getVal()->messageList->addItem('container1','warningm','warning');
+        getVal()->messageList->addItem('containers','successm','success');
+        self::assertEquals(1,getVal()->messageList->errorcount);
+        self::assertEquals(1,getVal()->messageList->warningcount);
+        self::assertEquals(1,getVal()->messageList->infocount);
+        self::assertEquals(1,getVal()->messageList->successcount);
+        self::assertEquals('warningm',getVal()->messageList->items['container1']->first());
+        self::assertEquals('warningm',getVal()->messageList->items['container1']->firstErrorOrWarning());
+        self::assertEquals(null,getVal()->messageList->items['container1']->firstError());
+        self::assertEquals('errorm',getVal()->messageList->firstErrorOrWarning());
+        self::assertEquals('errorm',getVal()->messageList->firstErrorText());
+        self::assertEquals('infom',getVal()->messageList->firstInfoText());
+        self::assertEquals('successm',getVal()->messageList->firstSuccessText());
+        self::assertEquals('warningm',getVal()->messageList->firstWarningText());
+        self::assertEquals('warning',getVal()->messageList->cssClass('container1'));
+
+    }
+    public function testMisc() {
+        self::assertEquals('jpg',getVal()->getFileExtension('//folder/file.jpg'));
+        self::assertEquals('image/jpeg',getVal()->getFileExtension('//folder/file.jpg',true));
+    }
+    public function testExistRequired2()
+    {
+        getVal()->messageList->resetAll();
+        $_POST['frm_FIELDREQ'] = "hello";
+        $r = getVal()->type('string')->exist()->required()->post('FIELDREQ');
+        self::assertEquals("hello", $r);
+
+        getVal()->messageList->resetAll();
+        unset($_POST['frm_FIELDREQ']);
+        $r = getVal()->type('string')->exist()->required()->post('FIELDREQ');
+        self::assertEquals([
+            0 => 'FIELDREQ does not exist',
+            1 => 'FIELDREQ is required'],getVal()->messageList->allErrorArray());
+        self::assertEquals(2,getVal()->messageList->errorcount);
+
+        getVal()->messageList->resetAll();
+        unset($_POST['frm_FIELDREQ']);
+        $r = getVal()->type('string')->condition('exist')->condition('req')->post('FIELDREQ');
+        self::assertEquals([
+            0 => 'FIELDREQ does not exist',
+            1 => 'FIELDREQ is required'],getVal()->messageList->allErrorArray());
+        self::assertEquals(2,getVal()->messageList->errorcount);
+    }
+
+
+    public function testExistRequired() {
+        getVal()->messageList->resetAll();
+        $_POST['frm_FIELDREQ']="hello";
+        $r=getVal()->type('string')->exist()->post('FIELDREQ');
+        self::assertEquals("hello",$r);
+
+        getVal()->messageList->resetAll();
+        $r=getVal()->type('string')->exist()->set(null);
+        self::assertEquals(0,getVal()->messageList->errorcount);
+        self::assertEquals(null,$r);
+
+        getVal()->messageList->resetAll();
+        $_POST['frm_FIELDREQ']="";
+        $r=getVal()->type('string')->condition('req')->post('FIELDREQ');
+        self::assertEquals(1,getVal()->messageList->errorcount);
+        self::assertEquals(null,$r);
+
+        getVal()->messageList->resetAll();
+        unset($_POST['frm_FIELDREQ']);
+        $r=getVal()->type('string')->exist()->post('FIELDREQ');
+        self::assertEquals(1,getVal()->messageList->errorcount);
+        self::assertEquals(null,$r);
+
+        getVal()->messageList->resetAll();
+        $_POST['frm_FIELDREQ']="hello";
+        $r=getVal()->type('string')->exist()->post('FIELDREQ');
+        self::assertEquals(0,getVal()->messageList->errorcount);
+        self::assertEquals("hello",$r);
+    }
+
+    public function testMultiple() {
+        getVal()->messageList->resetAll();
+        $_POST['frm_FIELDREQ']="hello";
+        $r=getVal()->type('string')->exist()->post('FIELDREQ');
+        self::assertEquals(0,getVal()->messageList->errorcount);
+        self::assertEquals("hello",$r);
+
+        getVal()->messageList->resetAll();
+        unset($_POST['frm_FIELDREQ']);
+        $r=getVal()->type('string')->exist()->post('FIELDREQ');
+        self::assertEquals(1,getVal()->messageList->errorcount);
+        self::assertEquals(null,$r);
+
+        getVal()->messageList->resetAll();
+        $_POST['frm_FIELDREQ']=null;
+        $r=getVal()->type('string')->exist()->post('FIELDREQ');
+        self::assertEquals(0,getVal()->messageList->errorcount);
+        self::assertEquals(null,$r);
+
+    }
 
     public function testMultipleCondition()
     {
@@ -243,7 +381,7 @@ class ValidationOneTest extends TestCase
         // *********************** testing errors, not required and with a default value
         $_POST['frm_date'] = '31/12/2010a';
         getVal()->messageList->resetAll();
-        $r = getVal()->type('datetimestring')->def('31/12/2010 11:22:11')->required(false)->ifFailThenDefault()
+        $r = getVal()->type('datetimestring')->def('31/12/2010 11:22:11')->exist(false)->ifFailThenDefault()
             ->post('date');
         //->setTimezone(new DateTimeZone("UTC"));
         self::assertEquals('2010-12-31T11:22:11Z', $r, 'it must be equals to 2010-12-31T11:22:11Z');

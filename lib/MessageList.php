@@ -27,6 +27,8 @@ class MessageList {
     public $infocount = 0;
     /** @var int Number of success stored globally */
     public $successcount = 0;
+    /** @var string[] Used to convert a type of message to a css class */
+    public $cssClasses=['error'=>'danger','warning'=>'warning','info'=>'info','success'=>'success'];
     private $firstError;
     private $firstWarning;
     private $firstInfo;
@@ -121,7 +123,8 @@ class MessageList {
     }
 
     /**
-     * find a value by the index and returns the text (bootstrap 4)
+     * It returns a css class associated with the type of errors inside a container<br>
+     * If the container contains more than one message, then it uses the most severe one (error,warning,etc.)
      *
      * @param string $id Id of the container
      *
@@ -133,16 +136,16 @@ class MessageList {
             return '';
         }
         if (@$this->items[$id]->countError()) {
-            return 'danger';
+            return $this->cssClasses['error'];
         }
         if ($this->items[$id]->countWarning()) {
-            return 'warning';
+            return $this->cssClasses['warning'];
         }
         if ($this->items[$id]->countInfo()) {
-            return 'info';
+            return $this->cssClasses['info'];
         }
         if ($this->items[$id]->countSuccess()) {
-            return 'success';
+            return $this->cssClasses['success'];
         }
         return '';
     }

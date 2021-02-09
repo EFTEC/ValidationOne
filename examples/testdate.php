@@ -43,7 +43,7 @@ $r2=getVal()->def(null)
     ->type('datestring')
     ->def('01-02-2020')
     ->ifFailThenDefault()
-    ->required(true)
+    ->exist(true)
     ->condition('lte','value (%value) must be less or equals than %comp','12-31-2010')
     ->get('date');
 

@@ -146,9 +146,11 @@ $validation->def(null)
 | compression                                             | The extension of the file must be an compression file  |                        |
 | contain                                                 | The text must contain a value                          | "text"                 |
 | doc                                                     | The extension of the file must be an document file     |                        |
-| eq (the value to compare could be an single value or array)  | The value must be equals to                       | "text",["text","text2"]                 |
-| exist                                                   | The file must exists                                   |  |
-| ext                                                     | The extension must be in a list of extensions          | ["ext1","ext2","ext3"] |
+| eq (it could be an array or value)                      | The value must be equals to                            | "text",["text","text2"]                 |
+| exist                                                   | The file or value must exists (it could be null/empty) |                        |
+| missing/notexist                                        | The file or value must not exists or be null/empty     |                        |
+| required (or req)                                       | The value must not be null or empty                    |                        |
+| ext                                                     | The extension (file) must be in the list of extensions | ["ext1","ext2","ext3"] |
 | false                                                   | The value must be false (===false)                     |                        |
 | fn.class.\namespace\Class.method                        | The method of a class must returns true                |                        |
 | fn.class.Class.method                                   | The method of a class must returns true                |                        |
@@ -169,7 +171,6 @@ $validation->def(null)
 | mimetype                                                | The mime type (without subtype) of a file              | "application" or ["application,"image"]|
 | ne (the value to compare could be an single value or array)   | The value must not be equals.                    | 123,[123,345],["aa","bb"]                    |
 | notcontain                                              | The value must not contain a value                     | "text"                 |
-| notexist                                                | The file must not exist                               |  |
 | notnull                                                 | The value must not be null                             |                        |
 | null                                                    | The value must be null                                 |                        |
 | empty                                                   | The value must be empty (i.e. "",0,null)               |                        |
@@ -225,6 +226,26 @@ Error has always the priority, then warning, info and success.  If you want to r
 
 You can obtain a message as an array of objects of the type MessageItem, as an array of string, or as an a single string (first message)
 
+## Exist, Required , NotNull, NotEmpty
+
+There are 4 kind of undefinitions in this library.  
+
+* A value **exist** if the field or file exist, no matter the value or if it is null or empty.
+
+```php
+   $validation->exist()->set(null); // is valid.
+   $validation->exist()->get('field'); // is valid if $_GET['field'] exist (even if it is null)
+```
+
+* A value is **required** if the field is not null or empty. Required is equals that null and empty at the same time
+
+* A value is **notnull** if the field is not null, but it could be empty ("").
+
+* A value is **notempty** if the field is not empty, but it could be null.
+
+
+
+
 ## Pipeline
 
 * Input value, it could come from set()/post()/get()/request()/getFile()
@@ -233,6 +254,12 @@ You can obtain a message as an array of objects of the type MessageItem, as an a
 
 ## version list
 
+* 2021-02-09 1.26
+  * New validations and methods.
+  * exist() where the value must exist (but it could be null or empty)
+  * required() now it validates if the value is not null or empty only. It does not validate if the value exists.
+  * notempty()
+    
 * 2021-01-07 1.25
     * PHP 8.0 discontinued the constants INPUT_GET, INPUT_POST and INPUT_REQUEST, so we will use instead the numbers
         * INPUT_POST = 0

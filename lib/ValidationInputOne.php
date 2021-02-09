@@ -25,8 +25,8 @@ class ValidationInputOne {
     public $messageList;
     public $prefix = '';
 
-    /** @var bool If true then the field is required otherwise it generates an error */
-    public $required = false;
+    /** @var bool If true then the field is exist (it could be null or empty) otherwise it generates an error */
+    public $exist = false;
     /** @var mixed default value */
     public $default;
     /** @var mixed default value */
@@ -60,13 +60,13 @@ class ValidationInputOne {
      * However, by default it also returns the default value.
      * This validation doesn't fail if the field is empty or zero. Only if it's unable to fetch the value.
      *
-     * @param bool $required
+     * @param bool $exist
      *
      * @return ValidationInputOne
      * @see ValidationOne::def()
      */
-    public function required($required = true) {
-        $this->required = $required;
+    public function exist($exist = true) {
+        $this->exist = $exist;
         return $this;
     }
 
@@ -83,7 +83,9 @@ class ValidationInputOne {
     }
 
     /**
-     * @param string $field
+     * It gets a field using the method GET.
+     *
+     * @param string $field The name of the field. By default, the library adds a prefix (if any)
      * @param null   $msg
      * @param bool   $isMissing
      *
@@ -96,7 +98,7 @@ class ValidationInputOne {
     /**
      * Returns null if the value is not present, false if the value is incorrect and the value if its correct
      *
-     * @param string      $field     id of the field, without the prefix.
+     * @param string      $field      The name of the field. By default, the library adds a prefix (if any)
      * @param int|string  $inputType =[0,1,99][$i] // [INPUT_REQUEST 99,INPUT_POST 0,INPUT_GET 1] or it could be the value (for set)
      * @param null|string $msg
      * @param bool        $isMissing (ref). It's true if the value is missing (it's not set).
@@ -110,11 +112,8 @@ class ValidationInputOne {
 
         switch ($inputType) {
             case 0: // post
-                if (!isset($_POST[$fieldId])) {
+                if (!array_key_exists($fieldId,$_POST)) {
                     $isMissing = true;
-                    if ($this->required) {
-                        $this->addMessageInternal($msg, "Field is missing", $field, "", "");
-                    }
                     return ($this->initial === null) ? $this->default : $this->initial;
                 }
                 $r = $_POST[$fieldId];
@@ -122,11 +121,8 @@ class ValidationInputOne {
                 break;
             case 1: //get
 
-                if (!isset($_GET[$fieldId])) {
+                if (!array_key_exists($fieldId,$_GET)) {
                     $isMissing = true;
-                    if ($this->required) {
-                        $this->addMessageInternal($msg, "Field is missing", $field, "", "");
-                    }
                     return ($this->initial === null) ? $this->default : $this->initial;
                 }
                 $r = $_GET[$fieldId];
@@ -134,14 +130,11 @@ class ValidationInputOne {
                 $r = ($r === NULLVAL) ? null : $r;
                 break;
             case 99: // request
-                if (isset($_POST[$fieldId])) {
+                if (array_key_exists($fieldId,$_POST)) {
                     $r = $_POST[$fieldId];
                 } else {
-                    if (!isset($_GET[$fieldId])) {
+                    if (!array_key_exists($fieldId,$_GET)) {
                         $isMissing = true;
-                        if ($this->required) {
-                            $this->addMessageInternal($msg, "Field is missing", $field, "", "");
-                        }
                         return ($this->initial === null) ? $this->default : $this->initial;
                     }
                     $r = $_GET[$fieldId];
@@ -242,12 +235,8 @@ class ValidationInputOne {
                 $fileTmp = @$_FILES[$fieldId]['tmp_name'];
                 return [$fileNew, $fileTmp];
             }
-
-// its not uploading a file.
+            // its not uploading a file.
             $isMissing = true;
-            if ($this->required) {
-                $this->addMessageInternal($msg, "Field is missing", $field, "", "");
-            }
             //return ($this->initial===null)?$this->default:$this->initial;
             return ($this->initial === null) ? $this->default : ['', ''];
         }
