@@ -328,7 +328,7 @@ There are 4 different ways to deal with empty values in this library.
 ```
 
 
-* A value is **not empty** if the field is not empty, but it could be null.
+* A value is **not empty** if the field is not '' (string with lenght 0), but it could be null.
 
 ```php
    $validation->required()->set(null); // is valid.
