@@ -110,8 +110,9 @@ It adds a condition that it depends on the **type** of the input.
 > Note: if the value is null and isNullValid() is true, then the conditions are ignored.
 > If the value is missing and isMissingValid() is true, then the conditions are ignored.
 > If the value is empty ('') and isEmptyValid() is true, then the conditions are ignored.
-> isNullValid(),isMissingValid() and isEmptyValid() are useful when we want to validate a value only if it exists or
-> if its set.
+> If the value is empty ('') or null and isNullOrEmptyValid() is true, then the conditions are ignored.
+> isNullValid(),isMissingValid(),isNullOrEmptyValid() and isEmptyValid() are useful when we want to validate a value 
+> only if it exists or if the value is set.
 
 Example:
 
@@ -327,7 +328,7 @@ There are 4 different ways to deal with empty values in this library.
 ```
 
 
-* A value is **notempty** if the field is not empty, but it could be null.
+* A value is **not empty** if the field is not empty, but it could be null.
 
 ```php
    $validation->required()->set(null); // is valid.
@@ -335,10 +336,11 @@ There are 4 different ways to deal with empty values in this library.
    $validation->required()->set('hi'); // is valid.   
 ```
 
-Also, there are 3 ways to accept missing values, null or empty, bypassing any condition.
+Also, there are 4 ways to accept missing values, null or empty, bypassing any condition.
 
 ```php
    $validation->isNullValid()->condition(....)->set(null); // is valid no matter the condition.
+   $validation->isNullorEmptyValid()->condition(....)->set(null); // is valid no matter the condition.
    $validation->isEmptyValid()->condition(....)->set(''); // is valid no matter the condition.
    $validation->isMissingValid()->condition(....)->get('field'); // If the field is missing, then is valid no matter the condition
 ```
@@ -349,8 +351,7 @@ Those operators could be stacked.
 
 ```php
 $validation
-    ->isNullValid()
-    ->isEmptyValid()
+    ->isNullorEmptyValid()
     ->isMissingValid()
     ->condition(....)
     ->set(....); // this expression is valid if the value is null, empty(''), the value is missing, no matter the conditions.
@@ -366,6 +367,8 @@ $validation
 
 ## version list
 
+* 2021-02-10 1.28
+  * Added new method isNullOrEmptyValid()   
 * 2021-02-10 1.27
   * Added new methods isMissingValid(), isEmptyValid() and isNulLValid()   
 * 2021-02-09 1.26

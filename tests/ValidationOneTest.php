@@ -154,6 +154,13 @@ class ValidationOneTest extends TestCase
         $r = getVal()->type('string')->isEmptyValid()->notempty()->required()->post('FIELDREQ');
         self::assertEquals(0,getVal()->messageList->errorcount);
         self::assertEquals('', $r);
+
+        // null or empty valid
+        getVal()->messageList->resetAll();
+        $_POST['frm_FIELDREQ']='';
+        $r = getVal()->type('string')->isNullOrEmptyValid()->notempty()->required()->post('FIELDREQ');
+        self::assertEquals(0,getVal()->messageList->errorcount);
+        self::assertEquals('', $r);
     }
 
 

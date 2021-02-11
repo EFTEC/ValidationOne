@@ -28,7 +28,7 @@ if (!defined("NULLVAL")) {
  *
  * @package       eftec
  * @author        Jorge Castro Castillo
- * @version       1.27 2021-02-10
+ * @version       1.28 2021-02-10
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see           https://github.com/EFTEC/ValidationOne
  */
@@ -1630,6 +1630,25 @@ class ValidationOne
     public function isNullValid($isValid = true)
     {
         $this->isNullValid = $isValid;
+        return $this;
+    }
+
+    /**
+     * If the value is null or empty '', then it is not evaluated and it doesn't generate any message<br>
+     * This method is used where a value null/empty is a valid condition.<br>
+     * <b>Example:</b><br>
+     * <pre>
+     * $this->isNullorEmptyValid()->condition("eq","hello")->get("idfield"); // hello or null/'' are valid conditions
+     * </pre>
+     *
+     * @param bool $isValid if true then if the value is null/empty then it is not evaluated.
+     *
+     * @return ValidationOne
+     */
+    public function isNullOrEmptyValid($isValid = true)
+    {
+        $this->isNullValid = $isValid;
+        $this->isEmptyValid = $isValid;
         return $this;
     }
 
