@@ -82,12 +82,31 @@ It adds a condition that it depends on the **type** of the input.
 	
 * @param string $message  
 
-    Message could uses the next variables '%field','%realfield','%value','%comp','%first','%second'  
+    Message could use the next variables '%field','%realfield','%value','%comp','%first','%second'  
+
+    | Field      | Description                                                  | Example             |
+    | ---------- | ------------------------------------------------------------ | ------------------- |
+    | %field     | name of the field, it could be the  friendid or the actual name | CustomerID          |
+    | %realfield | name of the field (not the  friendid)                        | Customer Identifier |
+    | %value     | current value of the field                                   | John                |
+    | %comp      | value to compare (if any)                                    |                     |
+    | %first     | first value to compare (if the compare value  is an array)   |                     |
+    | %second    | second value to compare (if the compare  value is an array)  |                     |
+    | %key       | key used (for input array)                                   |                     |
 
 * @param null $conditionValue
+
 * @param string $level (error,warning,info,success)
+
 * @param string $key If key is not null then it is used for add more than one condition by key
+
 * @return ValidationOne
+
+> Note: if the value is null and isNullValid() is true, then the conditions are ignored.
+> If the value is missing and isMissingValid() is true, then the conditions are ignored.
+> If the value is empty ('') and isEmptyValid() is true, then the conditions are ignored.
+> isNullValid(),isMissingValid() and isEmptyValid() are useful when we want to validate a value only if it exists or
+> if its set.
 
 Example:
 
@@ -118,7 +137,7 @@ $validation->def(null)
 
 
 
-#### Input type x Conditions
+#### Input type x Conditions allowed.
 
 | Input type                                   | Condition                                                          |   |
 |----------------------------------------------|--------------------------------------------------------------------|---|
@@ -210,7 +229,7 @@ function customval($value,$compareValue) {
 
 MessageList is a list of containers of messages. It's aimed for convenience, so it features many methods to  access of the information in different ways. 
 
-Messages are cataloged as follow
+Messages are cataloged as follows
 
 | id      | Description                                                          | Example                               |
 |---------|----------------------------------------------------------------------|---------------------------------------|
@@ -224,42 +243,83 @@ Sometimes, both errors are warning are considered as equals. So the system allow
 
 Error has always the priority, then warning, info and success.  If you want to read the first message, then it starts searching for errors.
 
-You can obtain a message as an array of objects of the type MessageItem, as an array of string, or as an a single string (first message)
+You can obtain a message as an array of objects of the type MessageItem, as an array of string, or as an single string (first message)
 
 ## Exist, Required , NotNull, NotEmpty
 
-There are 4 kind of undefinitions in this library.  
+There are 4 different ways to deal with empty values in this library.  
 
 * A value **exist** if the field or file exist, no matter the value or if it is null or empty.
 
 ```php
    $validation->exist()->set(null); // is valid.
-   $validation->exist()->get('field'); // is valid if $_GET['field'] exist (even if it is null)
+   $validation->exist()->set(''); // is valid.
+   $validation->exist()->get('field'); // is valid only if $_GET['field'] exist (even if it is null)
 ```
 
 * A value is **required** if the field is not null or empty. Required is equals that null and empty at the same time
 
+```php
+   $validation->required()->set(null); // is not valid.
+   $validation->required()->set(""); // is not valid.
+   $validation->required()->set('hi'); // is valid.   
+```
+
 * A value is **notnull** if the field is not null, but it could be empty ("").
+
+```php
+   $validation->required()->set(null); // is not valid.
+   $validation->required()->set(""); // is valid.
+   $validation->required()->set('hi'); // is valid.   
+```
+
 
 * A value is **notempty** if the field is not empty, but it could be null.
 
+```php
+   $validation->required()->set(null); // is valid.
+   $validation->required()->set(""); // is not valid.
+   $validation->required()->set('hi'); // is valid.   
+```
+
+Also, there are 3 ways to accept missing values, null or empty, no matter the conditions. Any extra condition is ignored.
+
+```php
+   $validation->isNullValid()->condition(....)->set(null); // is valid no matter the condition.
+   $validation->isEmptyValid()->condition(....)->set(''); // is valid no matter the condition.
+   $validation->isMissingValid()->condition(....)->get('field'); // is valid no matter the condition and if the field is missing.
+```
+
+It is used when we need to validate when a input has some value unless the value is missing, empty or null. 
+
+Those operators could be stacked.
+
+```php
+$validation
+    ->isNullValid()
+    ->isEmptyValid()
+    ->isMissingValid()
+    ->condition(....)
+    ->set(....); // this expression is valid if the value is null, empty(''), the value is missing, no matter the conditions.
+
+```
 
 
 
 ## Pipeline
 
 * Input value, it could come from set()/post()/get()/request()/getFile()
-* What if the value doesn't exist?
 
 
 ## version list
 
+* 2021-02-10 1.27
+  * Added new methods isMissingValid(), isEmptyValid() and isNulLValid()   
 * 2021-02-09 1.26
   * New validations and methods.
   * exist() where the value must exist (but it could be null or empty)
   * required() now it validates if the value is not null or empty only. It does not validate if the value exists.
   * notempty()
-    
 * 2021-01-07 1.25
     * PHP 8.0 discontinued the constants INPUT_GET, INPUT_POST and INPUT_REQUEST, so we will use instead the numbers
         * INPUT_POST = 0
@@ -281,7 +341,7 @@ There are 4 kind of undefinitions in this library.
     * Solved a problem where the default value is a string and the type is a datetimestring.
 * 2020-02-01 1.23
     *  Solved a problem in endConversion() when the default value is "" or null (or not a DateTime object), the type is 
-"datetimestring" and the value is missing.
+"datetimestring", and the value is missing.
     * Practically all methods were tested.
     * resetValidation() now allows to delete all messages.
     * Fixed the validation "ne"
@@ -293,7 +353,7 @@ There are 4 kind of undefinitions in this library.
     * ValidationOne::getFileExtension() now could return the extension as mime
     * ValidationOne::getFileMime() new method that returns the mime type of a file.
 * 2019-11-27 1.20
-  * Fixed name countErrorOrWaring->countErrorOrWarning
+  * Fixed the name countErrorOrWaring->countErrorOrWarning
 * 2019-11-27 1.19 
   * Added new field MessageList.errorOrWarning 
   * Added new method MessageItem.countErrorOrWaring()
@@ -310,7 +370,6 @@ There are 4 kind of undefinitions in this library.
 * 2018-10-22 1.10 New Features
 * * Added ValidationInputOne, now the fetchs are done by  this class (SRP principle)
 * * Added a fix with the input, when the value expected is an array but it's returned a single value
- 
 * 2018-10-15 1.9 Added some extra features
 * 2018-10-15 1.8 Some fixes and phpdocs, a new example
 * 2018-10-15 1.7 Added method addMessage() in ValidationOne. Now ErrorItem/ErrorList is called MessageItem and MessageList
@@ -327,7 +386,7 @@ There are 4 kind of undefinitions in this library.
 
 
 ## Note
- 
+
 It's distributed as dual license, as lgpl-v3 and commercial.
 
 You can use freely in your close source project. However, if you change this library, then the changes must be disclosed.

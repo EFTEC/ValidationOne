@@ -28,7 +28,7 @@ if (!defined("NULLVAL")) {
  *
  * @package       eftec
  * @author        Jorge Castro Castillo
- * @version       1.26 2021-02-09
+ * @version       1.27 2021-02-10
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see           https://github.com/EFTEC/ValidationOne
  */
@@ -84,6 +84,8 @@ class ValidationOne
     /** @var bool if the validation fails then it returns the default value */
     private $ifFailThenDefault = false;
     private $isNullValid = false;
+    private $isEmptyValid = false;
+    private $isMissingValid = false;
     /** @var bool if the validation fails then it returns the original (input) value */
     private $ifFailThenOrigin = false;
     /** @var null|string */
@@ -149,6 +151,8 @@ class ValidationOne
         $this->hasMessage = false;
         $this->ifFailThenDefault = $this->defaultIfFail;
         $this->isNullValid = false;
+        $this->isEmptyValid = false;
+        $this->isMissingValid = false;
         $this->ifFailThenOrigin = false;
         $this->conditions = [];
         $this->override = false;
@@ -352,57 +356,65 @@ class ValidationOne
         if ($this->ifFailThenOrigin) {
             $this->default = $input;
         }
-        if (!$this->isArray) {
+        if ($this->isArray) {
             $this->originalValue = $input;
-            $input = $this->basicValidation($input, $fieldId, $msg);
-
             if (is_array($input)) {
-                foreach ($input as $key => &$items) {
-                    $currentField = ($this->isArrayFlat) ? $fieldId : $fieldId . "[" . $key . "]";
-                    $this->runConditions($items, $currentField, $key);
-
-                    if ($this->ifFailThenDefault && $this->messageList->get($currentField)->countError()) {
-                        $items = (is_array($this->default)) ? $this->default[$key] : $this->default;
-                    }
-                }
-            } else {
-                $this->runConditions($input, $fieldId);
-                if ($this->ifFailThenDefault && $this->messageList->get($fieldId)->countError()) {
-                    $input = $this->default;
-                }
-            }
-            $output = $this->endConversion($input);
-        } else {
-
-            $this->originalValue = $input;
-            if (is_array($input) || $input === null) {
-                if ($input !== null) {
+                if (!$this->isMissingValid || !$this->isMissing) { // bypass if missing is valid (and the value is missing)
                     foreach ($input as $key => &$v) {
                         $currentField = ($this->isArrayFlat) ? $fieldId : $fieldId . "[" . $key . "]";
                         $v = $this->basicValidation($v, $currentField, $msg, $key);
                     }
                 }
-            } else {
+            } else if($input!==null) {
+                // if the value is not array but it is null, then we avoid to show a message (we consider it an empty array)
                 $this->addMessageInternal('%field is not an array', '', $fieldId, 0, 'error');
-            }
-            if (is_array($input)) {
-                foreach ($input as $key => &$items) {
-                    $currentField = ($this->isArrayFlat) ? $fieldId : $fieldId . "[" . $key . "]";
-                    $this->runConditions($items, $currentField, $key);
-
-                    if ($this->ifFailThenDefault && $this->messageList->get($currentField)->countError()) {
-                        $items = (is_array($this->default)) ? $this->default[$key] : $this->default;
-                    }
-                }
             } else {
-                $this->runConditions($input, $fieldId);
-                if ($this->ifFailThenDefault && $this->messageList->get($fieldId)->countError()) {
-                    $input = $this->default;
+                // null are considered empty arrays.
+                $input=[];
+                $this->originalValue = $input;
+            }
+            if (!$this->isMissingValid || !$this->isMissing) { // bypass if missing is valid (and the value is missing)
+                if (is_array($input)) {
+                    foreach ($input as $key => &$items) {
+                        $currentField = ($this->isArrayFlat) ? $fieldId : $fieldId . "[" . $key . "]";
+                        $this->runConditions($items, $currentField, $key);
+                        if ($this->ifFailThenDefault && $this->messageList->get($currentField)->countError()) {
+                            $items = (is_array($this->default)) ? $this->default[$key] : $this->default;
+                        }
+                    }
+                } else {
+                    $this->runConditions($input, $fieldId);
+                    if ($this->ifFailThenDefault && $this->messageList->get($fieldId)->countError()) {
+                        $input = $this->default;
+                    }
                 }
             }
 
             $output = $this->endConversion($input);
             //$output = $input;
+        } else { // the value does not expect an array
+            $this->originalValue = $input;
+            if (!$this->isMissingValid || !$this->isMissing) {
+                $input = $this->basicValidation($input, $fieldId, $msg);
+                if (is_array($input)) {
+                    foreach ($input as $key => &$items) {
+                        $currentField = ($this->isArrayFlat) ? $fieldId : $fieldId . "[" . $key . "]";
+                        $this->runConditions($items, $currentField, $key);
+
+                        if ($this->ifFailThenDefault && $this->messageList->get($currentField)->countError()) {
+                            $items = (is_array($this->default)) ? $this->default[$key] : $this->default;
+                        }
+                    }
+                } else {
+                    $this->runConditions($input, $fieldId);
+                    if ($this->ifFailThenDefault && $this->messageList->get($fieldId)->countError()) {
+                        $input = $this->default;
+                    }
+
+                }
+            }
+            $output = $this->endConversion($input);
+
         } // isArray
 
         /*} else {
@@ -439,8 +451,16 @@ class ValidationOne
      */
     public function basicValidation($input, $field, $msg = "", $key = null)
     {
+        if (($input === null && $this->isNullValid) || ($input === '' && $this->isEmptyValid)) {
+            // bypass (null or empty value and is valid, nothing to evaluate).
+            return $input;
+        }
         if ($this->ifFailThenDefault) {
-            $localDefault = (is_array($this->default)) ? @$this->default[$key] : $this->default;
+            if ((is_array($this->default))) {
+                $localDefault = isset($this->default[$key]) ? $this->default[$key] : null;
+            } else {
+                $localDefault = $this->default;
+            }
         } else {
             $localDefault = null;
         }
@@ -524,17 +544,8 @@ class ValidationOne
     /**
      * It adds an error
      *
-     * @param string $msg     See condition() for more information     first message. If it's empty or null then it
-     *                        uses the second message<br> Message could uses the next variables. Ex "%field is
-     *                        empty"<br>
-     *                        <b>%field</b> = name of the field, it could be the friendid or the actual name<br>
-     *                        <b>%realfield</b> = name of the field (not the friendid)<br>
-     *                        <b>%value</b> = current value of the field<br>
-     *                        <b>%comp</b> = value to compare (if any)<br>
-     *                        <b>%first</b> = first value to compare (if the compare value is an array)<br>
-     *                        <b>%second</b> = second value to compare (if the compare value is an array)<br>
-     *                        <b>%key</b> = key used (for input array)<br>
-     * @param string $msg     See condition() for more information2    second message
+     * @param string $msg     See condition() for more information2
+     * @param string $msg2    Second message.
      * @param string $fieldId id of the field
      * @param mixed  $value   value supplied
      * @param mixed  $vcomp   value to compare.
@@ -545,8 +556,8 @@ class ValidationOne
     {
         $txt = ($msg) ?: $msg2;
         if (is_array($vcomp)) {
-            $first = @$vcomp[0];
-            $second = @$vcomp[1];
+            $first = isset($vcomp[0]) ? $vcomp[0] : null;
+            $second = isset($vcomp[1]) ? $vcomp[1] : null;
             $vcomp = json_encode($vcomp); // is not array anymore
         } else {
             $first = $vcomp;
@@ -602,6 +613,10 @@ class ValidationOne
      */
     private function runConditions($value, $fieldId, $key = null)
     {
+        if (($value === null && $this->isNullValid) || ($value === '' && $this->isEmptyValid)) {
+            // bypass (null or empty value and isvalidnull or isvalidempty, then it is ok and nothing to evaluate).
+            return;
+        }
         $genMsg = '';
         if ($key === null || $this->isColumn) {
             foreach ($this->conditions as $cond) {
@@ -611,7 +626,8 @@ class ValidationOne
                     $this->runFnCondition($value, $cond, $fail, $genMsg);
                 } else {
                     //
-                    //(function(){return ['integer','unixtime','boolean','decimal','float','varchar','string','date','datetime','datestring','datetimestring'][$i];})();
+                    //(function(){return ['integer','unixtime','boolean','decimal','float','varchar','string','date'
+                    //,'datetime','datestring','datetimestring'][$i];})();
                     switch ($this->type) {
                         case 'integer':
                         case 'unixtime':
@@ -821,9 +837,12 @@ class ValidationOne
                 }
                 break;
             case 'between':
-                if ($r < @$cond->value[0] || $r > @$cond->value[1]) {
+                if (!isset($cond->value[0], $cond->value[1])) {
                     $fail = true;
-                    $genMsg = '%field is not between ' . @$cond->value[0] . " and " . @$cond->value[1];
+                    $genMsg = '%field (between) lacks conditions';
+                } else if ($r < $cond->value[0] || $r > $cond->value[1]) {
+                    $fail = true;
+                    $genMsg = '%field is not between ' . $cond->value[0] . " and " . $cond->value[1];
                 }
                 break;
         }
@@ -1043,9 +1062,12 @@ class ValidationOne
                 }
                 break;
             case 'between':
-                if ($r < @$cond->value[0] || $r > @$cond->value[1]) {
+                if (!isset($cond->value[0], $cond->value[1])) {
                     $fail = true;
-                    $genMsg = '%field is not between ' . @$cond->value[0] . " and " . @$cond->value[1];
+                    $genMsg = '%field (between) lacks conditions';
+                } elseif ($r < $cond->value[0] || $r > $cond->value[1]) {
+                    $fail = true;
+                    $genMsg = '%field is not between ' . $cond->value[0] . " and " . $cond->value[1];
                 }
                 break;
         }
@@ -1088,8 +1110,8 @@ class ValidationOne
      */
     private function runFileCondition($value, $cond, &$fail, &$genMsg)
     {
-        $fileName = @$value[0];
-        $fileNameTmp = @$value[1];
+        $fileName = isset($value[0]) ? $value[0] : null;
+        $fileNameTmp = isset($value[1]) ? $value[1] : null;
 
         if ($this->runSharedCondition($value, $cond, $fail, $genMsg, 4)) {
             return;
@@ -1212,7 +1234,7 @@ class ValidationOne
             @finfo_close($finfo);
             if ($onlyType) {
                 $mimeArr = @explode('/', $mime);
-                $mime = @$mimeArr[0];
+                $mime = isset($mimeArr[0]) ? $mimeArr[0] : '';
             }
             return $mime;
         }
@@ -1221,7 +1243,7 @@ class ValidationOne
             $mime = @mime_content_type($fullFilename);
             if ($onlyType) {
                 $mimeArr = @explode('/', $mime);
-                $mime = @$mimeArr[0];
+                $mime = isset($mimeArr[0]) ? $mimeArr[0] : '';
             }
             return $mime;
         }
@@ -1578,7 +1600,8 @@ class ValidationOne
      * <b>Note:</b> Default value is not converted but returned directly.
      *
      * @param mixed|array $value
-     * @param bool|null   $ifFailThenDefault True if the system returns the default value if error.
+     * @param bool|null   $ifFailThenDefault If true then if the validations fails, then it returns this default value,
+     *                                       otherwise, it returns a null.
      *
      * @return ValidationOne $this
      * @see \eftec\ValidationOne::ifFailThenDefault
@@ -1593,15 +1616,56 @@ class ValidationOne
     }
 
     /**
-     * TODO: use future.
+     * If the value is null, then it is not evaluated and it doesn't generate any message<br>
+     * This method is used where a value null is a valid condition.<br>
+     * <b>Example:</b><br>
+     * <pre>
+     * $this->isNullValid()->condition("eq","hello")->get("idfield"); // hello or null are valid conditions
+     * </pre>
      *
-     * @param $isValid
+     * @param bool $isValid if true then if the value is null then it is not evaluated.
      *
      * @return ValidationOne
      */
-    public function isNullValid($isValid)
+    public function isNullValid($isValid = true)
     {
         $this->isNullValid = $isValid;
+        return $this;
+    }
+
+    /**
+     * If the value is empty, then it is not evaluated and it doesn't generate any message<br>
+     * This method is used where a value empty is a valid condition.<br>
+     * <b>Example:</b><br>
+     * <pre>
+     * $this->isNullValid()->condition("eq","hello")->get("idfield"); // hello or '' are valid conditions
+     * </pre>
+     *
+     * @param bool $isEmpty if true then if the value is null then it is not evaluated.
+     *
+     * @return ValidationOne
+     */
+    public function isEmptyValid($isEmpty = true)
+    {
+        $this->isEmptyValid = $isEmpty;
+        return $this;
+    }
+
+    /**
+     * If the value is missing, then it is not evaluated and it doesn't generate any message<br>
+     * This method is used where a value missing is a valid condition.<br>
+     * <b>Example:</b><br>
+     * <pre>
+     * $this->isMissingValid()->condition("eq","hello")->get("idfield"); // hello or not defined are valid conditions
+     * </pre>
+     *
+     * @param bool $isMissing if true then if the value is null then it is not evaluated.
+     *
+     * @return ValidationOne
+     */
+    public function isMissingValid($isMissing = true)
+    {
+        $this->isMissingValid = $isMissing;
         return $this;
     }
 
@@ -1907,9 +1971,9 @@ class ValidationOne
      * @return $this
      * @see \eftec\ValidationOne::condition
      */
-    public function required($required=true,$msg = '')
+    public function required($required = true, $msg = '')
     {
-        if($required) {
+        if ($required) {
             $this->condition('req', $msg);
         }
         return $this;
@@ -2035,14 +2099,16 @@ class ValidationOne
         }
         $this->countError = $this->messageList->errorcount;
         if (is_array($input)) {
-            foreach ($input as $key => &$v) {
-                $this->originalValue = $v;
-                $currentField = ($this->isArrayFlat) ? $fieldId : $fieldId . "[" . $key . "]";
-                $v = $this->basicValidation($v, $currentField, $msg, $key);
-                //if ($this->abortOnError && $this->messageList->errorcount) break;
-                $this->runConditions($v, $currentField, $key);
-                if (($this->messageList->errorcount === 0) && $this->messageList->get($currentField)->countError()) {
-                    $v = @$this->default[$key];
+            if (!$this->isMissingValid || !$this->isMissing) { // bypass if missing is valid (and the value is missing)
+                foreach ($input as $key => &$v) {
+                    $this->originalValue = $v;
+                    $currentField = ($this->isArrayFlat) ? $fieldId : $fieldId . "[" . $key . "]";
+                    $v = $this->basicValidation($v, $currentField, $msg, $key);
+                    //if ($this->abortOnError && $this->messageList->errorcount) break;
+                    $this->runConditions($v, $currentField, $key);
+                    if (($this->messageList->errorcount === 0) && $this->messageList->get($currentField)->countError()) {
+                        $v = isset($this->default[$key]) ? $this->default[$key] : null;
+                    }
                 }
             }
         } else {
@@ -2050,12 +2116,15 @@ class ValidationOne
                 $input = [$input, $input]; // [new file,old file]
             }
             $this->originalValue = $input;
-            $input = $this->basicValidation($input, $fieldId, $msg);
-            if ($this->abortOnError != false || $this->messageList->errorcount == 0) {
-                $this->runConditions($input, $fieldId);
-            }
-            if ($this->ifFailThenDefault && $this->messageList->get($fieldId)->countError()) {
-                $input = $this->default;
+            // bypass
+            if ((!$this->isMissingValid || !$this->isMissing)) {
+                $input = $this->basicValidation($input, $fieldId, $msg);
+                if ($this->abortOnError != false || $this->messageList->errorcount == 0) {
+                    $this->runConditions($input, $fieldId);
+                }
+                if ($this->ifFailThenDefault && $this->messageList->get($fieldId)->countError()) {
+                    $input = $this->default;
+                }
             }
         }
         if ($this->messageList->errorcount == $this->countError && $this->successMessage !== null) {

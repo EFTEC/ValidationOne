@@ -134,6 +134,29 @@ class ValidationOneTest extends TestCase
         self::assertEquals('jpg',getVal()->getFileExtension('//folder/file.jpg'));
         self::assertEquals('image/jpeg',getVal()->getFileExtension('//folder/file.jpg',true));
     }
+    public function testExistMissingValid()
+    {
+        // missing valid
+        getVal()->messageList->resetAll();
+        unset($_POST['frm_FIELDREQ']);
+        $r = getVal()->type('string')->isMissingValid()->exist()->required()->post('FIELDREQ');
+        self::assertEquals(0,getVal()->messageList->errorcount);
+        self::assertEquals(null, $r);
+        // null valid
+        getVal()->messageList->resetAll();
+        $_POST['frm_FIELDREQ']=null;
+        $r = getVal()->type('string')->isNullValid()->condition('notnull')->required()->post('FIELDREQ');
+        self::assertEquals(0,getVal()->messageList->errorcount);
+        self::assertEquals(null, $r);
+        // empty valid
+        getVal()->messageList->resetAll();
+        $_POST['frm_FIELDREQ']='';
+        $r = getVal()->type('string')->isEmptyValid()->notempty()->required()->post('FIELDREQ');
+        self::assertEquals(0,getVal()->messageList->errorcount);
+        self::assertEquals('', $r);
+    }
+
+
     public function testExistRequired2()
     {
         getVal()->messageList->resetAll();
