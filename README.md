@@ -335,12 +335,12 @@ There are 4 different ways to deal with empty values in this library.
    $validation->required()->set('hi'); // is valid.   
 ```
 
-Also, there are 3 ways to accept missing values, null or empty, no matter the conditions. Any extra condition is ignored.
+Also, there are 3 ways to accept missing values, null or empty, bypassing any condition.
 
 ```php
    $validation->isNullValid()->condition(....)->set(null); // is valid no matter the condition.
    $validation->isEmptyValid()->condition(....)->set(''); // is valid no matter the condition.
-   $validation->isMissingValid()->condition(....)->get('field'); // is valid no matter the condition and if the field is missing.
+   $validation->isMissingValid()->condition(....)->get('field'); // If the field is missing, then is valid no matter the condition
 ```
 
 It is used when we need to validate when a input has some value unless the value is missing, empty or null. 
