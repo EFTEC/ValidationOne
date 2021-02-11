@@ -319,21 +319,21 @@ There are 4 different ways to deal with empty values in this library.
    $validation->required()->set('hi'); // is valid.   
 ```
 
-* A value is **notnull** if the field is not null, but it could be empty ("").
+* A value is **not null** if the field is not null, but it could be empty ("").
 
 ```php
-   $validation->required()->set(null); // is not valid.
-   $validation->required()->set(""); // is valid.
-   $validation->required()->set('hi'); // is valid.   
+   $validation->notnull()->set(null); // is not valid.
+   $validation->notnull()->set(""); // is valid.
+   $validation->notnull()->set('hi'); // is valid.   
 ```
 
 
 * A value is **not empty** if the field is not '' (string with lenght 0), but it could be null.
 
 ```php
-   $validation->required()->set(null); // is valid.
-   $validation->required()->set(""); // is not valid.
-   $validation->required()->set('hi'); // is valid.   
+   $validation->notempty()->set(null); // is valid.
+   $validation->notempty()->set(""); // is not valid.
+   $validation->notempty()->set('hi'); // is valid.   
 ```
 
 Also, there are 4 ways to accept missing values, null or empty, bypassing any condition.
@@ -347,7 +347,9 @@ Also, there are 4 ways to accept missing values, null or empty, bypassing any co
 
 It is used when we need to validate when a input has some value unless the value is missing, empty or null. 
 
-Those operators could be stacked.
+> isNullorEmptyValid() is equals than to call: isEmptyValid()->isNullValid()
+
+Also, those operators could be stacked.
 
 ```php
 $validation
@@ -355,14 +357,7 @@ $validation
     ->isMissingValid()
     ->condition(....)
     ->set(....); // this expression is valid if the value is null, empty(''), the value is missing, no matter the conditions.
-
 ```
-
-
-
-## Pipeline
-
-* Input value, it could come from set()/post()/get()/request()/getFile()
 
 
 ## version list
