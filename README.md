@@ -1,5 +1,9 @@
 # ValidationOne
-It's a PHP library for fetch and validate fields and store messages in different containers(including error, warning, info, and success) depending on the conditions.
+It's a PHP library for fetchs and validate fields and store messages in different containers(including error, warning, info
+, and success) depending on the conditions.
+
+The ideology behind this library is simple: 5 classes, no dependencies and runs in PHP 5.6 and higher, so it could run
+in practically any PHP project, including Wordpress, Laravel, a custom PHP project, etc. 
 
 [![Build Status](https://travis-ci.org/EFTEC/ValidationOne.svg?branch=master)](https://travis-ci.org/EFTEC/ValidationOne)
 [![Packagist](https://img.shields.io/packagist/v/eftec/validationone.svg)](https://packagist.org/packages/eftec/ValidationOne)
@@ -33,6 +37,7 @@ Let's say we want to validate a value an input value (get) called "id", we could
 * And finally, we obtain the "**id**" from $_GET (parameter url).
 
 ```php
+use eftec\ValidationOne;
 $val=new ValidationOne();
 
 $r = $val->def('ERROR')
@@ -44,21 +49,21 @@ $r = $val->def('ERROR')
     ->get('id'); // <-- end of the chain
 ```
 
-But, where is the error?.  It's in messagelist
+But, where is the error?.  The messages are stored in **messagelist**
 
 ```php
 var_dump($val->messagelist->allArray()) // here we show all messages of any kind of type. 
 ```
-However, we could also show a message by type (error, warning..) and only message by specific identifier.
+However, we could also show a message by type (error, warning..) and only message by a specific identifier.
 
 ```php
-var_dump($val->messageList->get('id')->allErrorOrWarning())) // All error or warning contained in the key "id".
+var_dump($val->messageList->get('id')->allErrorOrWarning()); // All error or warning contained in the key "id".
 ```
 
 Why the messages are store in some structure?. Is it not easy to simply return the error?   .
 
 The answer is a form. Le't say we have a form with 3 fields. If one of them fails, then 
-the error must be visible for each field separately.  Also the whole form could have it's own message.
+the error must be visible for each field separately.  Also, the whole form could have it's own message.
 
 ### condition ($condition, $message = "", $conditionValue = null, $level = 'error', $key = null)
 
@@ -155,7 +160,7 @@ $validation->def(null)
 | *                                            | fn.class.Class.method                                              |   |
 | *                                            | fn.class.\namespace\Class.method                                   |   |
 
-#### Conditions.
+#### Types of Conditions.
 
 | Condition                                               | Description                                            | Value Example          |
 |---------------------------------------------------------|--------------------------------------------------------|------------------------|
@@ -207,20 +212,68 @@ $validation->def(null)
     ->condition('between','%field %value must be between 1 and 50 ',[1,50])
     ->condition('eq','%field %value is not equal to %comp ',60)
     ->condition('eq','%field %value is not equal to %comp ',[60,200]) // eq allows a single or array
-    ->condition('fn.static.Example.customval','la funcion no funciona')
+    ->condition('fn.static.Example.customval','the function does not work')
     ->condition('req')
     ->condition('lt',"es muy grande",2000,'warning')
     ->condition('eq','%field %value is not equal to %comp',50)
-    ->condition('fn.static.Example.fnstatic','la funcion estatica no funciona')
+    ->condition('fn.static.Example.fnstatic','the static function does not work')
     ->condition('fn.static.\somespace\Someclass.methodStatic',null)
-    ->condition('fn.global.customval','la funcion global no funciona')
-    ->condition('fn.object.example.fnnostatic','la funcion object no funciona')
-    ->condition('fn.class.\somespace\Someclass.method','la funcion someclass no funciona')
+    ->condition('fn.global.customval','The global function does not work')
+    ->condition('fn.object.example.fnnostatic','the function object does not work')
+    ->condition('fn.class.\somespace\Someclass.method','The function some class does not work')
     ->condition('fn.class.Example.fnnostatic','la funcion class no funciona');
 
 // ->condition('fn.static.Example.customval','la funcion no funciona') 
 function customval($value,$compareValue) {
     return true;
+}
+```
+### Calling a custom function
+
+Sometimes we need to use a custom condition. We could create a global variable, a static function, or even a method 
+inside a class.  
+Every method or function created must have two parameters (with any name): 
+* **$value** The value to evaluate.
+* **$compareValue** The value to compare (it could be optional)
+
+For example, what if we need to evaluate if some id does not exist in the database?
+
+```php
+$validation->condition('fn.global.idExist','The id already exist!')->get("id"); 
+
+function idExist($id,$compare=null) {
+   // select count(*) c from table where id=$id
+   if($c>0) {
+        return true; 
+   } else {
+        return false;
+   }   
+}
+
+```
+
+
+> Note: if we need to specify a namespace, then we could use the notation: \namespace\SomeClass
+
+```php
+$validation->condition('fn.global.customfn'); // global
+$validation->condition('fn.static.SomeClass.staticfn'); // calling a static method inside the class SomeClass.
+$validation->condition('fn.class.SomeClass.noStaticFn'); // method inside a class,it creates an instance of an object then it calls the method
+$validation->condition('fn.object.myObject.noStaticFn'); // method inside a class, it uses an instance called $myObject
+
+// global function
+function customfn($value,$compareValue) {
+    // returns true or false
+}
+// static function
+$myObject=new SomeClass();
+class SomeClass {
+    public static function staticfn($value,$compareValue) {
+        // returns true or false
+    }
+    public function noStaticFn($value,$compareValue) {
+        // returns true or false
+    }
 }
 
 ```
