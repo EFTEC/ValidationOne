@@ -15,6 +15,32 @@ in practically any PHP project, including WordPress, Laravel, a custom PHP proje
 [![php](https://img.shields.io/badge/php-8.x-green.svg)]()
 [![CocoaPods](https://img.shields.io/badge/docs-70%25-yellow.svg)]()
 
+- [ValidationOne](#validationone)
+    * [Examples](#examples)
+    * [ValidationOne](#validationone-1)
+        + [condition ($condition, $message = "", $conditionValue = null, $level = 'error', $key = null)](#condition---condition---message--------conditionvalue---null---level----error----key---null-)
+            - [types](#types)
+            - [Input type x Conditions allowed.](#input-type-x-conditions-allowed)
+            - [Types of Conditions.](#types-of-conditions)
+        + [Calling a custom function](#calling-a-custom-function)
+    * [Getting the messages](#getting-the-messages)
+        + [MessageList](#messagelist)
+            - [Count of messages of all containers](#count-of-messages-of-all-containers)
+            - [Obtain messages or text of all containers](#obtain-messages-or-text-of-all-containers)
+            - [Css for a specific container](#css-for-a-specific-container)
+            - [Misc](#misc)
+    * [Exist, Required , NotNull, NotEmpty](#exist--required---notnull--notempty)
+    * [Processing the result](#processing-the-result)
+    * [def()](#def--)
+        + [trim()](#trim--)
+    * [alwaysTrim()](#alwaystrim--)
+        + [convert()](#convert--)
+    * [version list](#version-list)
+    * [todo](#todo)
+    * [Note](#note)
+
+
+
 ## Examples
 
 [Examples](https://github.com/EFTEC/ValidationOne/tree/master/examples)
