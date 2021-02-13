@@ -28,7 +28,7 @@ if (!defined("NULLVAL")) {
  *
  * @package       eftec
  * @author        Jorge Castro Castillo
- * @version       1.28 2021-02-10
+ * @version       1.29 2021-02-13
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see           https://github.com/EFTEC/ValidationOne
  */
@@ -94,6 +94,10 @@ class ValidationOne
     private $override = false;
     /** @var bool If true then the field exists otherwise it generates an error */
     private $exist = false;
+    /** @var array The conversion stack  */
+    private $conversion=[];
+    private $alwaysTrim=false;
+    private $alwaysTrimChars=" \t\n\r\0\x0B";
     /** @var mixed It keeps a copy of the original value (after get/post/fetch or set) */
     private $originalValue;
     /** @var string It's a friendly id used to replace the "id" used in message. For example: "id customer" instead of "idcustomer" */
@@ -158,6 +162,7 @@ class ValidationOne
         $this->override = false;
         $this->resetValidation();
         $this->exist = $this->defaultRequired;
+        $this->conversion=[];
         $this->friendId = null;
         $this->successMessage = null;
         $this->isMissing = false;
@@ -1467,8 +1472,49 @@ class ValidationOne
     }
 
     /**
+     * Trim the end result. It is an after-validation operation. By default, the result is not trimmed.<br>
+     * It is equals than to use $this->conversion('trim')
+     *
+     *
+     * @param null|string $type =[null,'ltrim','rtrim','trim'][$i] (null = no trim)
+     * @param string      $trimChars Characters to trim " \t\n\r\0\x0B"
+     * @return ValidationOne
+     * @see \eftec\ValidationOne::conversion
+     */
+    public function trim($type='trim',$trimChars=" \t\n\r\0\x0B") {
+        $this->conversion[]=[$type,$trimChars,null];
+        return $this;
+    }
+
+    /**
+     * If set then it always trim the values.
+     *
+     * @param bool   $always [false] If true then it trims all the results.
+     * @param string $trimChars Characters to trim
+     */
+    public function alwaysTrim($always=true,$trimChars=" \t\n\r\0\x0B") {
+        $this->alwaysTrim=$always;
+        $this->alwaysTrimChars=$trimChars;
+    }
+
+    /**
+     * It adds a conversion of the result. It is an after-validation operation.
+     *
+     * @param string $type =['type','upper','lower','ucfirst','ucwords','replace','sanitizer'
+     *                     ,'rtrim','ltrim','trim','htmlencode','htmldecode'][$i]
+     * @param mixed $arg1 It is used if the conversion requires an argument.
+     * @param mixed $arg2 It is used if the conversion requires a second argument.
+     * @return $this
+     */
+    public function conversion($type,$arg1=null,$arg2=null) {
+        $this->conversion[]=[$type,$arg1,$arg2];
+        return $this;
+    }
+
+
+    /**
      * If the input is an object DateTime and the type is datestring or datetimestring, then it is converted
-     * into a string
+     * into a string<br> It also trim the result.
      *
      * @param mixed $input
      *
@@ -1478,16 +1524,65 @@ class ValidationOne
     {
         // end conversion, we convert the input or default value.
         if ($input !== null) {
+            if($this->alwaysTrim) {
+                $this->trim('trim',$this->alwaysTrimChars);
+            }
+            if(!is_object($input) && count($this->conversion)>0) {
+                foreach($this->conversion as $k=>$v) {
+                    switch ($v[0]) {
+                        case 'ltrim':
+                            $tmp=ltrim($input,$v[1]===null ? " \t\n\r\0\x0B":$v[1]);
+                            break;
+                        case 'rtrim':
+                            $tmp=rtrim($input,$v[1]===null ? " \t\n\r\0\x0B":$v[1]);
+                            break;
+                        case 'trim':
+                            $tmp=trim($input,$v[1]===null ? " \t\n\r\0\x0B":$v[1]);
+                            break;
+                        case 'upper':
+                            $tmp=strtoupper($input);
+                            break;
+                        case 'lower':
+                            $tmp=strtolower($input);
+                            break;
+                        case 'ucfirst':
+                            $tmp=ucfirst($input);
+                            break;
+                        case 'ucwords':
+                            $tmp=ucwords($input,$v[1]===null?" \t\r\n\f\v":$v[1]);
+                            break;
+                        case 'replace':
+                            $tmp=str_replace($v[1],$v[2],$input);
+                            break;
+                        case 'sanitizer':
+                            $tmp=filter_var($input,$v[1]===null?FILTER_DEFAULT:$v[1],$v[2]);
+                            break;
+                        case 'htmlencode':
+                            $tmp=htmlentities($input,$v[1],$v[2]);
+                            break;
+                        case 'htmldecode':
+                            $tmp=html_entity_decode($input,$v[1],$v[2]);
+                            break;
+                        default:
+                            $tmp = $input;
+                    }
+                }
+
+
+            } else {
+                $tmp = $input;
+            }
             switch ($this->type) {
                 case 'datestring':
-                    $output = ($input instanceof DateTime) ? $input->format($this->dateOutputString) : $input;
+                    $output = ($input instanceof DateTime) ? $input->format($this->dateOutputString) : $tmp;
                     break;
                 case 'datetimestring':
-                    $output = ($input instanceof DateTime) ? $input->format($this->dateLongOutputString) : $input;
+                    $output = ($input instanceof DateTime) ? $input->format($this->dateLongOutputString) : $tmp;
                     break;
                 default:
-                    $output = $input;
+                    $output = $tmp;
             }
+
         } else {
             $output = null;
         }
@@ -2199,6 +2294,29 @@ class ValidationOne
     {
         return $this->messageList->get($id);
     }
+
+    /**
+     * It returns the number of errors (or errors and warnings)
+     *
+     * @param bool $includeWarning If true then it also includes the warning.
+     * @return int
+     */
+    public function errorCount($includeWarning=false) {
+        return $includeWarning
+            ? $this->messageList->errorcount
+            : $this->messageList->errorOrWarning;
+    }
+
+    /**
+     * It returns true if there is an error (or error and warning).
+     *
+     * @param bool $includeWarning If true then it also returns if there is a warning
+     * @return bool
+     */
+    public function hasError($includeWarning=false) {
+        return $this->messageList->hasError($includeWarning);
+    }
+
     //</editor-fold>
 
 }

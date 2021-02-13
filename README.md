@@ -101,7 +101,7 @@ It adds a condition that it depends on the **type** of the input.
 
 * @param null $conditionValue
 
-* @param string $level (error,warning,info,success)
+* @param string $level (error,warning,info,success). The level of the error. See **MessageList** for further information
 
 * @param string $key If the key is not null then it is used to add more than one condition by key
 
@@ -165,7 +165,7 @@ $validation->def(null)
 
 | Condition                                               | Description                                            | Value Example          |
 |---------------------------------------------------------|--------------------------------------------------------|------------------------|
-| architecture                                            | The extension of the file must be an architecture file |                        |
+| architecture                                            | The extension of the file must be an architecture file (dwg, etc.) |                        |
 | between                                                 | The number must be between two values                  | [0,20]                 |
 | betweenlen                                              | The length of the text must be between two values      | [0,20]                 |
 | compression                                             | The extension of the file must be an compression file  |                        |
@@ -279,9 +279,9 @@ class SomeClass {
 
 ```
 
-## MessageList
+## Getting the messages
 
-MessageList is a list of containers of messages. It's aimed at convenience, so it features many methods to access the information in different ways. 
+**MessageList** is a list of containers of messages. It's aimed at convenience, so it features many methods to access the information in different ways. 
 
 Messages are catalogued as follows
 
@@ -297,7 +297,109 @@ Sometimes, both errors are warning are considered as equals. So the system allow
 
 Error always has the priority, then warning, info and success.  If you want to read the first message, then it starts searching for errors.
 
-You can obtain a message as an array of objects of the type MessageItem, as an array of string, or as a single string (first message)
+You can obtain a message as an array of objects of the type **MessageItem**, as an array of string, or as a single string (first message)
+
+```php
+$validation=new ValidationOne();
+$validation->condition('req')->get('idfield'); // container idfield
+$validation->condition('req')->get('idfield2'); // container idfield2
+
+if($validation->hasError()) {
+    // Error: we do something here.
+    echo "we found ".$this->errorCount()." errors in all containers";   
+}
+
+// using messageList
+if($validation->messageList->hasError()) {
+    // Error: we do something here.
+    echo "we found ".$this->messageList->errorcount." errors in all containers";
+    
+}
+```
+
+### MessageList
+
+#### Count of messages of all containers
+
+| Name of the field | Type | Description                                            |
+| ----------------- | ---- | ------------------------------------------------------ |
+| errorcount        | int  | Get the number of errors in all containers             |
+| warningcount      | int  | Get the number of warnings in all containers           |
+| errorOrWarning    | int  | Get the number of errors or warnings in all containers |
+| infocount         | int  | Get the number of information                          |
+| successcount      | int  | Get the number of success.                             |
+
+Example:
+
+```
+if ($validation->messageList->errorcount>0) {
+    // some error
+}
+```
+
+
+
+#### Obtain messages or text of all containers
+
+| Name             | Type   | Description                                                  | Example of result                         |
+| ---------------- | ------ | ------------------------------------------------------------ | ----------------------------------------- |
+| firstErrorText   | method | Returns the first message of error  of all containers        | "Error in field"                          |
+| firstWarningText | method | Returns the first message of warning  of all containers      | "warning in field"                        |
+| firstInfoText    | method | Returns the first message of info of  all containers         | "info: log"                               |
+| firstSuccessText | method | Returns the first message of success  of all containers      | "Operation successful"                    |
+| allError         | method | Returns all errors of all containers (as an array of objects of the type **MessageItem**) | **MessageItem**[]                         |
+| allWarning       | method | Returns all warning of all  containers (as an array of objects of the type **MessageItem**) | **MessageItem**[]                         |
+| allInfo          | method | Returns all info of all containers (as an array of objects of the type **MessageItem**) | **MessageItem**[]                         |
+| allSuccess       | method | Returns all success of all containers (as an array of objects of the type **MessageItem**) | **MessageItem**[]                         |
+| allErrorArray    | method | Returns all errors of all containers (as an array of texts)  | ["Error in field1","Error in field2"]     |
+| allWarningArray  | method | Returns all warning of all  containers (as an array of texts) | ["Warning in field1","Warning in field2"] |
+| allInfoArray     | method | Returns all info of all containers (as an array of texts)    | ["Info in field1","Info in field2"]       |
+| allSuccessArray  | method | Returns all success of all containers (as an array of texts) | ["Info in field1","Info in field2"]       |
+
+```php
+echo $validation->errorList->firstErrorText(); // returns first error if any
+$array=$validation->errorList->allError();  // MessageItem[]
+echo $array[0]->firstError(); 
+$array=$validation->errorList->allErrorArray();  // string[]
+echo $array[0]; 
+```
+
+#### Css for a specific container
+
+cssClasses (field) is an associative array to use with the method cssClass()
+
+cssClasses() is method that eturns a class based in the type of level of the container
+
+```
+$css=$this-messageList->cssClasses('container1');
+```
+
+#### Misc
+
+| Name     | Type   | Description                                                  |
+| -------- | ------ | ------------------------------------------------------------ |
+| items    | field  | We get all containers (array of the type **MessageItem**). Each container could contain many messages. |
+| resetAll | method | $array=$this-messageList->items; $this-messageList->items['id'];Delete all containers and reset counters |
+| addItem  | method | It adds a new message to a container                         |
+| allIds   | method | Get all the id of the containers                             |
+| get      | method | Get a container (as an object of the type **MessageItem**). You can also use items[] |
+| hasError | method | Returns true if there is an error.                           |
+
+```php
+echo $validation->errorList->resetAll(); // resets all containers
+$validation->errorList->addItem('containerid','it is a message','error'); // we add an error in the container with #id containerid
+$array=$validation->errorList->allIds(); // ['containerid']
+var_dump($validation->get('containerid'));  // object MessageItem
+
+$array=$this-messageList->items;
+var_dump($this-messageList->items['containerid']); // object MessageItem
+
+if($validation->errorList->hasError()) { // $validation->hasError() does the same
+    echo "there is an error";
+}
+```
+
+
 
 ## Exist, Required , NotNull, NotEmpty
 
@@ -359,9 +461,97 @@ $validation
     ->set(....); // this expression is valid if the value is null, empty(''), the value is missing, no matter the conditions.
 ```
 
+## Processing the result
+
+## def()
+
+We could set a default value. This value could be as fallback when there is an error.  The default value is never converted or processed.
+
+```php
+$validation
+    ->def(-1)
+    ->type('integer')
+    ->ifFailThenDefault() 
+    ->set(...); // if the operation fails, then it returns -1
+```
+
+
+
+### trim()
+
+Trim the result. By default, the result is not trimmed. You can trim the left, right or both sides. It uses the method convert() to do the operation.
+
+
+```php
+$validation->trim()->set(....); // trim both sided
+$validation->trim('trim','.,')->set(....); // trim . and ,
+$validation->trim('ltrim')->set(....); // trim left sided
+$validation->trim('rtrim')->set(....); // trim right sided
+
+```
+
+## alwaysTrim()
+
+Sometime we always want to trim the results. So we could use this method to always trim the result. It stacks at the end of the conversion.
+
+```php
+$validation->alwaysTrim(); // always trim the next characters " \t\n\r\0\x0B"
+$validation->alwaysTrim(true,",."); // always trim , and .
+// ...
+$validation->alwaysTrim(false);  // we disable the always trim.
+```
+
+
+
+### convert()
+
+It converts the end result after it is validated. Depending in the type of conversion, it allows up to 2 arguments.   The conversion could be stacked so the order could matter.
+
+If the value is missing or it is used the default value, then it is not converted.
+
+| Type       | Description                                                | Example                                                      |
+| ---------- | ---------------------------------------------------------- | ------------------------------------------------------------ |
+| upper      | Converts the value in uppercase                            | $this->conversion('upper')->set('Hello World'); // HELLO WORLD |
+| lower      | Converts the value in lowercase                            | $this->conversion('lower')->set('Hello World'); // hello world |
+| ucfirst    | Converts the first character in uppercase                  | $this->conversion('ucfirst')->set('hello world'); // Hello world |
+| ucwords    | Converts the first character in a word in uppercase        | $this->conversion('ucwords')->set('hello world'); // Hello World |
+| replace    | Replace a string by other                                  | $this->conversion('replace','hello','world')->set('hello hello'); // world world |
+| sanitizer  | Sanitizer the result. It uses filter_var()                 | $this->conversion('sanitizer',FILTER_SANITIZE_EMAIL)->set('//aaa@bb.com'); // aaa@bb.com<br />$this->conversion('sanitizer',FILTER_SANITIZE_SPECIAL_CHARS,FILTER_FLAG_STRIP_HIGH) |
+| rtrim      | Trim the right characters                                  | $this->conversion('rtrim')                                   |
+| ltrim      | Trim the left characters                                   | $this->conversion('ltrim')                                   |
+| trim       | Trim the right and left. It is equivalent to $this->trim() | $this->conversion('trim')->set(' hello '); // hello<br />$this->conversion('trim'," \t\n\r\0\x0B") |
+| htmlencode | Encode to html content. It uses htmlentities()             | $this->conversion('htmlencode')->set('\<b>dog\</b>'); //\&lt;b\&gt;dog\&lt; |
+| htmldecode | Decode from a html. It uses html_entity_decode()           | $this->conversion('htmldecode')->set('\&lt;b\&gt;dog\&lt;'); // \<b>dog\</b> |
+
+
+
+```php
+$validation
+    ->convert('replace','hello','world') // world world
+    ->convert('upper') // WORLD WORLD
+    ->set('hello hello');  // stacking an operator.
+
+$validation->convert('upper')->set(....); 
+$validation->convert('lower')->set(....); 
+$validation->convert('ucfirst')->set(....); 
+$validation->convert('ucwords')->set(....); 
+$validation->convert('replace','hello','world')->set(....); // trim right sided
+$validation->convert('sanitizer',FILTER_SANITIZE_EMAIL)->set(....);
+$validation->convert('rtrim')->set(....);
+$validation->convert('ltrim')->set(....);
+$validation->convert('trim')->set(....);
+$validation->convert('htmlencode')->set(....);
+$validation->convert('htmldecode')->set(....);
+
+```
+
+
+
 
 ## version list
 
+* 2021-02-13 1.29
+  * Added the methods trim(), alwaysTrim(), convert(), errorCount() and hasError() .
 * 2021-02-10 1.28
   * Added new method isNullOrEmptyValid()   
 * 2021-02-10 1.27

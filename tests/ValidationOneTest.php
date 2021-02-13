@@ -134,6 +134,36 @@ class ValidationOneTest extends TestCase
         self::assertEquals('jpg',getVal()->getFileExtension('//folder/file.jpg'));
         self::assertEquals('image/jpeg',getVal()->getFileExtension('//folder/file.jpg',true));
     }
+    public function testTrimConversion() {
+        getVal()->messageList->resetAll();
+        $r=getVal()->type('string')->set('  hello  ');
+        self::assertEquals('  hello  ',$r);
+        $r=getVal()->type('string')->trim()->set('  hello  ');
+        self::assertEquals('hello',$r);
+        $r=getVal()->type('string')->trim('ltrim')->set('  hello  ');
+        self::assertEquals('hello  ',$r);
+        $r=getVal()->type('string')->trim('rtrim')->set('  hello  ');
+        self::assertEquals('  hello',$r);
+        $r=getVal()->type('string')->conversion('sanitizer',FILTER_SANITIZE_EMAIL)->set('email//@email.dom');
+        self::assertEquals('email@email.dom',$r);
+        $r=getVal()->type('string')->conversion('replace','hello','world')->set('hello hello');
+        self::assertEquals('world world',$r);
+        $r=getVal()->type('string')->conversion('htmlencode')->set('<b>dog</b>');
+        self::assertEquals('&lt;b&gt;dog&lt;/b&gt;',$r);
+        $r=getVal()->type('string')->conversion('htmldecode')->set('&lt;b&gt;dog&lt;/b&gt;');
+        self::assertEquals('<b>dog</b>',$r);
+
+        getVal()->messageList->resetAll();
+        getVal()->alwaysTrim();
+        $r=getVal()->type('string')->set('  hello  ');
+        self::assertEquals('hello',$r);
+        $r=getVal()->type('string')->set('  hello  ');
+        self::assertEquals('hello',$r);
+        getVal()->alwaysTrim(false);
+        $r=getVal()->type('string')->set('  hello  ');
+        self::assertEquals('  hello  ',$r);
+
+    }
     public function testExistMissingValid()
     {
         // missing valid
@@ -296,7 +326,8 @@ class ValidationOneTest extends TestCase
         self::assertEquals('abcdefghijklmnopqrst12345', $r, 'it must be equals to abcdefghijklmnopqrst12345');
         self::assertEquals('it must contains the text hello', getVal()->messageList->allErrorArray()[0]);
         self::assertEquals('it must contains the text hello', getVal()->messageList->firstErrorText());
-        self::assertCount(2, getVal()->messageList->allErrorArray(), 'it must be 2 errors');
+        self::assertEquals(2, getVal()->errorCount(true), 'it must be 2 errors');
+        self::assertEquals(true, getVal()->hasError(true), 'it must has an error');
         self::assertEquals('setfield abcdefghijklmnopqrst12345 is not equal to abc',
             getVal()->messageList->allErrorArray()[1]);
 

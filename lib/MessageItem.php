@@ -236,4 +236,17 @@ class MessageItem {
     public function allSuccess() {
         return $this->successMsg;
     }
+
+    /**
+     * It returns true if there is an error (or error and warning).
+     *
+     * @param bool $includeWarning If true then it also returns if there is a warning
+     * @return bool
+     */
+    public function hasError($includeWarning=false) {
+        $tmp=$includeWarning
+            ? count($this->errorMsg)
+            : count($this->errorMsg)+count($this->warningMsg);
+        return $tmp !==0;
+    }
 }

@@ -30,6 +30,8 @@ if (isset($_GET['button'])) {
         ->isColumn(true)
         ->isArray(true)->get('field2');
 
+    getVal()->messageList->addItem('containerid','it is a message','error');
+
     echo "The fetch obtained is :";
     var_dump($col1);
     echo "<hr>All messages:<br>";

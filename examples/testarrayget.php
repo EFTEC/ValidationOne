@@ -39,7 +39,7 @@ $r = getVal()->def('ERROR')
     ->successMessage('','info:Fetch successful')
     ->isArray(false)->get('id',"some error message on %field");
 
-
+getVal()->hasError();
 
 echo "The fetch obtained is :";
 var_dump($r);

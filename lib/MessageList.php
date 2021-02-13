@@ -153,9 +153,16 @@ class MessageList {
     /**
      * It returns the first message of error (if any)
      *
+     * @param bool $includeWarning if true then it also includes warning but any error has priority.
      * @return string empty if there is none
      */
-    public function firstErrorText() {
+    public function firstErrorText($includeWarning=false) {
+        if ($includeWarning) {
+            if ($this->errorcount) {
+                return $this->firstError;
+            }
+            return ($this->warningcount === 0) ? '' : $this->firstWarning;
+        }
         return ($this->errorcount === 0) ? '' : $this->firstError;
     }
 
@@ -164,12 +171,10 @@ class MessageList {
      * it returns the first message of warning (if any)
      *
      * @return string empty if there is none
+     * @see \eftec\MessageList::firstErrorText
      */
     public function firstErrorOrWarning() {
-        if ($this->errorcount) {
-            return $this->firstError;
-        }
-        return ($this->warningcount === 0) ? '' : $this->firstWarning;
+       return $this->firstErrorText(true);
     }
 
     /**
@@ -202,12 +207,22 @@ class MessageList {
     /**
      * It returns an array with all messages of error of all containers.
      *
+     * @param bool $includeWarning if true then it also include warnings.
      * @return string[] empty if there is none
      */
-    public function allErrorArray() {
-        $r = array();
-        foreach ($this->items as $v) {
-            $r = array_merge($r, $v->allError());
+    public function allErrorArray($includeWarning=false) {
+        if($includeWarning) {
+            $r = array();
+            foreach ($this->items as $v) {
+                $r = array_merge($r, $v->allError());
+                $r = array_merge($r, $v->allWarning());
+            }
+            return $r;
+        } else {
+            $r = array();
+            foreach ($this->items as $v) {
+                $r = array_merge($r, $v->allError());
+            }
         }
         return $r;
     }
@@ -271,13 +286,22 @@ class MessageList {
      * It returns an array with all messages of errors and warnings of all containers.
      *
      * @return string[] empty if there is none
+     * @see \eftec\MessageList::allErrorArray
      */
     public function allErrorOrWarningArray() {
-        $r = array();
-        foreach ($this->items as $v) {
-            $r = array_merge($r, $v->allError());
-            $r = array_merge($r, $v->allWarning());
-        }
-        return $r;
+        return $this->allErrorArray(true);
+    }
+
+    /**
+     * It returns true if there is an error (or error and warning).
+     *
+     * @param bool $includeWarning If true then it also returns if there is a warning
+     * @return bool
+     */
+    public function hasError($includeWarning=false) {
+        $tmp=$includeWarning
+            ? $this->errorcount
+            : $this->errorOrWarning;
+        return $tmp !==0;
     }
 }
