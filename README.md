@@ -31,9 +31,9 @@ in practically any PHP project, including WordPress, Laravel, a custom PHP proje
             - [Misc](#misc)
     * [Exist, Required , NotNull, NotEmpty](#exist--required---notnull--notempty)
     * [Processing the result](#processing-the-result)
-    * [def()](#def--)
+        + [def()](#def--)
         + [trim()](#trim--)
-    * [alwaysTrim()](#alwaystrim--)
+        + [alwaysTrim()](#alwaystrim--)
         + [convert()](#convert--)
     * [version list](#version-list)
     * [todo](#todo)
@@ -489,7 +489,7 @@ $validation
 
 ## Processing the result
 
-## def()
+### def()
 
 We could set a default value. This value could be as fallback when there is an error.  The default value is never converted or processed.
 
@@ -516,7 +516,7 @@ $validation->trim('rtrim')->set(....); // trim right sided
 
 ```
 
-## alwaysTrim()
+### alwaysTrim()
 
 Sometime we always want to trim the results. So we could use this method to always trim the result. It stacks at the end of the conversion.
 
