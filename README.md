@@ -17,11 +17,11 @@ in practically any PHP project, including WordPress, Laravel, a custom PHP proje
 
 - [ValidationOne](#validationone)
     * [Examples](#examples)
-    * [ValidationOne](#validationone-1)
-        + [condition ($condition, $message = "", $conditionValue = null, $level = 'error', $key = null)](#condition---condition---message--------conditionvalue---null---level----error----key---null-)
-            - [types](#types)
-            - [Input type x Conditions allowed.](#input-type-x-conditions-allowed)
-            - [Types of Conditions.](#types-of-conditions)
+    * [Concept](#concept)
+    * [Adding a new condition](#adding-a-new-condition)
+        + [types](#types)
+        + [Type of conditions per type of input.](#type-of-conditions-per-type-of-input)
+        + [Types of Conditions.](#types-of-conditions)
         + [Calling a custom function](#calling-a-custom-function)
     * [Getting the messages](#getting-the-messages)
         + [MessageList](#messagelist)
@@ -29,13 +29,24 @@ in practically any PHP project, including WordPress, Laravel, a custom PHP proje
             - [Obtain messages or text of all containers](#obtain-messages-or-text-of-all-containers)
             - [Css for a specific container](#css-for-a-specific-container)
             - [Misc](#misc)
-    * [Exist, Required , NotNull, NotEmpty](#exist--required---notnull--notempty)
+        + [MessageItem](#messageitem)
+            - [Obtain messages of a specific container](#obtain-messages-of-a-specific-container)
+    * [Working with dates](#working-with-dates)
+        + [setDateFormat](#setdateformat)
+        + [setDateFormatDefault](#setdateformatdefault)
+        + [setDateFormatEnglish](#setdateformatenglish)
+    * [Dealing with missing or empty values](#dealing-with-missing-or-empty-values)
+        + [exist](#exist)
+        + [required](#required)
+        + [notnull](#notnull)
+        + [notempty](#notempty)
+    * [Allowing missing or empty values](#allowing-missing-or-empty-values)
     * [Processing the result](#processing-the-result)
         + [def()](#def--)
         + [trim()](#trim--)
         + [alwaysTrim()](#alwaystrim--)
         + [convert()](#convert--)
-    * [version list](#version-list)
+    * [Version list](#version-list)
     * [todo](#todo)
     * [Note](#note)
 
@@ -51,7 +62,7 @@ in practically any PHP project, including WordPress, Laravel, a custom PHP proje
 It is an example of functionality. A typical example is more complex, even if it's only a few lines of code.
 
 
-## ValidationOne
+## Concept
 
 Let's say we want to validate a value an input value (get) called "id", we could do the next things:
 
@@ -73,13 +84,16 @@ $r = $val->def('ERROR')
     ->condition("eq", "It's not equals to 30 (info)", 30, 'info')
     ->ifFailThenDefault()
     ->get('id'); // <-- end of the chain
+
 ```
 
-But where is the error?.  The messages are stored in **messagelist**
+But where is the error?.  The messages are stored in **messageList**
 
 ```php
 var_dump($val->messageList->allArray()); // here we show all messages of any kind of type. 
 var_dump($val->messageList->errorcount); // returns the number of errors.
+var_dump($val->errorcount()); // returns the number of errors (alternative)
+var_dump($val->hasError()); // returns true if there is an error.
 ```
 However, we could also show a message by type (error, warning..) and only message by a specific identifier.
 
@@ -91,7 +105,9 @@ Why the messages are store in some structure?. Is it not easy to simply return t
 
 An answer is a form. Let's say we have a form with three fields. If one of them fails, then the error must be visible for each field separately.  Also, the whole form could have its own message.
 
-### condition ($condition, $message = "", $conditionValue = null, $level = 'error', $key = null)
+## Adding a new condition 
+
+> condition ($condition, $message = "", $conditionValue = null, $level = 'error', $key = null)
 
 It adds a condition that it depends on the **type** of the input.
 
@@ -150,7 +166,7 @@ $validation->def(null)
     ->set('aaa','variable2');	
 ```
 
-#### types
+### types
 
 | type           | description                                                                                             |
 |----------------|---------------------------------------------------------------------------------------------------------|
@@ -169,7 +185,7 @@ $validation->def(null)
 
 
 
-#### Input type x Conditions allowed.
+### Type of conditions per type of input.
 
 | Input type                                   | Condition                                                          |   |
 |----------------------------------------------|--------------------------------------------------------------------|---|
@@ -187,7 +203,7 @@ $validation->def(null)
 | *                                            | fn.class.Class.method                                              |   |
 | *                                            | fn.class.\namespace\Class.method                                   |   |
 
-#### Types of Conditions.
+### Types of Conditions.
 
 | Condition                                               | Description                                            | Value Example          |
 |---------------------------------------------------------|--------------------------------------------------------|------------------------|
@@ -307,9 +323,10 @@ class SomeClass {
 
 ## Getting the messages
 
-**MessageList** is a list of containers of messages. It's aimed at convenience, so it features many methods to access the information in different ways. 
+**MessageList** is a list of containers of messages. It's aimed at convenience, so it features many methods to access 
+the information in different ways. 
 
-Messages are catalogued as follows
+Messages are ranked as follows
 
 | id      | Description                                                          | Example                               |
 |---------|----------------------------------------------------------------------|---------------------------------------|
@@ -321,12 +338,13 @@ Messages are catalogued as follows
 
 Sometimes, both errors are warning are considered as equals. So the system allows reading an error or warning.
 
-Error always has the priority, then warning, info and success.  If you want to read the first message, then it starts searching for errors.
+Error always has the priority, then warning, info and success.  If you want to read the first message, then it starts 
+searching for errors.
 
-You can obtain a message as an array of objects of the type **MessageItem**, as an array of string, or as a single string (first message)
+You can obtain a message as an array of objects of the type **MessageItem**, as an array of string, or as a single string 
+(first message)
 
 ```php
-$validation=new ValidationOne();
 $validation->condition('req')->get('idfield'); // container idfield
 $validation->condition('req')->get('idfield2'); // container idfield2
 
@@ -425,11 +443,91 @@ if($validation->errorList->hasError()) { // $validation->hasError() does the sam
 }
 ```
 
+### MessageItem
 
+Inside MessageList we could have one or many containers. MessageItem is the container of it.
 
-## Exist, Required , NotNull, NotEmpty
+#### Obtain messages of a specific container
+
+| Name             | Type   | Description                                                  | Example of result                         |
+| ---------------- | ------ | ------------------------------------------------------------ | ----------------------------------------- |
+| firstErrorText   | method | Returns the first message of error  of a container       | "Error in field"                          |
+| firstWarningText | method | Returns the first message of warning  of a container     | "warning in field"                        |
+| firstInfoText    | method | Returns the first message of info of  a container         | "info: log"                               |
+| firstSuccessText | method | Returns the first message of success  of a container      | "Operation successful"                    |
+| allError    | method | Returns all errors of a container (as an array of texts)  | ["Error in field1","Error in field2"]     |
+| allWarning  | method | Returns all warning of a container (as an array of texts) | ["Warning in field1","Warning in field2"] |
+| allInfo     | method | Returns all info of a container (as an array of texts)    | ["Info in field1","Info in field2"]       |
+| allSuccess  | method | Returns all success of a container (as an array of texts) | ["Info in field1","Info in field2"]       |
+
+```php
+$validation->condition('req')->get('idfield'); // container idfield 
+
+echo $validation->errorList->get('idfield')->firstErrorText(); // we show the first error (if any) in the container
+var_dump($validation->errorList->get('idfield')->allError); // we show the all errors
+```
+## Working with dates
+
+We also could work with dates.  There are several types of date formats.
+
+| type           | description                                                  |
+| -------------- | ------------------------------------------------------------ |
+| date           | (date) the input could be a DateTime or a string. The value is stored as   an object DateTime |
+| datetime       | (date) the input could be a DateTime or a string. The value is stored as   an object DateTime |
+| datestring     | (date) the input could be a DateTime or a string. The value is stored as a string using the field **$dateOutputString** |
+| datetimestring | (date) the input could be a DateTime or a string. The value is stored as a string using the field **$dateLongOutputString** |
+
+There are two ways to specify the format of dates, short (Date only) and long (date and time). And we could specify the format as input and output.
+
+| Name Field            | Description                                            | Default value  |
+| --------------------- | ------------------------------------------------------ | -------------- |
+| $dateShort            | It is the (expected) input format for date (short)     | d/m/Y          |
+| $dateLong             | It is the (expected) input format (with date and time) | d/m/Y H:i:s    |
+| $dateOutputString     | It is the output format (for datestring)               | Y-m-d          |
+| $dateLongOutputString | It is the output format (for datetimestring)           | Y-m-d\TH:i:s\Z |
+
+```php
+$r=getVal()->type('datestring')->set('31-12-2019'); // 2019-12-31 note: the default input value is d/m/Y, not m/d/Y
+```
+
+We can change the date format by changing the fields or calling the next functions
+
+### setDateFormat
+
+Setting the format of the dates (input short, input long, output short and output long)
+
+```php
+$validation->setDateFormat('m/d/Y', 'm/d/Y H:i:s', 'Y-m-d', 'Y-m-d\TH:i:s\Z')
+```
+
+### setDateFormatDefault
+
+We set the format of the dates to the default configuration
+
+```php
+$validation->setDateFormatDefault();
+```
+
+### setDateFormatEnglish
+
+We set the format to the dates to :
+
+| Name         | Format         |
+| ------------ | -------------- |
+| input short  | m/d/Y          |
+| input long   | m/d/Y H:i:s    |
+| output short | Y-m-d          |
+| output long  | Y-m-d\TH:i:s\Z |
+
+```php
+$validation->setDateFormatEnglish()
+```
+
+## Dealing with missing or empty values
 
 There are four different ways to deal with empty values in this library.  
+
+### exist
 
 * A value **exist** if the field or file exists, no matter the value or if it is null or empty.
 
@@ -439,6 +537,8 @@ There are four different ways to deal with empty values in this library.
    $validation->exist()->get('field'); // is valid only if $_GET['field'] exist (even if it is null)
 ```
 
+### required
+
 * A value is **required** if the field is not null or empty. Required is equals that null and empty at the same time
 
 ```php
@@ -446,6 +546,8 @@ There are four different ways to deal with empty values in this library.
    $validation->required()->set(""); // is not valid.
    $validation->required()->set('hi'); // is valid.   
 ```
+
+### notnull
 
 * A value is **not null** if the field is not null, but it could be empty ("").
 
@@ -455,6 +557,7 @@ There are four different ways to deal with empty values in this library.
    $validation->notnull()->set('hi'); // is valid.   
 ```
 
+### notempty
 
 * A value is **not empty** if the field is not '' (string with length 0), but it could be null.
 
@@ -463,6 +566,8 @@ There are four different ways to deal with empty values in this library.
    $validation->notempty()->set(""); // is not valid.
    $validation->notempty()->set('hi'); // is valid.   
 ```
+
+## Allowing missing or empty values
 
 Also, there are 4 ways to accept missing values, null or empty, bypassing any condition.
 
@@ -574,7 +679,7 @@ $validation->convert('htmldecode')->set(....);
 
 
 
-## version list
+## Version list
 
 * 2021-02-13 1.29
   * Added the methods trim(), alwaysTrim(), convert(), errorCount() and hasError() .
