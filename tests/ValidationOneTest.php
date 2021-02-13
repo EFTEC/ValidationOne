@@ -138,6 +138,7 @@ class ValidationOneTest extends TestCase
     {
         // missing valid
         getVal()->messageList->resetAll();
+
         unset($_POST['frm_FIELDREQ']);
         $r = getVal()->type('string')->isMissingValid()->exist()->required()->post('FIELDREQ');
         self::assertEquals(0,getVal()->messageList->errorcount);

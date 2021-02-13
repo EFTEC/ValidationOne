@@ -52,7 +52,8 @@ $r = $val->def('ERROR')
 But, where is the error?.  The messages are stored in **messagelist**
 
 ```php
-var_dump($val->messagelist->allArray()) // here we show all messages of any kind of type. 
+var_dump($val->messageList->allArray()); // here we show all messages of any kind of type. 
+var_dump($val->messageList->errorcount); // returns the number of errors.
 ```
 However, we could also show a message by type (error, warning..) and only message by a specific identifier.
 
