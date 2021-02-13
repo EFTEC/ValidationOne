@@ -1,9 +1,9 @@
 # ValidationOne
-It's a PHP library for fetchs and validate fields and store messages in different containers(including error, warning, info
+It's a PHP library for fetches and validate fields and store messages in different containers(including error, warning, info
 , and success) depending on the conditions.
 
 The ideology behind this library is simple: 5 classes, no dependencies and runs in PHP 5.6 and higher, so it could run
-in practically any PHP project, including Wordpress, Laravel, a custom PHP project, etc. 
+in practically any PHP project, including WordPress, Laravel, a custom PHP project, etc. 
 
 [![Build Status](https://travis-ci.org/EFTEC/ValidationOne.svg?branch=master)](https://travis-ci.org/EFTEC/ValidationOne)
 [![Packagist](https://img.shields.io/packagist/v/eftec/validationone.svg)](https://packagist.org/packages/eftec/ValidationOne)
@@ -22,19 +22,19 @@ in practically any PHP project, including Wordpress, Laravel, a custom PHP proje
 [Tutorial Form and Table with PHP](https://github.com/EFTEC/BladeOne-tutorial1)
 
 ![diagram example](examples/docs/DiagramExample.jpg)  
-It is an example of functionality.  A normal example is more complex, even if it's only a few lines of code.
+It is an example of functionality. A typical example is more complex, even if it's only a few lines of code.
 
 
 ## ValidationOne
 
 Let's say we want to validate a value an input value (get) called "id", we could do the next things:
 
-* the default value is the text "**ERROR**"
-* the type of the value is an **integer**, so it must returns an integer.   It also could be an integer,decimal,string,date,datestring and boolean
-* we add a condition, the value must be equals (**eq**) to **10**. If fails then it returns a message (as **error**)
-* we add another condition, if the value must be equals (**eq**) to **30**. If fails then it returns an **info** (not an error)
-* If the operation fails then it returns the default value.
-* And finally, we obtain the "**id**" from $_GET (parameter url).
+* The default value is the text "**ERROR**"
+* the type of the value is an **integer**, so it just returns an integer.   It also could be an integer, decimal, string, date,datestring and boolean
+* we add a condition, the value must be equals (**eq**) to **10**. If it fails, then it returns a message (as **error**)
+* we add another condition if the value must be equals (**eq**) to **30**. If it fails, then it returns an **info** (not an error)
+* If the operation fails, then it returns the default value.
+* And finally, we obtain the "**id**" from $_GET (parameter URL).
 
 ```php
 use eftec\ValidationOne;
@@ -49,7 +49,7 @@ $r = $val->def('ERROR')
     ->get('id'); // <-- end of the chain
 ```
 
-But, where is the error?.  The messages are stored in **messagelist**
+But where is the error?.  The messages are stored in **messagelist**
 
 ```php
 var_dump($val->messageList->allArray()); // here we show all messages of any kind of type. 
@@ -61,10 +61,9 @@ However, we could also show a message by type (error, warning..) and only messag
 var_dump($val->messageList->get('id')->allErrorOrWarning()); // All error or warning contained in the key "id".
 ```
 
-Why the messages are store in some structure?. Is it not easy to simply return the error?   .
+Why the messages are store in some structure?. Is it not easy to simply return the error?
 
-The answer is a form. Le't say we have a form with 3 fields. If one of them fails, then 
-the error must be visible for each field separately.  Also, the whole form could have it's own message.
+An answer is a form. Let's say we have a form with three fields. If one of them fails, then the error must be visible for each field separately.  Also, the whole form could have its own message.
 
 ### condition ($condition, $message = "", $conditionValue = null, $level = 'error', $key = null)
 
@@ -90,21 +89,21 @@ It adds a condition that it depends on the **type** of the input.
 
     Message could use the next variables '%field','%realfield','%value','%comp','%first','%second'  
 
-    | Field      | Description                                                  | Example             |
-    | ---------- | ------------------------------------------------------------ | ------------------- |
-    | %field     | name of the field, it could be the  friendid or the actual name | CustomerID          |
-    | %realfield | name of the field (not the  friendid)                        | Customer Identifier |
-    | %value     | current value of the field                                   | John                |
-    | %comp      | value to compare (if any)                                    |                     |
-    | %first     | first value to compare (if the compare value  is an array)   |                     |
-    | %second    | second value to compare (if the compare  value is an array)  |                     |
-    | %key       | key used (for input array)                                   |                     |
+    | Field      | Description                                                     | Example             |
+    | ---------- | --------------------------------------------------------------- | ------------------- |
+    | %field     | name of the field, it could be the **friendid** or the actual name  | CustomerID          |
+    | %realfield | name of the field (not the  **friendid**)                           | Customer Identifier |
+    | %value     | current value of the field                                      | John                |
+    | %comp      | value to compare (if any)                                       |                     |
+    | %first     | first value to compare (if the compare value  is an array)      |                     |
+    | %second    | second value to compare (if the compare  value is an array)     |                     |
+    | %key       | key used (for input array)                                      |                     |
 
 * @param null $conditionValue
 
 * @param string $level (error,warning,info,success)
 
-* @param string $key If key is not null then it is used for add more than one condition by key
+* @param string $key If the key is not null then it is used to add more than one condition by key
 
 * @return ValidationOne
 
@@ -138,9 +137,9 @@ $validation->def(null)
 | string         | (string) it allows any input                                                                            |
 | date           | (date) the input could be a DateTime or a string. The value is stored as   an object DateTime           |
 | datetime       | (date) the input could be a DateTime or a string. The value is stored as   an object DateTime           |
-| datestring     | (date) the input could be a DateTime or a string. The value is stored as   an string                    |
-| datetimestring | (date) the input could be a DateTime or a string. The value is stored as   an string                    |
-| file           | (file) the input is a string and it's store as an string but it adds an   special validations           |
+| datestring     | (date) the input could be a DateTime or a string. The value is stored as a string                    |
+| datetimestring | (date) the input could be a DateTime or a string. The value is stored as a string                    |
+| file           | (file) the input is a string, and it's store as a string, but it adds special validation |
 
 
 
@@ -168,12 +167,12 @@ $validation->def(null)
 |---------------------------------------------------------|--------------------------------------------------------|------------------------|
 | architecture                                            | The extension of the file must be an architecture file |                        |
 | between                                                 | The number must be between two values                  | [0,20]                 |
-| betweenlen                                              | The lenght of the text must be between two values      | [0,20]                 |
+| betweenlen                                              | The length of the text must be between two values      | [0,20]                 |
 | compression                                             | The extension of the file must be an compression file  |                        |
 | contain                                                 | The text must contain a value                          | "text"                 |
-| doc                                                     | The extension of the file must be an document file     |                        |
+| doc                                                     | The extension of the file must be a document file     |                        |
 | eq (it could be an array or value)                      | The value must be equals to                            | "text",["text","text2"]                 |
-| exist                                                   | The file or value must exists (it could be null/empty) |                        |
+| exist                                                   | The file or value must exist (it could be null/empty) |                        |
 | missing/notexist                                        | The file or value must not exists or be null/empty     |                        |
 | required (or req)                                       | The value must not be null or empty                    |                        |
 | ext                                                     | The extension (file) must be in the list of extensions | ["ext1","ext2","ext3"] |
@@ -189,9 +188,9 @@ $validation->def(null)
 | image                                                   | The extension of the file must be an image file        |                        |
 | lt                                                      | The value must be less than                            | 123                    |
 | lte                                                     | The value must be less or equal than                   | 123                    |
-| maxlen                                                  | The maximum lenght of a string                         | 123                    |
+| maxlen                                                  | The maximum length of a string                         | 123                    |
 | maxsize                                                 | The maximum size of a file                             | 123                    |
-| minlen                                                  | The minimum lenght of a string                         | 123                    |
+| minlen                                                  | The minimum length of a string                         | 123                    |
 | minsize                                                 | The minimum size of a file                             | 123                    |
 | mime (the value to compare could be an string or array) | The mime type of a file                                | "application/msword" or ["application/msword","image/gif"]|
 | mimetype                                                | The mime type (without subtype) of a file              | "application" or ["application,"image"]|
@@ -238,7 +237,7 @@ Every method or function created must have two parameters (with any name):
 * **$value** The value to evaluate.
 * **$compareValue** The value to compare (it could be optional)
 
-For example, what if we need to evaluate if some id does not exist in the database?
+For example, what if we need to evaluate if some id does not exist in the Database?
 
 ```php
 $validation->condition('fn.global.idExist','The id already exist!')->get("id"); 
@@ -282,29 +281,29 @@ class SomeClass {
 
 ## MessageList
 
-MessageList is a list of containers of messages. It's aimed for convenience, so it features many methods to  access of the information in different ways. 
+MessageList is a list of containers of messages. It's aimed at convenience, so it features many methods to access the information in different ways. 
 
-Messages are cataloged as follows
+Messages are catalogued as follows
 
 | id      | Description                                                          | Example                               |
 |---------|----------------------------------------------------------------------|---------------------------------------|
-| error   | The message is an error and it must be solved. It is a show stopper. | Database is down                      |
+| error   | The message is an error, and it must be solved. It is a show stopper. | Database is down                      |
 | warning | The message is a warning that maybe it could be ignored.             | The registry was stored but with warnings |
-| info    | The message is an information                                        | Log is stored                         |
-| success | The message is a succesful operation                                 | Order Accepted                        |                             |
+| info    | The message is information | Log is stored                         |
+| success | The message is a successful operation                                 | Order Accepted                        |                             |
 
 
-Sometimes, both errors are warning are considered as equals. So the system allows to read an error or warning.
+Sometimes, both errors are warning are considered as equals. So the system allows reading an error or warning.
 
-Error has always the priority, then warning, info and success.  If you want to read the first message, then it starts searching for errors.
+Error always has the priority, then warning, info and success.  If you want to read the first message, then it starts searching for errors.
 
-You can obtain a message as an array of objects of the type MessageItem, as an array of string, or as an single string (first message)
+You can obtain a message as an array of objects of the type MessageItem, as an array of string, or as a single string (first message)
 
 ## Exist, Required , NotNull, NotEmpty
 
-There are 4 different ways to deal with empty values in this library.  
+There are four different ways to deal with empty values in this library.  
 
-* A value **exist** if the field or file exist, no matter the value or if it is null or empty.
+* A value **exist** if the field or file exists, no matter the value or if it is null or empty.
 
 ```php
    $validation->exist()->set(null); // is valid.
@@ -329,7 +328,7 @@ There are 4 different ways to deal with empty values in this library.
 ```
 
 
-* A value is **not empty** if the field is not '' (string with lenght 0), but it could be null.
+* A value is **not empty** if the field is not '' (string with length 0), but it could be null.
 
 ```php
    $validation->notempty()->set(null); // is valid.
@@ -346,7 +345,7 @@ Also, there are 4 ways to accept missing values, null or empty, bypassing any co
    $validation->isMissingValid()->condition(....)->get('field'); // If the field is missing, then is valid no matter the condition
 ```
 
-It is used when we need to validate when a input has some value unless the value is missing, empty or null. 
+It is used when we need to validate when an input has some value unless the value is missing, empty or null. 
 
 > isNullorEmptyValid() is equals than to call: isEmptyValid()->isNullValid()
 
@@ -439,7 +438,7 @@ $validation
 
 ## Note
 
-It's distributed as dual license, as lgpl-v3 and commercial.
+It's distributed as dual license, as LGPL-v3 and commercial.
 
-You can use freely in your close source project. However, if you change this library, then the changes must be disclosed.
+You can use it freely in your close source project. However, if you change this library, then the changes must be disclosed.
 
