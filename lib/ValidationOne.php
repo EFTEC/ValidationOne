@@ -28,7 +28,7 @@ if (!defined("NULLVAL")) {
  *
  * @package       eftec
  * @author        Jorge Castro Castillo
- * @version       1.29 2021-02-13
+ * @version       1.30 2021-03-17
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see           https://github.com/EFTEC/ValidationOne
  */
@@ -42,7 +42,7 @@ class ValidationOne
     public $dateOutputString = 'Y-m-d';
     /** @var string It is the output format (for datetimestring) */
     public $dateLongOutputString = 'Y-m-d\TH:i:s\Z';
-    /** @var MessageList */
+    /** @var MessageContainer */
     public $messageList;
 
     /** @var ValidationInputOne */
@@ -131,7 +131,7 @@ class ValidationOne
         if (function_exists('messages')) {
             $this->messageList = messages();
         } else {
-            $this->messageList = new MessageList();
+            $this->messageList = new MessageContainer();
         }
         $this->prefix = $prefix;
         $this->resetChain();
@@ -184,7 +184,7 @@ class ValidationOne
             if (function_exists('messages')) {
                 $this->messageList = messages();
             } else {
-                $this->messageList = new MessageList();
+                $this->messageList = new MessageContainer();
             }
         }
         $this->conditions = array();
@@ -271,7 +271,7 @@ class ValidationOne
      */
     private function endChainFetch($inputType, $fieldId, $msg = null)
     {
-        $this->countError = $this->messageList->errorcount;
+        $this->countError = $this->messageList->errorCount;
         if ($this->type === 'datestring' || $this->type === 'datetimestring') {
             // if the default value is a string and the input is expected a DateTime, then we convert it.
             if (is_string($this->default)) {
@@ -428,7 +428,7 @@ class ValidationOne
             $output = $this->endConversion($input);
             //$output = $input;
         }*/ // is missing
-        if ($this->messageList->errorcount == $this->countError && $this->successMessage !== null) {
+        if ($this->messageList->errorCount == $this->countError && $this->successMessage !== null) {
             $this->addMessage($this->successMessage['id'], $this->successMessage['msg'],
                 $this->successMessage['level']);
         }
@@ -1527,6 +1527,7 @@ class ValidationOne
             if($this->alwaysTrim) {
                 $this->trim('trim',$this->alwaysTrimChars);
             }
+            $tmp=null;
             if(!is_object($input) && count($this->conversion)>0) {
                 foreach($this->conversion as $k=>$v) {
                     switch ($v[0]) {
@@ -1665,7 +1666,7 @@ class ValidationOne
      */
     public function getFile($fieldId, $array = false, $msg = null)
     {
-        $this->countError = $this->messageList->errorcount;
+        $this->countError = $this->messageList->errorCount;
 
         $this->input()->default = $this->default;
         $this->input()->originalValue = $this->originalValue;
@@ -2206,12 +2207,12 @@ class ValidationOne
     {
         $this->isMissing = $isMissing;
         if ($this->override) {
-            $this->messageList->items[$fieldId] = new MessageItem();
+            $this->messageList->items[$fieldId] = new MessageLocker();
         }
         if (is_object($input)) {
             $input = (array)$input;
         }
-        $this->countError = $this->messageList->errorcount;
+        $this->countError = $this->messageList->errorCount;
         if (is_array($input)) {
             if (!$this->isMissingValid || !$this->isMissing) { // bypass if missing is valid (and the value is missing)
                 foreach ($input as $key => &$v) {
@@ -2220,7 +2221,7 @@ class ValidationOne
                     $v = $this->basicValidation($v, $currentField, $msg, $key);
                     //if ($this->abortOnError && $this->messageList->errorcount) break;
                     $this->runConditions($v, $currentField, $key);
-                    if (($this->messageList->errorcount === 0) && $this->messageList->get($currentField)->countError()) {
+                    if (($this->messageList->errorCount === 0) && $this->messageList->get($currentField)->countError()) {
                         $v = isset($this->default[$key]) ? $this->default[$key] : null;
                     }
                 }
@@ -2233,7 +2234,7 @@ class ValidationOne
             // bypass
             if ((!$this->isMissingValid || !$this->isMissing)) {
                 $input = $this->basicValidation($input, $fieldId, $msg);
-                if ($this->abortOnError != false || $this->messageList->errorcount == 0) {
+                if ($this->abortOnError != false || $this->messageList->errorCount == 0) {
                     $this->runConditions($input, $fieldId);
                 }
                 if ($this->ifFailThenDefault && $this->messageList->get($fieldId)->countError()) {
@@ -2241,7 +2242,7 @@ class ValidationOne
                 }
             }
         }
-        if ($this->messageList->errorcount == $this->countError && $this->successMessage !== null) {
+        if ($this->messageList->errorCount == $this->countError && $this->successMessage !== null) {
             $this->addMessage($this->successMessage['id'], $this->successMessage['msg'],
                 $this->successMessage['level']);
         }
@@ -2284,11 +2285,11 @@ class ValidationOne
     }
 
     /**
-     * It returns the error of the element "id".  If it doesn't exist then it returns an empty MessageItem
+     * It returns the error of the element "id".  If it doesn't exist then it returns an empty MessageLocker
      *
      * @param string $id
      *
-     * @return MessageItem
+     * @return MessageLocker
      */
     public function getMessageId($id)
     {
@@ -2303,8 +2304,8 @@ class ValidationOne
      */
     public function errorCount($includeWarning=false) {
         return $includeWarning
-            ? $this->messageList->errorcount
-            : $this->messageList->errorOrWarning;
+            ? $this->messageList->errorCount
+            : $this->messageList->errorOrWarningCount;
     }
 
     /**

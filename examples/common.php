@@ -1,11 +1,11 @@
 <?php
 
-use eftec\MessageList;
+use eftec\MessageContainer;
 use eftec\ValidationOne;
 include "../lib/ValidationOne.php";
 include "../lib/ValidationItem.php";
-include "../lib/MessageList.php";
-include "../lib/MessageItem.php";
+include "../vendor/eftec/messagecontainer/lib/MessageContainer.php";
+include "../vendor/eftec/messagecontainer/lib/MessageLocker.php";
 include "../lib/ValidationInputOne.php";
 
 
@@ -22,12 +22,12 @@ function getVal($prefix='frm_') {
 }
 
 /**
- * @return MessageList|null
+ * @return MessageContainer|null
  */
 function messages() {
     global $errorList;
     if ($errorList===null) {
-        $errorList=new MessageList();
+        $errorList=new MessageContainer();
     }
     return $errorList;
 }

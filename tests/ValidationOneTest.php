@@ -3,7 +3,7 @@
 namespace eftec\tests;
 
 use DateTime;
-use eftec\MessageList;
+use eftec\MessageContainer;
 use PHPUnit\Framework\TestCase;
 
 
@@ -25,7 +25,7 @@ class ValidationOneTest extends TestCase
 
     public function testMessages()
     {
-        $ml = new MessageList();
+        $ml = new MessageContainer();
         $ml->addItem('c1', 'message error c1-1', 'error');
         $ml->addItem('c1', 'message error c1-2', 'error');
 
@@ -92,33 +92,33 @@ class ValidationOneTest extends TestCase
         unset($_POST['frm_FIELDREQ'], $_GET['frm_FIELDREQ'], $_FILES['frm_FIELDREQF']);
 
         $r=getVal()->type('string')->exist()->post('FIELDREQ');
-        self::assertEquals(1,getVal()->messageList->errorcount);
+        self::assertEquals(1,getVal()->messageList->errorCount);
         getVal()->messageList->resetAll();
 
         $r=getVal()->type('string')->exist()->get('FIELDREQ');
-        self::assertEquals(1,getVal()->messageList->errorcount);
+        self::assertEquals(1,getVal()->messageList->errorCount);
         getVal()->messageList->resetAll();
 
         $r=getVal()->type('string')->exist()->request('FIELDREQ');
-        self::assertEquals(1,getVal()->messageList->errorcount);
+        self::assertEquals(1,getVal()->messageList->errorCount);
         getVal()->messageList->resetAll();
 
         $r=getVal()->type('string')->exist()->getFile('FIELDREQF');
-        self::assertEquals(1,getVal()->messageList->errorcount);
+        self::assertEquals(1,getVal()->messageList->errorCount);
         getVal()->messageList->resetAll();
 
     }
-    public function testMessageList() {
+    public function testMessageContainer() {
         getVal()->messageList->resetAll();
-        self::assertEquals(0,getVal()->messageList->errorcount);
+        self::assertEquals(0,getVal()->messageList->errorCount);
         getVal()->messageList->addItem('containere','errorm','error');
         getVal()->messageList->addItem('containeri','infom','info');
         getVal()->messageList->addItem('container1','warningm','warning');
         getVal()->messageList->addItem('containers','successm','success');
-        self::assertEquals(1,getVal()->messageList->errorcount);
-        self::assertEquals(1,getVal()->messageList->warningcount);
-        self::assertEquals(1,getVal()->messageList->infocount);
-        self::assertEquals(1,getVal()->messageList->successcount);
+        self::assertEquals(1,getVal()->messageList->errorCount);
+        self::assertEquals(1,getVal()->messageList->warningCount);
+        self::assertEquals(1,getVal()->messageList->infoCount);
+        self::assertEquals(1,getVal()->messageList->successCount);
         self::assertEquals('warningm',getVal()->messageList->items['container1']->first());
         self::assertEquals('warningm',getVal()->messageList->items['container1']->firstErrorOrWarning());
         self::assertEquals(null,getVal()->messageList->items['container1']->firstError());
@@ -171,26 +171,26 @@ class ValidationOneTest extends TestCase
 
         unset($_POST['frm_FIELDREQ']);
         $r = getVal()->type('string')->isMissingValid()->exist()->required()->post('FIELDREQ');
-        self::assertEquals(0,getVal()->messageList->errorcount);
+        self::assertEquals(0,getVal()->messageList->errorCount);
         self::assertEquals(null, $r);
         // null valid
         getVal()->messageList->resetAll();
         $_POST['frm_FIELDREQ']=null;
         $r = getVal()->type('string')->isNullValid()->condition('notnull')->required()->post('FIELDREQ');
-        self::assertEquals(0,getVal()->messageList->errorcount);
+        self::assertEquals(0,getVal()->messageList->errorCount);
         self::assertEquals(null, $r);
         // empty valid
         getVal()->messageList->resetAll();
         $_POST['frm_FIELDREQ']='';
         $r = getVal()->type('string')->isEmptyValid()->notempty()->required()->post('FIELDREQ');
-        self::assertEquals(0,getVal()->messageList->errorcount);
+        self::assertEquals(0,getVal()->messageList->errorCount);
         self::assertEquals('', $r);
 
         // null or empty valid
         getVal()->messageList->resetAll();
         $_POST['frm_FIELDREQ']='';
         $r = getVal()->type('string')->isNullOrEmptyValid()->notempty()->required()->post('FIELDREQ');
-        self::assertEquals(0,getVal()->messageList->errorcount);
+        self::assertEquals(0,getVal()->messageList->errorCount);
         self::assertEquals('', $r);
     }
 
@@ -208,7 +208,7 @@ class ValidationOneTest extends TestCase
         self::assertEquals([
             0 => 'FIELDREQ does not exist',
             1 => 'FIELDREQ is required'],getVal()->messageList->allErrorArray());
-        self::assertEquals(2,getVal()->messageList->errorcount);
+        self::assertEquals(2,getVal()->messageList->errorCount);
 
         getVal()->messageList->resetAll();
         unset($_POST['frm_FIELDREQ']);
@@ -216,7 +216,7 @@ class ValidationOneTest extends TestCase
         self::assertEquals([
             0 => 'FIELDREQ does not exist',
             1 => 'FIELDREQ is required'],getVal()->messageList->allErrorArray());
-        self::assertEquals(2,getVal()->messageList->errorcount);
+        self::assertEquals(2,getVal()->messageList->errorCount);
     }
 
 
@@ -228,25 +228,25 @@ class ValidationOneTest extends TestCase
 
         getVal()->messageList->resetAll();
         $r=getVal()->type('string')->exist()->set(null);
-        self::assertEquals(0,getVal()->messageList->errorcount);
+        self::assertEquals(0,getVal()->messageList->errorCount);
         self::assertEquals(null,$r);
 
         getVal()->messageList->resetAll();
         $_POST['frm_FIELDREQ']="";
         $r=getVal()->type('string')->condition('req')->post('FIELDREQ');
-        self::assertEquals(1,getVal()->messageList->errorcount);
+        self::assertEquals(1,getVal()->messageList->errorCount);
         self::assertEquals(null,$r);
 
         getVal()->messageList->resetAll();
         unset($_POST['frm_FIELDREQ']);
         $r=getVal()->type('string')->exist()->post('FIELDREQ');
-        self::assertEquals(1,getVal()->messageList->errorcount);
+        self::assertEquals(1,getVal()->messageList->errorCount);
         self::assertEquals(null,$r);
 
         getVal()->messageList->resetAll();
         $_POST['frm_FIELDREQ']="hello";
         $r=getVal()->type('string')->exist()->post('FIELDREQ');
-        self::assertEquals(0,getVal()->messageList->errorcount);
+        self::assertEquals(0,getVal()->messageList->errorCount);
         self::assertEquals("hello",$r);
     }
 
@@ -254,19 +254,19 @@ class ValidationOneTest extends TestCase
         getVal()->messageList->resetAll();
         $_POST['frm_FIELDREQ']="hello";
         $r=getVal()->type('string')->exist()->post('FIELDREQ');
-        self::assertEquals(0,getVal()->messageList->errorcount);
+        self::assertEquals(0,getVal()->messageList->errorCount);
         self::assertEquals("hello",$r);
 
         getVal()->messageList->resetAll();
         unset($_POST['frm_FIELDREQ']);
         $r=getVal()->type('string')->exist()->post('FIELDREQ');
-        self::assertEquals(1,getVal()->messageList->errorcount);
+        self::assertEquals(1,getVal()->messageList->errorCount);
         self::assertEquals(null,$r);
 
         getVal()->messageList->resetAll();
         $_POST['frm_FIELDREQ']=null;
         $r=getVal()->type('string')->exist()->post('FIELDREQ');
-        self::assertEquals(0,getVal()->messageList->errorcount);
+        self::assertEquals(0,getVal()->messageList->errorCount);
         self::assertEquals(null,$r);
 
     }
@@ -276,7 +276,7 @@ class ValidationOneTest extends TestCase
         getVal()->messageList->resetAll();
         $r = getVal()->def("???")->type('integer')->condition('between', 'value must be between zero and 100', [0, 100])
             ->condition('eq', 'value must be equals to 5', 5)->set('123', 'id1');
-        self::assertEquals(2, getVal()->messageList->errorOrWarning);
+        self::assertEquals(2, getVal()->messageList->errorOrWarningCount);
         self::assertEquals([
             0 => 'value must be between zero and 100',
             1 => 'value must be equals to 5'
@@ -305,13 +305,13 @@ class ValidationOneTest extends TestCase
 
         self::assertEquals([__FILE__, __FILE__], $r);
         //var_dump(getVal()->messageList->allErrorOrWarningArray());
-        self::assertEquals(0, getVal()->messageList->errorOrWarning); // the file exists.
+        self::assertEquals(0, getVal()->messageList->errorOrWarningCount); // the file exists.
 
         getVal()->messageList->resetAll();
         $r = getVal()->def("???")->type('file')->condition('exist')->set(__FILE__ . '.bak');
 
         self::assertEquals([__FILE__ . '.bak', __FILE__ . '.bak'], $r);
-        self::assertEquals(1, getVal()->messageList->errorOrWarning); // the file does not exist
+        self::assertEquals(1, getVal()->messageList->errorOrWarningCount); // the file does not exist
 
 
     }
@@ -331,10 +331,10 @@ class ValidationOneTest extends TestCase
         self::assertEquals('setfield abcdefghijklmnopqrst12345 is not equal to abc',
             getVal()->messageList->allErrorArray()[1]);
 
-        self::assertEquals(2, (getVal()->messageList->errorcount), 'it must be 2 errors');
+        self::assertEquals(2, (getVal()->messageList->errorCount), 'it must be 2 errors');
         self::assertCount(1, getVal()->messageList->allWarningArray(), 'it must be 1 warning');
-        self::assertEquals(1, getVal()->messageList->warningcount, 'it must be 1 warning');
-        self::assertEquals(3, getVal()->messageList->errorOrWarning, 'it must be 3 errors or warnings');
+        self::assertEquals(1, getVal()->messageList->warningCount, 'it must be 1 warning');
+        self::assertEquals(3, getVal()->messageList->errorOrWarningCount, 'it must be 3 errors or warnings');
     }
 
     public function test7()

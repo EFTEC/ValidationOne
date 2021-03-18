@@ -2,10 +2,10 @@
 It's a PHP library for fetches and validate fields and store messages in different containers(including error, warning, info
 , and success) depending on the conditions.
 
-The ideology behind this library is simple: 5 classes, no dependencies and runs in PHP 5.6 and higher, so it could run
-in practically any PHP project, including WordPress, Laravel, a custom PHP project, etc. 
+The ideology behind this library is simple: 3 classes, a simple dependencies and runs in PHP 5.6 and higher, so it could run
+in practically any PHP project, including WordPress, Laravel, core PHP project, etc. 
 
-[![Build Status](https://travis-ci.org/EFTEC/ValidationOne.svg?branch=master)](https://travis-ci.org/EFTEC/ValidationOne)
+
 [![Packagist](https://img.shields.io/packagist/v/eftec/validationone.svg)](https://packagist.org/packages/eftec/ValidationOne)
 [![Total Downloads](https://poser.pugx.org/eftec/validationone/downloads)](https://packagist.org/packages/eftec/ValidationOne)
 [![Maintenance](https://img.shields.io/maintenance/yes/2021.svg)]()
@@ -24,12 +24,12 @@ in practically any PHP project, including WordPress, Laravel, a custom PHP proje
         + [Types of Conditions.](#types-of-conditions)
         + [Calling a custom function](#calling-a-custom-function)
     * [Getting the messages](#getting-the-messages)
-        + [MessageList](#messagelist)
+        + [MessageContainer](#messagelist)
             - [Count of messages of all containers](#count-of-messages-of-all-containers)
             - [Obtain messages or text of all containers](#obtain-messages-or-text-of-all-containers)
             - [Css for a specific container](#css-for-a-specific-container)
             - [Misc](#misc)
-        + [MessageItem](#messageitem)
+        + [MessageLocker](#messageitem)
             - [Obtain messages of a specific container](#obtain-messages-of-a-specific-container)
     * [Working with dates](#working-with-dates)
         + [setDateFormat](#setdateformat)
@@ -91,7 +91,7 @@ But where is the error?.  The messages are stored in **messageList**
 
 ```php
 var_dump($val->messageList->allArray()); // here we show all messages of any kind of type. 
-var_dump($val->messageList->errorcount); // returns the number of errors.
+var_dump($val->messageList->errorCount); // returns the number of errors.
 var_dump($val->errorcount()); // returns the number of errors (alternative)
 var_dump($val->hasError()); // returns true if there is an error.
 ```
@@ -143,7 +143,7 @@ It adds a condition that it depends on the **type** of the input.
 
 * @param null $conditionValue
 
-* @param string $level (error,warning,info,success). The level of the error. See **MessageList** for further information
+* @param string $level (error,warning,info,success). The level of the error. See **MessageContainer** for further information
 
 * @param string $key If the key is not null then it is used to add more than one condition by key
 
@@ -323,7 +323,7 @@ class SomeClass {
 
 ## Getting the messages
 
-**MessageList** is a list of containers of messages. It's aimed at convenience, so it features many methods to access 
+**MessageContainer** is a list of containers of messages. It's aimed at convenience, so it features many methods to access 
 the information in different ways. 
 
 Messages are ranked as follows
@@ -341,7 +341,7 @@ Sometimes, both errors are warning are considered as equals. So the system allow
 Error always has the priority, then warning, info and success.  If you want to read the first message, then it starts 
 searching for errors.
 
-You can obtain a message as an array of objects of the type **MessageItem**, as an array of string, or as a single string 
+You can obtain a message as an array of objects of the type **MessageLocker**, as an array of string, or as a single string 
 (first message)
 
 ```php
@@ -361,7 +361,7 @@ if($validation->messageList->hasError()) {
 }
 ```
 
-### MessageList
+### MessageContainer
 
 #### Count of messages of all containers
 
@@ -391,10 +391,10 @@ if ($validation->messageList->errorcount>0) {
 | firstWarningText | method | Returns the first message of warning  of all containers      | "warning in field"                        |
 | firstInfoText    | method | Returns the first message of info of  all containers         | "info: log"                               |
 | firstSuccessText | method | Returns the first message of success  of all containers      | "Operation successful"                    |
-| allError         | method | Returns all errors of all containers (as an array of objects of the type **MessageItem**) | **MessageItem**[]                         |
-| allWarning       | method | Returns all warning of all  containers (as an array of objects of the type **MessageItem**) | **MessageItem**[]                         |
-| allInfo          | method | Returns all info of all containers (as an array of objects of the type **MessageItem**) | **MessageItem**[]                         |
-| allSuccess       | method | Returns all success of all containers (as an array of objects of the type **MessageItem**) | **MessageItem**[]                         |
+| allError         | method | Returns all errors of all containers (as an array of objects of the type **MessageLocker**) | **MessageLocker**[]                         |
+| allWarning       | method | Returns all warning of all  containers (as an array of objects of the type **MessageLocker**) | **MessageLocker**[]                         |
+| allInfo          | method | Returns all info of all containers (as an array of objects of the type **MessageLocker**) | **MessageLocker**[]                         |
+| allSuccess       | method | Returns all success of all containers (as an array of objects of the type **MessageLocker**) | **MessageLocker**[]                         |
 | allErrorArray    | method | Returns all errors of all containers (as an array of texts)  | ["Error in field1","Error in field2"]     |
 | allWarningArray  | method | Returns all warning of all  containers (as an array of texts) | ["Warning in field1","Warning in field2"] |
 | allInfoArray     | method | Returns all info of all containers (as an array of texts)    | ["Info in field1","Info in field2"]       |
@@ -402,7 +402,7 @@ if ($validation->messageList->errorcount>0) {
 
 ```php
 echo $validation->errorList->firstErrorText(); // returns first error if any
-$array=$validation->errorList->allError();  // MessageItem[]
+$array=$validation->errorList->allError();  // MessageLocker[]
 echo $array[0]->firstError(); 
 $array=$validation->errorList->allErrorArray();  // string[]
 echo $array[0]; 
@@ -422,30 +422,30 @@ $css=$this-messageList->cssClasses('container1');
 
 | Name     | Type   | Description                                                  |
 | -------- | ------ | ------------------------------------------------------------ |
-| items    | field  | We get all containers (array of the type **MessageItem**). Each container could contain many messages. |
+| items    | field  | We get all containers (array of the type **MessageLocker**). Each container could contain many messages. |
 | resetAll | method | $array=$this-messageList->items; $this-messageList->items['id'];Delete all containers and reset counters |
 | addItem  | method | It adds a new message to a container                         |
 | allIds   | method | Get all the id of the containers                             |
-| get      | method | Get a container (as an object of the type **MessageItem**). You can also use items[] |
+| get      | method | Get a container (as an object of the type **MessageLocker**). You can also use items[] |
 | hasError | method | Returns true if there is an error.                           |
 
 ```php
 echo $validation->errorList->resetAll(); // resets all containers
 $validation->errorList->addItem('containerid','it is a message','error'); // we add an error in the container with #id containerid
 $array=$validation->errorList->allIds(); // ['containerid']
-var_dump($validation->get('containerid'));  // object MessageItem
+var_dump($validation->get('containerid'));  // object MessageLocker
 
 $array=$this-messageList->items;
-var_dump($this-messageList->items['containerid']); // object MessageItem
+var_dump($this-messageList->items['containerid']); // object MessageLocker
 
 if($validation->errorList->hasError()) { // $validation->hasError() does the same
     echo "there is an error";
 }
 ```
 
-### MessageItem
+### MessageLocker
 
-Inside MessageList we could have one or many containers. MessageItem is the container of it.
+Inside MessageContainer we could have one or many containers. MessageLocker is the container of it.
 
 #### Obtain messages of a specific container
 
@@ -681,6 +681,8 @@ $validation->convert('htmldecode')->set(....);
 
 ## Version list
 
+* 2021-03-17 1.30
+  * The messages are store in a different project called eftec/MessageContainer.
 * 2021-02-13 1.29
   * Added the methods trim(), alwaysTrim(), convert(), errorCount() and hasError() .
 * 2021-02-10 1.28
@@ -727,8 +729,8 @@ $validation->convert('htmldecode')->set(....);
 * 2019-11-27 1.20
   * Fixed the name countErrorOrWaring->countErrorOrWarning
 * 2019-11-27 1.19 
-  * Added new field MessageList.errorOrWarning 
-  * Added new method MessageItem.countErrorOrWaring()
+  * Added new field MessageContainer.errorOrWarning 
+  * Added new method MessageLocker.countErrorOrWaring()
 * 2019-10.01 1.18 Added compatibility for  phpunit/phpunit 5.7 and 6.5
 * 2019-10-01 1.17 Fixed a bug. If the input is zero, then it is considered as null.
 * 2019-08-10 1.16 Solved a problem with the datestring/datetimestring.
@@ -744,8 +746,8 @@ $validation->convert('htmldecode')->set(....);
 * * Added a fix with the input, when the value expected is an array but it's returned a single value
 * 2018-10-15 1.9 Added some extra features
 * 2018-10-15 1.8 Some fixes and phpdocs, a new example
-* 2018-10-15 1.7 Added method addMessage() in ValidationOne. Now ErrorItem/ErrorList is called MessageItem and MessageList
-* 2018-10-06 1.5 added method first() in MessageItem 
+* 2018-10-15 1.7 Added method addMessage() in ValidationOne. Now ErrorItem/ErrorList is called MessageLocker and MessageContainer
+* 2018-10-06 1.5 added method first() in MessageLocker 
 * 2018-10-03 1.4 added defaultNatural()
 * 2018-10-02 1.3 basicvalidation() was deleted. It was restored.
 * 2018-10-02 1.2 array() is now isArray()

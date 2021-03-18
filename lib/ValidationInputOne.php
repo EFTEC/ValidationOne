@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUnusedParameterInspection */
 /** @noinspection UnknownInspectionInspection
  * @noinspection PhpParameterByRefIsNotUsedAsReferenceInspection
  * @noinspection TypeUnsafeComparisonInspection
@@ -16,12 +16,12 @@ use DateTime;
  *
  * @package       eftec
  * @author        Jorge Castro Castillo
- * @version       1.1 2019-mar-8
+ * @version       1.2 2021-03-17
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see           https://github.com/EFTEC/ValidationOne
  */
 class ValidationInputOne {
-    /** @var MessageList */
+    /** @var MessageContainer */
     public $messageList;
     public $prefix = '';
 
@@ -42,7 +42,7 @@ class ValidationInputOne {
      * InputOne constructor.
      *
      * @param string      $prefix
-     * @param MessageList $messageList Optional. It autowires to a message list (if any), otherwise it creates a new one.
+     * @param MessageContainer $messageList Optional. It autowires to a message list (if any), otherwise it creates a new one.
      */
     public function __construct($prefix = '', $messageList = null) {
         $this->prefix = $prefix;
@@ -51,7 +51,7 @@ class ValidationInputOne {
         } elseif (function_exists('messages')) {
             $this->messageList = messages();
         } else {
-            $this->messageList = new MessageList();
+            $this->messageList = new MessageContainer();
         }
     }
 
@@ -159,6 +159,7 @@ class ValidationInputOne {
      * @param mixed  $value   value supplied
      * @param mixed  $vcomp   value to compare.
      * @param string $level   (error,warning,info,success) error level
+     * @noinspection PhpUnusedPrivateMethodInspection
      */
     private function addMessageInternal($msg, $msg2, $fieldId, $value, $vcomp, $level = 'error') {
         $txt = ($msg) ?: $msg2;
@@ -267,6 +268,7 @@ class ValidationInputOne {
      * @param string $filename
      *
      * @return false|string|null
+     * @noinspection CallableParameterUseCaseInTypeContextInspection
      */
     public static function sanitizeFileName($filename) {
         if (empty($filename)) {

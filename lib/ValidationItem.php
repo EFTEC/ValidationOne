@@ -7,7 +7,7 @@ namespace eftec;
  *
  * @package       eftec
  * @author        Jorge Castro Castillo
- * @version       1.14 2019-mar-8
+ * @version       1.15 2021-03-17
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see           https://github.com/EFTEC/ValidationOne
  */
