@@ -323,28 +323,38 @@ class SomeClass {
 
 ## Getting the messages
 
-**MessageContainer** is a list of containers of messages. It's aimed at convenience, so it features many methods to access 
-the information in different ways. 
+When we validate an object, it could store the information inside the Message Container (also called Message List).
 
-Messages are ranked as follows
+**MessageContainer** ([EFTEC/MessageContainer](https://github.com/EFTEC/MessageContainer)) contains a list messages in an hierarchy way:
 
-| id      | Description                                                          | Example                               |
-|---------|----------------------------------------------------------------------|---------------------------------------|
-| error   | The message is an error, and it must be solved. It is a show stopper. | Database is down                      |
-| warning | The message is a warning that maybe it could be ignored.             | The registry was stored but with warnings |
-| info    | The message is information | Log is stored                         |
-| success | The message is a successful operation                                 | Order Accepted                        |                             |
+```php
+⭐ Container (usually only 1 for all the project)
+     ⭐ Lockers (from zero to many)
+         ⭐ Messages (from zero to many and grouped by level)
+    
+$container->get('locker20')->firstError(); // it returns the first message of error in the locker20 that is part of the container.    
+    
+```
 
-## How to access to the messages?
+Messages are leveled as follows
 
-| Function                                           | Description                                      | Example                                                      |
-| -------------------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------ |
-| addMessage($idLocker, $message, $level =  'error') | It adds a message inside a locker                | $this->addMessage('pwd','the password is required','error'); |
-| getMessage($withWarning = false)                   | It gets the first error message or empty if none | $this->getMessage();                                         |
-| getMessages($withWarning = false)                  | It gets all the error messages or empty if none  | $this->getMessages();                                        |
-| getMessageId($idLocker)                            | It gets a message Locker                         | $obj=$this->getMessageId('pwd');                             |
-| errorCount(includeWarning=false)                   | It gets the error count                          | $count=$this->errorCount();                                  |
-| hasError($includeWarning=false)                    | It returns true if there is an error             | $fail=$this->hasError();                                     |
+| id      | Description                                                  | Example                                   |
+| ------- | ------------------------------------------------------------ | ----------------------------------------- |
+| error   | The message is an error, and it must be solved. It is our show stopper. | Database is down                          |
+| warning | The message is a warning that maybe it could be ignored.  However, the class **MessageContainer** allows to group Error and Warning as the same. | The registry was stored but with warnings |
+| info    | The message is information. For example, to log or debug an operation. | Log is stored                             |
+| success | The message is a successful operation                        | Order Accepted                            |
+
+## How to manage to the messages?
+
+| Function                                           | Description                                                  | Example                                                      |
+| -------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| addMessage($idLocker, $message, $level =  'error') | It adds a message inside a locker.  <br />Usually, it is done automatically by the library but you can add messages manually via code. | $this->addMessage('pwd','the password is required','error'); |
+| getMessage($withWarning = false)                   | It gets the first error message or empty if none             | $this->getMessage();                                         |
+| getMessages($withWarning = false)                  | It gets all the error messages or empty if none              | $this->getMessages();                                        |
+| getMessageId($idLocker)                            | It gets a **MessageLocker** object (see [EFTEC/MessageContainer](https://github.com/EFTEC/MessageContainer#messagelocker) for more information) | $obj=$this->getMessageId('pwd');                             |
+| errorCount(includeWarning=false)                   | It gets the error count                                      | $count=$this->errorCount();                                  |
+| hasError($includeWarning=false)                    | It returns true if there is an error                         | $fail=$this->hasError();                                     |
 
 
 
@@ -582,8 +592,10 @@ $validation->convert('htmldecode')->set(....);
 
 ## Version list
 
+* 2021-03-18 1.30.1
+  * Updated dependency in composer.json
 * 2021-03-17 1.30
-  * The messages are store in a different project called eftec/MessageContainer.
+  * We split the library in two, one for the validation (this library) and other for the messages, called eftec/MessageContainer.
 * 2021-02-13 1.29
   * Added the methods trim(), alwaysTrim(), convert(), errorCount() and hasError() .
 * 2021-02-10 1.28
