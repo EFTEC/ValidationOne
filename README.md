@@ -335,137 +335,38 @@ Messages are ranked as follows
 | info    | The message is information | Log is stored                         |
 | success | The message is a successful operation                                 | Order Accepted                        |                             |
 
+## How to access to the messages?
 
-Sometimes, both errors are warning are considered as equals. So the system allows reading an error or warning.
+| Function                                           | Description                                      | Example                                                      |
+| -------------------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------ |
+| addMessage($idLocker, $message, $level =  'error') | It adds a message inside a locker                | $this->addMessage('pwd','the password is required','error'); |
+| getMessage($withWarning = false)                   | It gets the first error message or empty if none | $this->getMessage();                                         |
+| getMessages($withWarning = false)                  | It gets all the error messages or empty if none  | $this->getMessages();                                        |
+| getMessageId($idLocker)                            | It gets a message Locker                         | $obj=$this->getMessageId('pwd');                             |
+| errorCount(includeWarning=false)                   | It gets the error count                          | $count=$this->errorCount();                                  |
+| hasError($includeWarning=false)                    | It returns true if there is an error             | $fail=$this->hasError();                                     |
 
-Error always has the priority, then warning, info and success.  If you want to read the first message, then it starts 
-searching for errors.
 
-You can obtain a message as an array of objects of the type **MessageLocker**, as an array of string, or as a single string 
-(first message)
 
-```php
-$validation->condition('req')->get('idfield'); // container idfield
-$validation->condition('req')->get('idfield2'); // container idfield2
+| Field        | Description                                                  | Example                        |
+| ------------ | ------------------------------------------------------------ | ------------------------------ |
+| $messageList | It gets all the container. It returns an object of the type **MessageContainer** | $container=$this->messageList; |
 
-if($validation->hasError()) {
-    // Error: we do something here.
-    echo "we found ".$this->errorCount()." errors in all containers";   
-}
-
-// using messageList
-if($validation->messageList->hasError()) {
-    // Error: we do something here.
-    echo "we found ".$this->messageList->errorcount." errors in all containers";
-    
-}
-```
-
-### MessageContainer
-
-#### Count of messages of all containers
-
-| Name of the field | Type | Description                                            |
-| ----------------- | ---- | ------------------------------------------------------ |
-| errorcount        | int  | Get the number of errors in all containers             |
-| warningcount      | int  | Get the number of warnings in all containers           |
-| errorOrWarning    | int  | Get the number of errors or warnings in all containers |
-| infocount         | int  | Get the number of information                          |
-| successcount      | int  | Get the number of success.                             |
+You can see more information about **MessageContainer** in [EFTEC/MessageContainer](https://github.com/EFTEC/MessageContainer)
 
 Example:
 
-```
-if ($validation->messageList->errorcount>0) {
-    // some error
-}
-```
-
-
-
-#### Obtain messages or text of all containers
-
-| Name             | Type   | Description                                                  | Example of result                         |
-| ---------------- | ------ | ------------------------------------------------------------ | ----------------------------------------- |
-| firstErrorText   | method | Returns the first message of error  of all containers        | "Error in field"                          |
-| firstWarningText | method | Returns the first message of warning  of all containers      | "warning in field"                        |
-| firstInfoText    | method | Returns the first message of info of  all containers         | "info: log"                               |
-| firstSuccessText | method | Returns the first message of success  of all containers      | "Operation successful"                    |
-| allError         | method | Returns all errors of all containers (as an array of objects of the type **MessageLocker**) | **MessageLocker**[]                         |
-| allWarning       | method | Returns all warning of all  containers (as an array of objects of the type **MessageLocker**) | **MessageLocker**[]                         |
-| allInfo          | method | Returns all info of all containers (as an array of objects of the type **MessageLocker**) | **MessageLocker**[]                         |
-| allSuccess       | method | Returns all success of all containers (as an array of objects of the type **MessageLocker**) | **MessageLocker**[]                         |
-| allErrorArray    | method | Returns all errors of all containers (as an array of texts)  | ["Error in field1","Error in field2"]     |
-| allWarningArray  | method | Returns all warning of all  containers (as an array of texts) | ["Warning in field1","Warning in field2"] |
-| allInfoArray     | method | Returns all info of all containers (as an array of texts)    | ["Info in field1","Info in field2"]       |
-| allSuccessArray  | method | Returns all success of all containers (as an array of texts) | ["Info in field1","Info in field2"]       |
-
 ```php
-echo $validation->errorList->firstErrorText(); // returns first error if any
-$array=$validation->errorList->allError();  // MessageLocker[]
-echo $array[0]->firstError(); 
-$array=$validation->errorList->allErrorArray();  // string[]
-echo $array[0]; 
-```
-
-#### Css for a specific container
-
-cssClasses (field) is an associative array to use with the method cssClass()
-
-cssClasses() is method that eturns a class based in the type of level of the container
+$validation->addMessage('idlocker','this field is required','error'); // it adds a message inside a locker.
+$validation->messageList->get('idlocker')->allError(); // it gets all errors from the locker idlocker
+$validation->getMessages(true); // it gets all messages of error or warning from all the lockers.
 
 ```
-$css=$this-messageList->cssClasses('container1');
-```
 
-#### Misc
 
-| Name     | Type   | Description                                                  |
-| -------- | ------ | ------------------------------------------------------------ |
-| items    | field  | We get all containers (array of the type **MessageLocker**). Each container could contain many messages. |
-| resetAll | method | $array=$this-messageList->items; $this-messageList->items['id'];Delete all containers and reset counters |
-| addItem  | method | It adds a new message to a container                         |
-| allIds   | method | Get all the id of the containers                             |
-| get      | method | Get a container (as an object of the type **MessageLocker**). You can also use items[] |
-| hasError | method | Returns true if there is an error.                           |
 
-```php
-echo $validation->errorList->resetAll(); // resets all containers
-$validation->errorList->addItem('containerid','it is a message','error'); // we add an error in the container with #id containerid
-$array=$validation->errorList->allIds(); // ['containerid']
-var_dump($validation->get('containerid'));  // object MessageLocker
 
-$array=$this-messageList->items;
-var_dump($this-messageList->items['containerid']); // object MessageLocker
 
-if($validation->errorList->hasError()) { // $validation->hasError() does the same
-    echo "there is an error";
-}
-```
-
-### MessageLocker
-
-Inside MessageContainer we could have one or many containers. MessageLocker is the container of it.
-
-#### Obtain messages of a specific container
-
-| Name             | Type   | Description                                                  | Example of result                         |
-| ---------------- | ------ | ------------------------------------------------------------ | ----------------------------------------- |
-| firstErrorText   | method | Returns the first message of error  of a container       | "Error in field"                          |
-| firstWarningText | method | Returns the first message of warning  of a container     | "warning in field"                        |
-| firstInfoText    | method | Returns the first message of info of  a container         | "info: log"                               |
-| firstSuccessText | method | Returns the first message of success  of a container      | "Operation successful"                    |
-| allError    | method | Returns all errors of a container (as an array of texts)  | ["Error in field1","Error in field2"]     |
-| allWarning  | method | Returns all warning of a container (as an array of texts) | ["Warning in field1","Warning in field2"] |
-| allInfo     | method | Returns all info of a container (as an array of texts)    | ["Info in field1","Info in field2"]       |
-| allSuccess  | method | Returns all success of a container (as an array of texts) | ["Info in field1","Info in field2"]       |
-
-```php
-$validation->condition('req')->get('idfield'); // container idfield 
-
-echo $validation->errorList->get('idfield')->firstErrorText(); // we show the first error (if any) in the container
-var_dump($validation->errorList->get('idfield')->allError); // we show the all errors
-```
 ## Working with dates
 
 We also could work with dates.  There are several types of date formats.

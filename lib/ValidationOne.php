@@ -1594,13 +1594,13 @@ class ValidationOne
      * You could add a message (including errors,warning..) and store in a $id
      * It is a wrapper of $this->messageList->addItem
      *
-     * @param string $id      Identified of the message (where the message will be stored
-     * @param string $message message to show. Example: 'the value is incorrect'
-     * @param string $level   =['error','warning','info','success'][$i]
+     * @param string $idLocker Identified of the locker (where the message will be stored
+     * @param string $message  message to show. Example: 'the value is incorrect'
+     * @param string $level    =['error','warning','info','success'][$i]
      */
-    public function addMessage($id, $message, $level = 'error')
+    public function addMessage($idLocker, $message, $level = 'error')
     {
-        $this->messageList->addItem($id, $message, $level);
+        $this->messageList->addItem($idLocker, $message, $level);
     }
 
     /**
@@ -2287,13 +2287,13 @@ class ValidationOne
     /**
      * It returns the error of the element "id".  If it doesn't exist then it returns an empty MessageLocker
      *
-     * @param string $id
+     * @param string $idLocker
      *
      * @return MessageLocker
      */
-    public function getMessageId($id)
+    public function getMessageId($idLocker)
     {
-        return $this->messageList->get($id);
+        return $this->messageList->get($idLocker);
     }
 
     /**
