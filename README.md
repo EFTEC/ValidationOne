@@ -591,6 +591,8 @@ $validation->convert('htmldecode')->set(....);
 
 ## Version list
 
+* 2022-01-15 2.0.1
+  * Update dependency 
 * 2022-01-15 2.0
   * PHP 7.1 and higher.
   * [core] Lots of cleanups
