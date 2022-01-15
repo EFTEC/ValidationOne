@@ -213,9 +213,9 @@ $validation->def(null)
 | compression                                             | The extension of the file must be an compression file  |                        |
 | contain                                                 | The text must contain a value                          | "text"                 |
 | doc                                                     | The extension of the file must be a document file     |                        |
-| eq (it could be an array or value)                      | The value must be equals to                            | "text",["text","text2"]                 |
+| eq (it could be an array or value) / ==                 | The value must be equals to                            | "text",["text","text2"]                 |
 | exist                                                   | The file or value must exist (it could be null/empty) |                        |
-| missing/notexist                                        | The file or value must not exists or be null/empty     |                        |
+| missing / notexist                                      | The file or value must not exists or be null/empty     |                        |
 | required (or req)                                       | The value must not be null or empty                    |                        |
 | ext                                                     | The extension (file) must be in the list of extensions | ["ext1","ext2","ext3"] |
 | false                                                   | The value must be false (===false)                     |                        |
@@ -225,18 +225,18 @@ $validation->def(null)
 | fn.object.Class.method where object is a global $object | The method of a global object must returns true        |                        |
 | fn.static.Class.methodstatic                            | The static method of a class must returns true         |                        |
 | function                                                | The function must returns true                         |                        |
-| gt                                                      | The value must be greater than                         | 123                    |
-| gte                                                     | The value must be greater or equal than                | 123                    |
+| gt / >                                                  | The value must be greater than                         | 123                    |
+| gte  / >=                                               | The value must be greater or equal than                | 123                    |
 | image                                                   | The extension of the file must be an image file        |                        |
-| lt                                                      | The value must be less than                            | 123                    |
-| lte                                                     | The value must be less or equal than                   | 123                    |
+| lt  / <                                                 | The value must be less than                            | 123                    |
+| lte / <=                                                | The value must be less or equal than                   | 123                    |
 | maxlen                                                  | The maximum length of a string                         | 123                    |
 | maxsize                                                 | The maximum size of a file                             | 123                    |
 | minlen                                                  | The minimum length of a string                         | 123                    |
 | minsize                                                 | The minimum size of a file                             | 123                    |
 | mime (the value to compare could be an string or array) | The mime type of a file                                | "application/msword" or ["application/msword","image/gif"]|
 | mimetype                                                | The mime type (without subtype) of a file              | "application" or ["application,"image"]|
-| ne (the value to compare could be an single value or array)   | The value must not be equals.                    | 123,[123,345],["aa","bb"]                    |
+| ne / != (the value to compare could be an single value or array)   | The value must not be equals.                    | 123,[123,345],["aa","bb"]                    |
 | notcontain                                              | The value must not contain a value                     | "text"                 |
 | notnull                                                 | The value must not be null                             |                        |
 | null                                                    | The value must be null                                 |                        |
@@ -592,6 +592,9 @@ $validation->convert('htmldecode')->set(....);
 
 ## Version list
 
+* 2022-01-15 2.0
+  * PHP 7.1 and higher.
+  * [core] Lots of cleanups
 * 2021-03-18 1.30.1
   * Updated dependency in composer.json
 * 2021-03-17 1.30

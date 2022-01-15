@@ -1,4 +1,5 @@
-<?php
+<?php /** @noinspection PhpMissingParamTypeInspection */
+
 
 namespace eftec;
 
@@ -7,8 +8,8 @@ namespace eftec;
  *
  * @package       eftec
  * @author        Jorge Castro Castillo
- * @version       1.15 2021-03-17
- * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
+ * @version       2.0 2022-01-15
+ * @copyright (c) Jorge Castro C. Licencia Dual LGLPV2 License y comercial.  https://github.com/EFTEC/ValidationOne
  * @see           https://github.com/EFTEC/ValidationOne
  */
 class ValidationItem {

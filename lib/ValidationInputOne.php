@@ -1,4 +1,6 @@
-<?php /** @noinspection PhpUnusedParameterInspection */
+<?php /** @noinspection ALL */
+/** @noinspection PhpMissingParamTypeInspection */
+/** @noinspection PhpUnusedParameterInspection */
 /** @noinspection UnknownInspectionInspection
  * @noinspection PhpParameterByRefIsNotUsedAsReferenceInspection
  * @noinspection TypeUnsafeComparisonInspection
@@ -25,7 +27,7 @@ class ValidationInputOne {
     public $messageList;
     public $prefix = '';
 
-    /** @var bool If true then the field is exist (it could be null or empty) otherwise it generates an error */
+    /** @var bool If true then the field exists (it could be null or empty) otherwise it generates an error */
     public $exist = false;
     /** @var mixed default value */
     public $default;
@@ -65,7 +67,8 @@ class ValidationInputOne {
      * @return ValidationInputOne
      * @see ValidationOne::def()
      */
-    public function exist($exist = true) {
+    public function exist($exist = true): ValidationInputOne
+    {
         $this->exist = $exist;
         return $this;
     }
@@ -77,7 +80,8 @@ class ValidationInputOne {
      *
      * @return ValidationInputOne
      */
-    public function friendId($id) {
+    public function friendId($id): ValidationInputOne
+    {
         $this->friendId = $id;
         return $this;
     }
@@ -96,7 +100,7 @@ class ValidationInputOne {
     }
 
     /**
-     * Returns null if the value is not present, false if the value is incorrect and the value if its correct
+     * Returns null if the value is not present, false if the value is incorrect and the value if it's correct
      *
      * @param string      $field      The name of the field. By default, the library adds a prefix (if any)
      * @param int|string  $inputType =[0,1,99][$i] // [INPUT_REQUEST 99,INPUT_POST 0,INPUT_GET 1] or it could be the value (for set)
@@ -108,13 +112,11 @@ class ValidationInputOne {
      */
     public function getField($field, $inputType = 99, $msg = null, &$isMissing = false) {
         $fieldId = $this->prefix . $field;
-        $r = null;
-
         switch ($inputType) {
             case 0: // post
                 if (!array_key_exists($fieldId,$_POST)) {
                     $isMissing = true;
-                    return ($this->initial === null) ? $this->default : $this->initial;
+                    return $this->initial ?? $this->default;
                 }
                 $r = $_POST[$fieldId];
                 $r = ($r === NULLVAL) ? null : $r;
@@ -123,7 +125,7 @@ class ValidationInputOne {
 
                 if (!array_key_exists($fieldId,$_GET)) {
                     $isMissing = true;
-                    return ($this->initial === null) ? $this->default : $this->initial;
+                    return $this->initial ?? $this->default;
                 }
                 $r = $_GET[$fieldId];
 
@@ -135,7 +137,7 @@ class ValidationInputOne {
                 } else {
                     if (!array_key_exists($fieldId,$_GET)) {
                         $isMissing = true;
-                        return ($this->initial === null) ? $this->default : $this->initial;
+                        return $this->initial ?? $this->default;
                     }
                     $r = $_GET[$fieldId];
                     $r = ($r === NULLVAL) ? null : $r;
@@ -153,15 +155,17 @@ class ValidationInputOne {
      * It adds an error
      *
      * @param string $msg     first message. If it's empty or null then it uses the second message<br>
-     *                        Message could uses the next variables '%field','%realfield','%value','%comp','%first','%second'
+     *                        Message could use the next variables '%field','%realfield','%value','%comp','%first','%second'
      * @param string $msg2    second message
      * @param string $fieldId id of the field
      * @param mixed  $value   value supplied
      * @param mixed  $vcomp   value to compare.
      * @param string $level   (error,warning,info,success) error level
      * @noinspection PhpUnusedPrivateMethodInspection
+     * @noinspection PhpSameParameterValueInspection
      */
-    private function addMessageInternal($msg, $msg2, $fieldId, $value, $vcomp, $level = 'error') {
+    private function addMessageInternal($msg, $msg2, $fieldId, $value, $vcomp, $level = 'error'): void
+    {
         $txt = ($msg) ?: $msg2;
         if (is_array($vcomp)) {
             $first = @$vcomp[0];
@@ -173,7 +177,7 @@ class ValidationInputOne {
         }
         if (is_array($this->originalValue)) {
             $txt = str_replace(['%field', '%realfield', '%value', '%comp', '%first', '%second'], [
-                ($this->friendId === null) ? $fieldId : $this->friendId,
+                $this->friendId ?? $fieldId,
                 $fieldId,
                 $value,
                 $vcomp,
@@ -182,7 +186,7 @@ class ValidationInputOne {
             ], $txt);
         } else {
             $txt = str_replace(['%field', '%realfield', '%value', '%comp', '%first', '%second'], [
-                ($this->friendId === null) ? $fieldId : $this->friendId,
+                $this->friendId ?? $fieldId,
                 $fieldId,
                 $this->originalValue,
                 $vcomp,
@@ -216,7 +220,7 @@ class ValidationInputOne {
     }
 
     /**
-     * Returns null if the value is not present, false if the value is incorrect and the value if its correct
+     * Returns null if the value is not present, false if the value is incorrect and the value if it's correct
      *
      * @param             $field
      * @param bool        $array
@@ -227,16 +231,17 @@ class ValidationInputOne {
      * @internal param $folder
      * @internal param string $type
      */
-    public function getFile($field, $array = false, &$msg = null, &$isMissing = false) {
+    public function getFile($field, $array = false, &$msg = null, &$isMissing = false): array
+    {
         $fieldId = $this->prefix . $field;
         if (!$array) {
             $fileNew = self::sanitizeFileName(@$_FILES[$fieldId]['name']);
             if ($fileNew != "") {
-                // its uploading a file
+                // it's uploading a file
                 $fileTmp = @$_FILES[$fieldId]['tmp_name'];
                 return [$fileNew, $fileTmp];
             }
-            // its not uploading a file.
+            // it's not uploading a file.
             $isMissing = true;
             //return ($this->initial===null)?$this->default:$this->initial;
             return ($this->initial === null) ? $this->default : ['', ''];
@@ -247,22 +252,21 @@ class ValidationInputOne {
         foreach ($_FILES[$fieldId]['name'] as $iValue) {
             $fileNew = self::sanitizeFileName(@$iValue);
             if ($fileNew != "") {
-                // its uploading a file
+                // it's uploading a file
                 $fileTmp = @$_FILES[$fieldId]['tmp_name'];
-                $r = [$fileNew, $fileTmp];
             } else {
-                // its not uploading a file.
+                // it's not uploading a file.
                 $fileTmp = '';
                 $fileNew = '';
-                $r = [$fileNew, $fileTmp];
             }
+            $r = [$fileNew, $fileTmp];
             $filenames[] = $r;
         }
         return $filenames;
     }
 
     /**
-     * Sanitize a filename removing .. and other nasty characters.
+     * Sanitize a filename removing ".." and other nasty characters.
      * if mb_string is available then it also allows multibyte string characters such as accents.
      *
      * @param string $filename
