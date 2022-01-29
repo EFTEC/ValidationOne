@@ -1,11 +1,11 @@
-<?php /** @noinspection TypeUnsafeComparisonInspection */
+<?php /** @noinspection PhpMissingStrictTypesDeclarationInspection */
+/** @noinspection TypeUnsafeComparisonInspection */
 /** @noinspection TypeUnsafeArraySearchInspection */
 /** @noinspection DuplicatedCode */
 /** @noinspection PhpMissingReturnTypeInspection */
 /** @noinspection ReturnTypeCanBeDeclaredInspection */
 /** @noinspection AlterInForeachInspection */
 /** @noinspection PhpMissingParamTypeInspection */
-
 /**
  * @noinspection DuplicatedCode
  */
@@ -29,7 +29,7 @@ if (!defined("NULLVAL")) {
  *
  * @package       eftec
  * @author        Jorge Castro Castillo
- * @version       1.30 2021-03-17
+ * @version       2.0.2 2022-29-01
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see           https://github.com/EFTEC/ValidationOne
  */
@@ -79,8 +79,9 @@ class ValidationOne
     private $isArray = false;
     /** @var bool if the value is an array or not */
     private $isColumn = false;
-    /** @var bool if true then the the errors from id[0],id[1] ared stored in "idx" */
+    /** @var bool if true then the errors from id[0],id[1] ared stored in "idx" */
     private $isArrayFlat = false;
+    /** @var bool TODO */
     private $hasMessage = false;
     /** @var bool if the validation fails then it returns the default value */
     private $ifFailThenDefault = false;
@@ -195,7 +196,7 @@ class ValidationOne
     /**
      * It sets the input values (datestring and datetimestring) in "m/d/Y" and "m/d/Y H:i:s" format instead of "d/m/Y"
      * and "d/m/Y H:i:s" <br> The output is still "Y-m-D" and 'Y-m-d\TH:i:s\Z'<br> This configuration persists across
-     * different calls so you could set it once (during the configuration).
+     * different calls, so you could set it once (during the configuration).
      *
      * @return $this
      */
@@ -373,7 +374,7 @@ class ValidationOne
                     }
                 }
             } else if($input!==null) {
-                // if the value is not array but it is null, then we avoid to show a message (we consider it an empty array)
+                // if the value is not array, but it is null, then we avoid showing a message (we consider it an empty array)
                 $this->addMessageInternal('%field is not an array', '', $fieldId, 0, 'error');
             } else {
                 // null are considered empty arrays.
@@ -446,7 +447,7 @@ class ValidationOne
 
     /**
      * It is the basic validation based on the type of data.<br>
-     * It could converts the input data depending on the conditions, requirements, etc.
+     * It could convert the input data depending on the conditions, requirements, etc.
      *
      * @param mixed  $input Input value unmodified.
      * @param string $field id of the field
@@ -1035,8 +1036,8 @@ class ValidationOne
 
     /**
      * @param int            $r      timestamp of the date/time
-     * @param ValidationItem $cond   Where cond->value equals to the timestamp of the date/time   Where cond->value
-     *                               equals to the timestamp of the date/time
+     * @param ValidationItem $cond   Where cond->value equals to the timestamp of the date/time<br>
+     *                               Where cond->value equals to the timestamp of the date/time
      * @param boolean        $fail   True if the operation fails
      * @param string         $genMsg If it fails, it returns a message.
      */
@@ -1065,7 +1066,7 @@ class ValidationOne
                 }
                 break;
             case 'gte':
-                if ($r <= $cond->value) {
+                if ($r < $cond->value) {
                     $fail = true;
                     $genMsg = '%field is less than %comp';
                 }
@@ -1224,7 +1225,7 @@ class ValidationOne
     }
 
     /**
-     * It returns the mime type of a full filename.  If not found or error, it returns false<br>
+     * It returns the mime-type of full filename.  If not found or error, it returns false<br>
      * Example:<br>
      * $this->getFileMime("/folder/filename.txt"); // it could return "text/plain"<br>
      * $this->getFileMime("/folder/filename.txt",true); // it could return "text"<br>
@@ -1491,7 +1492,7 @@ class ValidationOne
     }
 
     /**
-     * If set then it always trim the values.
+     * If set then it always "trims" the values.
      *
      * @param bool   $always [false] If true then it trims all the results.
      * @param string $trimChars Characters to trim
@@ -1502,10 +1503,12 @@ class ValidationOne
     }
 
     /**
-     * It adds a conversion of the result. It is an after-validation operation.
+     * It adds a conversion of the result. It is an after-validation operation.<br>
+     * <b>Note:</b> Default values are never converted.
      *
      * @param string $type =['type','upper','lower','ucfirst','ucwords','replace','sanitizer'
-     *                     ,'rtrim','ltrim','trim','htmlencode','htmldecode'][$i]
+     *                     ,'rtrim','ltrim','trim','htmlencode','htmldecode','alphanumeric'
+     *                     ,'alphanumericminus','regexp'][$i]
      * @param mixed $arg1 It is used if the conversion requires an argument.
      * @param mixed $arg2 It is used if the conversion requires a second argument.
      * @return $this
@@ -1518,7 +1521,7 @@ class ValidationOne
 
     /**
      * If the input is an object DateTime and the type is datestring or datetimestring, then it is converted
-     * into a string<br> It also trim the result.
+     * into a string<br> It also "trims" the result.
      *
      * @param mixed $input
      *
@@ -1562,6 +1565,15 @@ class ValidationOne
                         case 'sanitizer':
                             $tmp=filter_var($input, $v[1] ?? FILTER_DEFAULT,$v[2]);
                             break;
+                        case 'alphanumeric':
+                            $tmp=preg_replace('/[\W]/', '', $input);
+                            break;
+                        case 'alphanumericminus':
+                            $tmp=preg_replace('/[^\w-]/', '', $input);
+                            break;
+                        case 'regexp':
+                            $tmp=preg_replace($v[1], $v[2]??'', $input);
+                            break;
                         case 'htmlencode':
                             $tmp=htmlentities($input,$v[1],$v[2]);
                             break;
@@ -1595,7 +1607,7 @@ class ValidationOne
     }
 
     /**
-     * You could add a message (including errors,warning..) and store in a $id
+     * You could add a message (including errors,warning...) and store in an $id
      * It is a wrapper of $this->messageList->addItem
      *
      * @param string $idLocker Identified of the locker (where the message will be stored
@@ -1657,7 +1669,8 @@ class ValidationOne
     }
 
     /**
-     * Returns null if the value is not present, false if the value is incorrect and the value if its correct
+     * Returns null if the value is not present, false if the value is incorrect and the value
+     * if it's correct
      *
      * @param      $fieldId
      * @param bool $array
@@ -1690,16 +1703,21 @@ class ValidationOne
     }
 
     /**
-     * It sets a default value. It could be used as follow:
-     * a) if the value is not set and it's not required (by default, it's not required), then it sets this value.
-     * otherwise null<br> b) if the value is not set and it's required, then it returns an error and it sets this
-     * value, otherwise null<br> c) if the value is not set and it's an array, then it sets a single value or it sets a
-     * value per key of array. d) if value is null, then the default value is the same input value.<br>
-     * <b>Note:</b> This value must be in the same format than the (expected) output.<br>
+     * It sets a default value. It could be used as follows:<br>
+     * <ol>
+     * <li> If the value is not set, and it's not required (by default, it's not required), then it sets this value.
+     * Otherwise, null</li>
+     * <li> If the value is not set, and it's required, then it returns an error, and it sets this value
+     * , otherwise null</li>
+     * <li> If the value is not set, and it's an array, then it sets a single value, or it sets a
+     * value per key of array.</li>
+     * <li>d) if value is null, then the default value is the same input value.</li>
+     * </ol>
+     * <b>Note:</b> This value must be in the same format as the (expected) output.<br>
      * <b>Note:</b> Default value is not converted but returned directly.
      *
      * @param mixed|array $value
-     * @param bool|null   $ifFailThenDefault If true then if the validations fails, then it returns this default value,
+     * @param bool|null   $ifFailThenDefault If true then, if the validations fails, then it returns this default value,
      *                                       otherwise, it returns a null.
      *
      * @return ValidationOne $this
@@ -1715,7 +1733,7 @@ class ValidationOne
     }
 
     /**
-     * If the value is null, then it is not evaluated and it doesn't generate any message<br>
+     * If the value is null, then it is not evaluated, and it doesn't generate any message<br>
      * This method is used where a value null is a valid condition.<br>
      * <b>Example:</b><br>
      * <pre>
@@ -1733,7 +1751,7 @@ class ValidationOne
     }
 
     /**
-     * If the value is null or empty '', then it is not evaluated and it doesn't generate any message<br>
+     * If the value is null or empty '', then it is not evaluated, and it doesn't generate any message<br>
      * This method is used where a value null/empty is a valid condition.<br>
      * <b>Example:</b><br>
      * <pre>
@@ -1752,7 +1770,7 @@ class ValidationOne
     }
 
     /**
-     * If the value is empty, then it is not evaluated and it doesn't generate any message<br>
+     * If the value is empty, then it is not evaluated, and it doesn't generate any message<br>
      * This method is used where a value empty is a valid condition.<br>
      * <b>Example:</b><br>
      * <pre>
@@ -1770,7 +1788,7 @@ class ValidationOne
     }
 
     /**
-     * If the value is missing, then it is not evaluated and it doesn't generate any message<br>
+     * If the value is missing, then it is not evaluated, and it doesn't generate any message<br>
      * This method is used where a value missing is a valid condition.<br>
      * <b>Example:</b><br>
      * <pre>
@@ -1822,7 +1840,7 @@ class ValidationOne
     /**
      * Sets if the conditions must be evaluated on Error or not. By default it's not aborted.
      *
-     * @param bool $abort if true, then it stop at the first error.
+     * @param bool $abort if true, then it stops at the first error.
      *
      * @return ValidationOne $this
      */
@@ -1834,7 +1852,7 @@ class ValidationOne
 
     /**
      * Sets the fetch for an array. It's not required for set()<br>
-     * If $flat is true then then errors are returned as a flat array (idx instead of idx[0],idx[1])
+     * If $flat is true then the errors are returned as a flat array (idx instead of idx[0],idx[1])
      *
      * @param bool $flat
      *
@@ -1845,6 +1863,9 @@ class ValidationOne
         $this->isArray = true;
         $this->isArrayFlat = $flat;
         return $this;
+    }
+    public function getHasMessage() {
+        return $this->hasMessage;
     }
 
     public function isColumn($isColumn)
@@ -1971,10 +1992,8 @@ class ValidationOne
     }
 
     /**
-     * If it's unable to fetch the value<br>
-     * However, by default it also returns the default value.<br>
-     * This validation doesn't fail if the field is missing (is unable to fetch the value) or zero.<br>
-     * it's the same than $validation->condition("exist")
+     * If true, then the value must exist, otherwise it will raise an error<br>
+     * However, even in the case of error, it still returns the default value.<br>
      *
      * @param bool   $exist
      * @param string $msg See condition() for more information
@@ -2026,7 +2045,7 @@ class ValidationOne
      *                                    fn.object.Class.method where object is a global $object<br>
      *                                    fn.class.Class.method<br>
      *                                    fn.class.\namespace\Class.method<br>
-     * @param string $message             The message to display. It could also uses a special variable<br>
+     * @param string $message             The message to display. It could also use a special variable<br>
      *                                    Example:"the field with name %field does not exist"<br>
      *                                    <b>%field</b> = name of the field, it could be the friendid or the actual
      *                                    name<br>
@@ -2064,7 +2083,7 @@ class ValidationOne
     }
 
     /**
-     * The value musn't be empty. It's equals than condition('ne')
+     * The value mustn't be empty. It's equals than condition('ne')
      *
      * @param string $msg See condition() for more information
      *
@@ -2079,10 +2098,10 @@ class ValidationOne
 
     /**
      * The value is required, so it must not be null or empty.<br>
-     * It is different than exist(), where exist() validates that the field is asigned with any value
+     * It is different from exist(), where exist() validates that the field is asigned with any value
      * (including null or empty).<br>
      *
-     * it's the same than $validation->condition("exist")
+     * it's the same as $validation->condition("exist")
      *
      * @param bool   $required
      * @param string $msg See condition() for more information

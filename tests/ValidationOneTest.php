@@ -87,6 +87,78 @@ class ValidationOneTest extends TestCase
         $r=getVal()->type('string')->exist()->getFile('FIELDREQF');
         self::assertEquals(['name.jpg','name.jpg'],$r);
     }
+    public function testOther() {
+        // VALUE IS MISSING -> exist -> GENERATE AN ERROR -> SET DEFAULT
+        getVal()->messageList->resetAll();
+        unset($_POST['frm_FIELDREQ'], $_GET['frm_FIELDREQ'], $_FILES['frm_FIELDREQF']);
+        $_POST['frm_FIELDREQ']='abc';
+        $r=getVal()->type('integer')->def('noexist')->exist(true)->get('FIELDREQ');
+        self::assertEquals(false,getVal()->getHasMessage());
+    }
+    public function testPipeline() {
+        // VALUE IS MISSING -> exist -> GENERATE AN ERROR -> SET DEFAULT
+        getVal()->messageList->resetAll();
+        unset($_POST['frm_FIELDREQ'], $_GET['frm_FIELDREQ'], $_FILES['frm_FIELDREQF']);
+
+        $r=getVal()->type('string')->def('noexist')->exist(true)->post('FIELDREQ');
+        self::assertEquals(1,getVal()->messageList->errorCount);
+        self::assertEquals("FIELDREQ does not exist",getVal()->getMessage());
+        self::assertEquals('noexist',$r);
+
+        // VALUE IS MISSING -> NOEXIST -> GENERATE AN ERROR -> SET DEFAULT
+        getVal()->messageList->resetAll();
+        unset($_POST['frm_FIELDREQ'], $_GET['frm_FIELDREQ'], $_FILES['frm_FIELDREQF']);
+
+        $r=getVal()->type('string')->def('noexist')->exist(false)->post('FIELDREQ');
+        self::assertEquals(0,getVal()->messageList->errorCount);
+        self::assertEquals("",getVal()->getMessage());
+        self::assertEquals('noexist',$r);
+
+        // VALUE IS PRESENT -> CORRECT -> RETURN VALUE
+        getVal()->messageList->resetAll();
+        unset($_POST['frm_FIELDREQ'], $_GET['frm_FIELDREQ'], $_FILES['frm_FIELDREQF']);
+        $_POST['frm_FIELDREQ']='exist';
+        $r=getVal()->type('string')->def('noexist')->exist(false)->post('FIELDREQ');
+        self::assertEquals(0,getVal()->messageList->errorCount);
+        self::assertEquals("",getVal()->getMessage());
+        self::assertEquals('exist',$r);
+
+        // VALUE IS PRESENT -> INCORRECT -> RETURN ORIGIN
+        getVal()->messageList->resetAll();
+        unset($_POST['frm_FIELDREQ'], $_GET['frm_FIELDREQ'], $_FILES['frm_FIELDREQF']);
+        $_POST['frm_FIELDREQ']='exist';
+        $r=getVal()->type('integer')->def('noexist',false)->ifFailThenOrigin()->post('FIELDREQ');
+        self::assertEquals(1,getVal()->messageList->errorCount);
+        self::assertEquals("FIELDREQ is not numeric",getVal()->getMessage());
+        self::assertEquals('exist',$r);
+
+        // VALUE IS PRESENT -> INCORRECT -> RETURN DEFAULT
+        getVal()->messageList->resetAll();
+        unset($_POST['frm_FIELDREQ'], $_GET['frm_FIELDREQ'], $_FILES['frm_FIELDREQF']);
+        $_POST['frm_FIELDREQ']='exist';
+        $r=getVal()->type('integer')->def('noexist')->ifFailThenDefault()->post('FIELDREQ');
+        self::assertEquals(1,getVal()->messageList->errorCount);
+        self::assertEquals("FIELDREQ is not numeric",getVal()->getMessage());
+        self::assertEquals('noexist',$r);
+
+        // VALUE IS PRESENT -> INCORRECT -> RETURN NULL
+        getVal()->messageList->resetAll();
+        unset($_POST['frm_FIELDREQ'], $_GET['frm_FIELDREQ'], $_FILES['frm_FIELDREQF']);
+        $_POST['frm_FIELDREQ']='exist';
+        $r=getVal()->type('integer')->post('FIELDREQ');
+        self::assertEquals(1,getVal()->messageList->errorCount);
+        self::assertEquals("FIELDREQ is not numeric",getVal()->getMessage());
+        self::assertEquals(null,$r);
+
+        // reset the test
+        getVal()->messageList->resetAll();
+        unset($_POST['frm_FIELDREQ'], $_GET['frm_FIELDREQ'], $_FILES['frm_FIELDREQF']);
+
+        $r=getVal()->type('string')->def('1')->exist()->post('FIELDREQ');
+        self::assertEquals("FIELDREQ does not exist",getVal()->getMessage());
+        self::assertEquals('1',$r);
+
+    }
     public function testPostGetRequestNoFound() {
         getVal()->messageList->resetAll();
         unset($_POST['frm_FIELDREQ'], $_GET['frm_FIELDREQ'], $_FILES['frm_FIELDREQF']);
@@ -282,8 +354,8 @@ class ValidationOneTest extends TestCase
             1 => 'value must be equals to 5'
         ], getVal()->messageList->allErrorOrWarningArray());
         getVal()->messageList->resetAll();
-   
-        
+
+
         getVal()->def("")// what if the value is not read?, we should show something (or null)
         ->ifFailThenDefault(false)// if fails then we show the same value however it triggers an error
         ->type("varchar")// it is required to ind

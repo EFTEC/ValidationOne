@@ -49,6 +49,10 @@ in practically any PHP project, including WordPress, Laravel, core PHP project, 
     * [todo](#todo)
     * [Note](#note)
 
+## Full Diagram
+
+![diagram full](examples/docs/diagram2022.png)
+
 
 
 ## Examples
@@ -103,6 +107,35 @@ var_dump($val->messageList->get('id')->allErrorOrWarning()); // All error or war
 Why the messages are store in some structure?. Is it not easy to simply return the error?
 
 An answer is a form. Let's say we have a form with three fields. If one of them fails, then the error must be visible for each field separately.  Also, the whole form could have its own message.
+
+## Starting the chain
+
+The start of the chain usually it is written at the end of the code.
+
+The methods allowed are:
+
+* get(): it reads a value from $_GET
+* post(): it reads a value from $_POST
+* request():  It reads a value from $_REQUEST
+* getFile(). It reads a value from$_FILES
+* set(): it reads a value entered manually (a variable or constant)
+
+Example:
+
+```php
+$val=new ValidationOne();
+$id = $val->type('integer')->get('id'); 
+$id = $val->type('integer')->post('id');
+$id = $val->type('integer')->request('id');
+$id = $val->type('integer')->set('123','id');
+
+$val=new ValidationOne();
+$id = $val->type('integer')->get('id'); // $_GET['id']
+$val=new ValidationOne('frm'); // we set a prefix for every reading.
+$id = $val->type('integer')->get('id'); // $_GET['frm_id']
+```
+
+
 
 ## Adding a new condition 
 
@@ -212,7 +245,7 @@ $validation->def(null)
 | compression                                             | The extension of the file must be an compression file  |                        |
 | contain                                                 | The text must contain a value                          | "text"                 |
 | doc                                                     | The extension of the file must be a document file     |                        |
-| eq (it could be an array or value) / ==                 | The value must be equals to                            | "text",["text","text2"]                 |
+| eq (it could be an array or value) / ==                 | The value must be equals to<br />The value must be contained in a array | "text",["text","text2"]                 |
 | exist                                                   | The file or value must exist (it could be null/empty) |                        |
 | missing / notexist                                      | The file or value must not exists or be null/empty     |                        |
 | required (or req)                                       | The value must not be null or empty                    |                        |
@@ -235,13 +268,13 @@ $validation->def(null)
 | minsize                                                 | The minimum size of a file                             | 123                    |
 | mime (the value to compare could be an string or array) | The mime type of a file                                | "application/msword" or ["application/msword","image/gif"]|
 | mimetype                                                | The mime type (without subtype) of a file              | "application" or ["application,"image"]|
-| ne / != (the value to compare could be an single value or array)   | The value must not be equals.                    | 123,[123,345],["aa","bb"]                    |
+| ne / != (the value to compare could be an single value or array)   | The value must not be equals.<br />Or the value must not be contained in a array | 123,[123,345],["aa","bb"]                    |
 | notcontain                                              | The value must not contain a value                     | "text"                 |
 | notnull                                                 | The value must not be null                             |                        |
 | null                                                    | The value must be null                                 |                        |
 | empty                                                   | The value must be empty (i.e. "",0,null)               |                        |
 | notempty                                                | The value must not be empty (i.e. not equals to "",0,null)|                        |
-| req                                                     | The value must be equal                                |                        |
+| req                                                     | The value must exists                          |                        |
 | true                                                    | The value must be true (===true)                       |                        |
 
 
@@ -324,7 +357,8 @@ class SomeClass {
 
 When we validate an object, it could store the information inside the Message Container (also called Message List).
 
-**MessageContainer** ([EFTEC/MessageContainer](https://github.com/EFTEC/MessageContainer)) contains a list messages in an hierarchy way:
+**MessageContainer** ([EFTEC/MessageContainer](https://github.com/EFTEC/MessageContainer)) contains a list 
+messages in a hierarchy way:
 
 ```php
 ⭐ Container (usually only 1 for all the project)
@@ -382,8 +416,8 @@ We also could work with dates.  There are several types of date formats.
 
 | type           | description                                                  |
 | -------------- | ------------------------------------------------------------ |
-| date           | (date) the input could be a DateTime or a string. The value is stored as   an object DateTime |
-| datetime       | (date) the input could be a DateTime or a string. The value is stored as   an object DateTime |
+| date           | (date) the input could be a DateTime or a string. The value is stored as  an object DateTime |
+| datetime       | (date) the input could be a DateTime or a string. The value is stored as  an object DateTime |
 | datestring     | (date) the input could be a DateTime or a string. The value is stored as a string using the field **$dateOutputString** |
 | datetimestring | (date) the input could be a DateTime or a string. The value is stored as a string using the field **$dateLongOutputString** |
 
@@ -440,6 +474,8 @@ There are four different ways to deal with empty values in this library.
 ### exist
 
 * A value **exist** if the field or file exists, no matter the value or if it is null or empty.
+  * if exist() is set and the value is missing, then it raise an error.
+
 
 ```php
    $validation->exist()->set(null); // is valid.
@@ -533,7 +569,7 @@ $validation->trim('rtrim')->set(....); // trim right sided
 
 ### alwaysTrim()
 
-Sometime we always want to trim the results. So we could use this method to always trim the result. It stacks at the end of the conversion.
+Sometimes, we always want to trim the results. So we could use this method to always trim the result. It stacks at the end of the conversion.
 
 ```php
 $validation->alwaysTrim(); // always trim the next characters " \t\n\r\0\x0B"
@@ -546,23 +582,26 @@ $validation->alwaysTrim(false);  // we disable the always trim.
 
 ### convert()
 
-It converts the end result after it is validated. Depending in the type of conversion, it allows up to 2 arguments.   The conversion could be stacked so the order could matter.
+It converts the end result after it is validated. Depending on the type of conversion, it allows up to 2 arguments.   The conversion could be stacked so the order could matter.
 
-If the value is missing or it is used the default value, then it is not converted.
+If the value is missing, or it is used the default value, then it is not converted.
 
-| Type       | Description                                                | Example                                                      |
-| ---------- | ---------------------------------------------------------- | ------------------------------------------------------------ |
-| upper      | Converts the value in uppercase                            | $this->conversion('upper')->set('Hello World'); // HELLO WORLD |
-| lower      | Converts the value in lowercase                            | $this->conversion('lower')->set('Hello World'); // hello world |
-| ucfirst    | Converts the first character in uppercase                  | $this->conversion('ucfirst')->set('hello world'); // Hello world |
-| ucwords    | Converts the first character in a word in uppercase        | $this->conversion('ucwords')->set('hello world'); // Hello World |
-| replace    | Replace a string by other                                  | $this->conversion('replace','hello','world')->set('hello hello'); // world world |
-| sanitizer  | Sanitizer the result. It uses filter_var()                 | $this->conversion('sanitizer',FILTER_SANITIZE_EMAIL)->set('//aaa@bb.com'); // aaa@bb.com<br />$this->conversion('sanitizer',FILTER_SANITIZE_SPECIAL_CHARS,FILTER_FLAG_STRIP_HIGH) |
-| rtrim      | Trim the right characters                                  | $this->conversion('rtrim')                                   |
-| ltrim      | Trim the left characters                                   | $this->conversion('ltrim')                                   |
-| trim       | Trim the right and left. It is equivalent to $this->trim() | $this->conversion('trim')->set(' hello '); // hello<br />$this->conversion('trim'," \t\n\r\0\x0B") |
-| htmlencode | Encode to html content. It uses htmlentities()             | $this->conversion('htmlencode')->set('\<b>dog\</b>'); //\&lt;b\&gt;dog\&lt; |
-| htmldecode | Decode from a html. It uses html_entity_decode()           | $this->conversion('htmldecode')->set('\&lt;b\&gt;dog\&lt;'); // \<b>dog\</b> |
+| Type              |      | Description                                                  | Example                                                      |
+| ----------------- | ---- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| upper             |      | Converts the value in uppercase                              | $this->conversion('upper')->set('Hello World'); // HELLO WORLD |
+| lower             |      | Converts the value in lowercase                              | $this->conversion('lower')->set('Hello World'); // hello world |
+| ucfirst           |      | Converts the first character in uppercase                    | $this->conversion('ucfirst')->set('hello world'); // Hello world |
+| ucwords           |      | Converts the first character in a word in uppercase          | $this->conversion('ucwords')->set('hello world'); // Hello World |
+| replace           |      | Replace a string by other                                    | $this->conversion('replace','hello','world')->set('hello hello'); // world world |
+| sanitizer         |      | Sanitizer the result. It uses filter_var()                   | $this->conversion('sanitizer',FILTER_SANITIZE_EMAIL)->set('//aaa@bb.com'); // aaa@bb.com<br />$this->conversion('sanitizer',FILTER_SANITIZE_SPECIAL_CHARS,FILTER_FLAG_STRIP_HIGH) |
+| alphanumeric      |      | Sanitize the result by keeping the alphanumeric characters plus underscore : | this->conversion('alphanumeric')->set('HELLO world_-123'); // HELLOworld_123 |
+| alphanumericminus |      | Sanitize the result by keeping the alphanumeric characters plus underscore and minus symbol | this->conversion('alphanumericminus')->set('HELLO world_-123'); // HELLOworld_-123 |
+| regexp            |      | It calls preg_replace to replace a text                      | this->conversion('regexp','/[/^0-9]/','')->set('hello123'); // 123 |
+| rtrim             |      | Trim the right characters                                    | $this->conversion('rtrim')                                   |
+| ltrim             |      | Trim the left characters                                     | $this->conversion('ltrim')                                   |
+| trim              |      | Trim the right and left. It is equivalent to $this->trim()   | $this->conversion('trim')->set(' hello '); // hello<br />$this->conversion('trim'," \t\n\r\0\x0B") |
+| htmlencode        |      | Encode to html content. It uses htmlentities()               | $this->conversion('htmlencode')->set('\<b>dog\</b>'); //\&lt;b\&gt;dog\&lt; |
+| htmldecode        |      | Decode from a html. It uses html_entity_decode()             | $this->conversion('htmldecode')->set('\&lt;b\&gt;dog\&lt;'); // \<b>dog\</b> |
 
 
 
@@ -589,8 +628,12 @@ $validation->convert('htmldecode')->set(....);
 
 
 
+
+
 ## Version list
 
+* 2022-01-29 2.0.2
+  * fixed a problem when the condition is "gte". 
 * 2022-01-15 2.0.1
   * Update dependency 
 * 2022-01-15 2.0
@@ -616,7 +659,7 @@ $validation->convert('htmldecode')->set(....);
         * INPUT_POST = 0
         * INPUT_GET = 1
         * INPUT_REQUEST = 99
-    So, if you are using INPUT_GET,INPUT_POST OR INPUT_REQUEST, then they will still work.   
+        So, if you are using INPUT_GET,INPUT_POST OR INPUT_REQUEST, then they will still work.   
 * 2020-10-01 1.24.3
     * A small cleanup.   
 * 2020-05-21 1.24.2
@@ -632,7 +675,7 @@ $validation->convert('htmldecode')->set(....);
     * Solved a problem where the default value is a string and the type is a datetimestring.
 * 2020-02-01 1.23
     *  Solved a problem in endConversion() when the default value is "" or null (or not a DateTime object), the type is 
-"datetimestring", and the value is missing.
+    "datetimestring", and the value is missing.
     * Practically all methods were tested.
     * resetValidation() now allows to delete all messages.
     * Fixed the validation "ne"

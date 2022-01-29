@@ -1,4 +1,6 @@
-<?php /** @noinspection PhpMissingParamTypeInspection */
+<?php /** @noinspection PhpMissingStrictTypesDeclarationInspection */
+
+/** @noinspection PhpMissingParamTypeInspection */
 
 
 namespace eftec;
@@ -8,7 +10,7 @@ namespace eftec;
  *
  * @package       eftec
  * @author        Jorge Castro Castillo
- * @version       2.0 2022-01-15
+ * @version       2.0.2 2022-29-01
  * @copyright (c) Jorge Castro C. Licencia Dual LGLPV2 License y comercial.  https://github.com/EFTEC/ValidationOne
  * @see           https://github.com/EFTEC/ValidationOne
  */

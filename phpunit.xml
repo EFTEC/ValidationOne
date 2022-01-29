@@ -1,21 +1,19 @@
-<phpunit backupGlobals="false"
-         backupStaticAttributes="false"
-         colors="true"
-         verbose="true"
-         convertErrorsToExceptions="true"
-         convertNoticesToExceptions="true"
-         convertWarningsToExceptions="true"
-         processIsolation="false"
-         stopOnFailure="false"
-         bootstrap="tests/bootstrap.php">
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" bootstrap="tests/bootstrap.php" backupGlobals="false"
+         backupStaticAttributes="false" colors="true" convertErrorsToExceptions="true" convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true" processIsolation="false" stopOnFailure="false"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd">
+    <coverage>
+        <include>
+            <directory suffix=".php">lib/</directory>
+        </include>
+    </coverage>
     <testsuites>
-        <testsuite name="DaoOne Test Suite">
-            <directory suffix="Test.php">./tests</directory>
+        <testsuite name="Project Test Suite">
+            <directory>tests</directory>
         </testsuite>
     </testsuites>
-    <filter>
-        <whitelist processUncoveredFilesFromWhitelist="true">
-            <directory suffix=".php">./lib</directory>
-        </whitelist>
-    </filter>
+    <php>
+        <env name="APP_ENV" value="testing"/>
+    </php>
 </phpunit>

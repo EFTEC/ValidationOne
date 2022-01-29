@@ -25,6 +25,6 @@
         "eftec/formone": "Allows to create form and integrates with the validation"
     },
     "require-dev": {
-        "phpunit/phpunit": "*"
+        "phpunit/phpunit": "^9.5.13"
     }
 }

@@ -1,7 +1,9 @@
-<?php /** @noinspection ALL */
-/** @noinspection PhpMissingParamTypeInspection */
-/** @noinspection PhpUnusedParameterInspection */
-/** @noinspection UnknownInspectionInspection
+<?php /** @noinspection ReturnTypeCanBeDeclaredInspection
+ * @noinspection PhpMissingStrictTypesDeclarationInspection
+ * @noinspection PhpMissingReturnTypeInspection
+ * @noinspection PhpMissingParamTypeInspection
+ * @noinspection PhpUnusedParameterInspection
+ * @noinspection UnknownInspectionInspection
  * @noinspection PhpParameterByRefIsNotUsedAsReferenceInspection
  * @noinspection TypeUnsafeComparisonInspection
  * @noinspection RegExpRedundantEscape
@@ -18,7 +20,7 @@ use DateTime;
  *
  * @package       eftec
  * @author        Jorge Castro Castillo
- * @version       1.2 2021-03-17
+ * @version       2.0.2 2022-29-01
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see           https://github.com/EFTEC/ValidationOne
  */
@@ -246,8 +248,6 @@ class ValidationInputOne {
             //return ($this->initial===null)?$this->default:$this->initial;
             return ($this->initial === null) ? $this->default : ['', ''];
         }
-
-// is array.
         $filenames = array();
         foreach ($_FILES[$fieldId]['name'] as $iValue) {
             $fileNew = self::sanitizeFileName(@$iValue);
@@ -273,6 +273,7 @@ class ValidationInputOne {
      *
      * @return false|string|null
      * @noinspection CallableParameterUseCaseInTypeContextInspection
+     * @noinspection GrazieInspection
      */
     public static function sanitizeFileName($filename) {
         if (empty($filename)) {
