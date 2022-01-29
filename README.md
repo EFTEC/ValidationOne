@@ -2,7 +2,7 @@
 It's a PHP library for fetches and validate fields and store messages in different containers(including error, warning, info
 , and success) depending on the conditions.
 
-The ideology behind this library is simple: 3 classes, a simple dependencies and runs in PHP 5.6 and higher, so it could run
+The ideology behind this library is simple: 3 classes, a simple dependencies and runs in PHP 7.1 and higher, so it could run
 in practically any PHP project, including WordPress, Laravel, core PHP project, etc. 
 
 
@@ -467,6 +467,35 @@ We set the format to the dates to :
 $validation->setDateFormatEnglish()
 ```
 
+## Generating exceptions
+
+By default, this library does not generates exceptions. However, it is possible to generate exceptions if the message if of the type ERROR and/or WARNING.
+
+### throwOnError()
+
+With this method, if the container generates an error, then it is stored also generates a new exception.
+
+> Note: By default, most messages are of the type ERROR.
+>
+> Note: When the operator is throw, then the value is not assigned and the stack is deleted, i.e. if we throw an exception, all the information is lost.
+
+
+
+```php
+try {
+    $validation->type('integer')
+        ->throwOnError() // for errors only
+        ->set('hello', 'field1'); 
+    // or you could use:
+    $validation->type('integer')
+        ->throwOnError(true,true) // for errors and warnings
+        ->set('hello', 'field1'); 
+    $this->fail('this value means the throw failed');
+} catch(\Exception $ex) {
+    $this->assertEquals('field1 is not numeric',$ex->getMessage());
+}
+```
+
 ## Dealing with missing or empty values
 
 There are four different ways to deal with empty values in this library.  
@@ -631,6 +660,9 @@ $validation->convert('htmldecode')->set(....);
 
 
 ## Version list
+
+* 2022-01-29 2.1
+  * [new] method throwOnError()
 
 * 2022-01-29 2.0.2
   * fixed a problem when the condition is "gte". 

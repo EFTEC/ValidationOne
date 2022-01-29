@@ -14,7 +14,7 @@
     "require": {
         "php": ">=7.1",
         "ext-ctype": "*",
-        "eftec/messagecontainer": "^2.0"
+        "eftec/messagecontainer": "^2.0.1"
     },
     "autoload": {
         "psr-4": {

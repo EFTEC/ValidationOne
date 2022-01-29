@@ -29,7 +29,7 @@ if (!defined("NULLVAL")) {
  *
  * @package       eftec
  * @author        Jorge Castro Castillo
- * @version       2.0.2 2022-29-01
+ * @version       2.1 2022-29-01
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see           https://github.com/EFTEC/ValidationOne
  */
@@ -43,7 +43,7 @@ class ValidationOne
     public $dateOutputString = 'Y-m-d';
     /** @var string It is the output format (for datetimestring) */
     public $dateLongOutputString = 'Y-m-d\TH:i:s\Z';
-    /** @var MessageContainer */
+    /** @var MessageContainer the container of the messages */
     public $messageList;
 
     /** @var ValidationInputOne */
@@ -121,6 +121,8 @@ class ValidationOne
     private $isMissing = false;
     /* interal counter of error per chain */
     private $countError;
+    private $throwOnError=false;
+    private $throwOnWarning=false;
 
     //</editor-fold>
 
@@ -172,6 +174,21 @@ class ValidationOne
         $this->countError = 0;
         $this->addToForm = false;
         $this->missingSet = null;
+        if($this->throwOnError && $this->errorCount()>0) {
+            $errors=$this->messageList->allErrorArray();
+            $this->throwOnError=false;
+            $this->throwOnWarning=false;
+            throw new RuntimeException(end($errors)); // it throws the latest error
+        }
+        if($this->throwOnWarning && $this->messageList->warningCount>0) {
+            $warnings = $this->messageList->allWarningArray();
+            $this->throwOnError=false;
+            $this->throwOnWarning=false;
+            throw new RuntimeException(end($warnings)); // it throws the latest warning
+        }
+
+        $this->throwOnError=false;
+        $this->throwOnWarning=false;
     }
 
     /**
@@ -192,7 +209,19 @@ class ValidationOne
         }
         $this->conditions = array();
     }
-
+    /**
+     * If we store an error then we also throw a PHP exception.
+     *
+     * @param bool    $throwOnError  if true (default), then it throws an excepcion every time
+     *                               we store an error.
+     * @param boolean $includeWarning If true then it also includes warnings.
+     * @return ValidationOne
+     */
+    public function throwOnError($throwOnError=true,$includeWarning=false) {
+        $this->throwOnError=$throwOnError;
+        $this->throwOnWarning=$includeWarning;
+        return $this;
+    }
     /**
      * It sets the input values (datestring and datetimestring) in "m/d/Y" and "m/d/Y H:i:s" format instead of "d/m/Y"
      * and "d/m/Y H:i:s" <br> The output is still "Y-m-D" and 'Y-m-d\TH:i:s\Z'<br> This configuration persists across
@@ -431,7 +460,7 @@ class ValidationOne
             //$output = $input;
         }*/ // is missing
         if ($this->messageList->errorCount === $this->countError && $this->successMessage !== null) {
-            $this->addMessage($this->successMessage['id'], $this->successMessage['msg'],
+            $this->messageList->addItem($this->successMessage['id'], $this->successMessage['msg'],
                 $this->successMessage['level']);
         }
         if ($this->addToForm) {
@@ -1810,7 +1839,8 @@ class ValidationOne
 
     /**
      * (Optional). It sets an initial value.<br>
-     * If the value is missing (that it's different to empty or null), then it uses this value.
+     * If the value is missing (that it's different to empty or null), then it uses this value.<br>
+     * It does not work with set()
      *
      * @param null $initial
      *
@@ -2266,7 +2296,7 @@ class ValidationOne
             }
         }
         if ($this->messageList->errorCount == $this->countError && $this->successMessage !== null) {
-            $this->addMessage($this->successMessage['id'], $this->successMessage['msg'],
+            $this->messageList->addItem($this->successMessage['id'], $this->successMessage['msg'],
                 $this->successMessage['level']);
         }
         if ($this->addToForm) {
@@ -2330,6 +2360,7 @@ class ValidationOne
             ? $this->messageList->errorCount
             : $this->messageList->errorOrWarningCount;
     }
+
 
     /**
      * It returns true if there is an error (or error and warning).

@@ -206,6 +206,34 @@ class ValidationOneTest extends TestCase
         self::assertEquals('jpg',getVal()->getFileExtension('//folder/file.jpg'));
         self::assertEquals('image/jpeg',getVal()->getFileExtension('//folder/file.jpg',true));
     }
+
+
+    public function testThrow() {
+        getVal()->messageList->resetAll();
+        try {
+            getVal()->type('integer')->throwOnError()->set('hello', 'field1');
+            $this->fail('this value means the throw failed');
+        } catch(\Exception $ex) {
+            $this->assertEquals('field1 is not numeric',$ex->getMessage());
+        }
+        getVal()->messageList->resetAll();
+        try {
+            getVal()->type('string')->throwOnError()
+                ->condition('eq','%field is not equals to %comp','world')->set('hello', 'field1');
+            $this->fail('this value means the throw failed');
+        } catch(\Exception $ex) {
+            $this->assertEquals('field1 is not equals to world',$ex->getMessage());
+        }
+        getVal()->messageList->resetAll();
+        try {
+            getVal()->type('string')->throwOnError()
+                ->exist()
+                ->get('XXXXYYY');
+            $this->fail('this value means the throw failed');
+        } catch(\Exception $ex) {
+            $this->assertEquals('XXXXYYY does not exist',$ex->getMessage());
+        }
+    }
     public function testTrimConversion() {
         getVal()->messageList->resetAll();
         $r=getVal()->type('string')->set('  hello  ');
@@ -427,7 +455,15 @@ class ValidationOneTest extends TestCase
         self::assertEquals($now->format('Y-m-d'), $r);
 
         getVal()->setDateFormatDefault(); // to default configuration
-
+    }
+    public function testExt() {
+        getVal()->messageList->resetAll();
+        $this->assertEquals('image/jpeg',getVal()->getFileExtension('aaa.jpg',true));
+        $this->assertEquals('application/javascript',getVal()->getFileExtension('aaa.js',true));
+        $this->assertEquals('image/png',getVal()->getFileExtension('aaa.png',true));
+        getVal()->addMessage('tmp','error','error');
+        $this->assertEquals(1,getVal()->errorCount());
+        $this->assertEquals('hello',getVal()->initial('hello')->get('XXXXX'));
     }
 
     public function testDateEmptyOrMissing()
