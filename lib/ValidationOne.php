@@ -2,7 +2,6 @@
 /** @noinspection TypeUnsafeComparisonInspection */
 /** @noinspection TypeUnsafeArraySearchInspection */
 /** @noinspection DuplicatedCode */
-/** @noinspection PhpMissingReturnTypeInspection */
 /** @noinspection ReturnTypeCanBeDeclaredInspection */
 /** @noinspection AlterInForeachInspection */
 /** @noinspection PhpMissingParamTypeInspection */
@@ -217,7 +216,8 @@ class ValidationOne
      * @param boolean $includeWarning If true then it also includes warnings.
      * @return ValidationOne
      */
-    public function throwOnError($throwOnError=true,$includeWarning=false) {
+    public function throwOnError($throwOnError=true,$includeWarning=false): ValidationOne
+    {
         $this->throwOnError=$throwOnError;
         $this->throwOnWarning=$includeWarning;
         return $this;
@@ -229,7 +229,7 @@ class ValidationOne
      *
      * @return $this
      */
-    public function setDateFormatEnglish()
+    public function setDateFormatEnglish(): ValidationOne
     {
         $this->setDateFormat('m/d/Y', 'm/d/Y H:i:s', 'Y-m-d', 'Y-m-d\TH:i:s\Z');
         return $this;
@@ -252,7 +252,7 @@ class ValidationOne
         $dateTimeInput = null,
         $dateOutput = null,
         $dateTimeOutput = null
-    )
+    ): ValidationOne
     {
         if ($dateInput !== null) {
             $this->dateShort = $dateInput;
@@ -275,7 +275,7 @@ class ValidationOne
      *
      * @return $this
      */
-    public function setDateFormatDefault()
+    public function setDateFormatDefault(): ValidationOne
     {
         $this->setDateFormat('d/m/Y', 'd/m/Y H:i:s', 'Y-m-d', 'Y-m-d\TH:i:s\Z');
         return $this;
@@ -375,7 +375,7 @@ class ValidationOne
      *
      * @return ValidationInputOne
      */
-    private function input()
+    private function input(): ValidationInputOne
     {
         if ($this->input === null) {
             $this->input = new ValidationInputOne($this->prefix, $this->messageList); // we used the same message list
@@ -891,7 +891,7 @@ class ValidationOne
      * @param int            $type   =[0,1,2,3,4][$i]  0=number, 1=string,2=date,3=bool,4=file
      * @return bool true if one condition matches, otherwise false.
      */
-    private function runSharedCondition($r, $cond, &$fail, &$genMsg, $type)
+    private function runSharedCondition($r, $cond, &$fail, &$genMsg, $type): bool
     {
         switch ($cond->type) {
             case 'exist':
@@ -1297,7 +1297,7 @@ class ValidationOne
      *
      * @return string mixed
      */
-    public function getFileExtension($fullPath, $asMime = false)
+    public function getFileExtension($fullPath, $asMime = false): string
     {
         if (empty($fullPath)) {
             return '';
@@ -1391,7 +1391,8 @@ class ValidationOne
      * @return ValidationOne
      * @see \eftec\ValidationOne::conversion
      */
-    public function trim($type='trim',$trimChars=" \t\n\r\0\x0B") {
+    public function trim($type='trim',$trimChars=" \t\n\r\0\x0B"): ValidationOne
+    {
         $this->conversion[]=[$type,$trimChars,null];
         return $this;
     }
@@ -1418,7 +1419,8 @@ class ValidationOne
      * @param mixed $arg2 It is used if the conversion requires a second argument.
      * @return $this
      */
-    public function conversion($type,$arg1=null,$arg2=null) {
+    public function conversion($type,$arg1=null,$arg2=null): ValidationOne
+    {
         $this->conversion[]=[$type,$arg1,$arg2];
         return $this;
     }
@@ -1587,7 +1589,7 @@ class ValidationOne
      * @internal param $folder
      * @internal param string $type
      */
-    public function getFile($fieldId, $array = false, $msg = null)
+    public function getFile($fieldId, $array = false, $msg = null): ?array
     {
         $this->countError = $this->messageList->errorCount;
 
@@ -1630,7 +1632,7 @@ class ValidationOne
      * @return ValidationOne $this
      * @see \eftec\ValidationOne::ifFailThenDefault
      */
-    public function def($value = null, $ifFailThenDefault = null)
+    public function def($value = null, $ifFailThenDefault = null): ValidationOne
     {
         $this->default = $value;
         if ($ifFailThenDefault !== null) {
@@ -1651,7 +1653,7 @@ class ValidationOne
      *
      * @return ValidationOne
      */
-    public function isNullValid($isValid = true)
+    public function isNullValid($isValid = true): ValidationOne
     {
         $this->isNullValid = $isValid;
         return $this;
@@ -1669,7 +1671,7 @@ class ValidationOne
      *
      * @return ValidationOne
      */
-    public function isNullOrEmptyValid($isValid = true)
+    public function isNullOrEmptyValid($isValid = true): ValidationOne
     {
         $this->isNullValid = $isValid;
         $this->isEmptyValid = $isValid;
@@ -1688,7 +1690,7 @@ class ValidationOne
      *
      * @return ValidationOne
      */
-    public function isEmptyValid($isEmpty = true)
+    public function isEmptyValid($isEmpty = true): ValidationOne
     {
         $this->isEmptyValid = $isEmpty;
         return $this;
@@ -1706,7 +1708,7 @@ class ValidationOne
      *
      * @return ValidationOne
      */
-    public function isMissingValid($isMissing = true)
+    public function isMissingValid($isMissing = true): ValidationOne
     {
         $this->isMissingValid = $isMissing;
         return $this;
@@ -1724,7 +1726,7 @@ class ValidationOne
      *
      * @return $this
      */
-    public function initial($initial = null)
+    public function initial($initial = null): ValidationOne
     {
         $this->initialValue = $initial;
         return $this;
@@ -1752,7 +1754,7 @@ class ValidationOne
      *
      * @return ValidationOne $this
      */
-    public function abortOnError($abort = false)
+    public function abortOnError($abort = false): ValidationOne
     {
         $this->abortOnError = $abort;
         return $this;
@@ -1766,17 +1768,18 @@ class ValidationOne
      *
      * @return ValidationOne $this
      */
-    public function isArray($flat = false)
+    public function isArray($flat = false): ValidationOne
     {
         $this->isArray = true;
         $this->isArrayFlat = $flat;
         return $this;
     }
-    public function getHasMessage() {
+    public function getHasMessage(): bool
+    {
         return $this->hasMessage;
     }
 
-    public function isColumn($isColumn)
+    public function isColumn($isColumn): ValidationOne
     {
         $this->isColumn = $isColumn;
         return $this;
@@ -1787,7 +1790,7 @@ class ValidationOne
      *
      * @return ValidationOne ValidationOne
      */
-    public function ifFailThenDefault($ifFailDefault = true)
+    public function ifFailThenDefault($ifFailDefault = true): ValidationOne
     {
         $this->ifFailThenDefault = $ifFailDefault;
         return $this;
@@ -1800,7 +1803,7 @@ class ValidationOne
      *
      * @return ValidationOne ValidationOne
      */
-    public function ifFailThenOrigin($ifFailThenOrigin = true)
+    public function ifFailThenOrigin($ifFailThenOrigin = true): ValidationOne
     {
         $this->ifFailThenDefault = true;
         $this->ifFailThenOrigin = $ifFailThenOrigin;
@@ -1822,7 +1825,7 @@ class ValidationOne
      *
      * @return ValidationOne
      */
-    public function ifMissingThenSet($value = null)
+    public function ifMissingThenSet($value = null): ValidationOne
     {
         if ($value === null) {
             $this->missingSet = $this->defNatural();
@@ -1847,7 +1850,7 @@ class ValidationOne
      *
      * @return ValidationOne $this
      */
-    public function defNatural($negative = false)
+    public function defNatural($negative = false): ValidationOne
     {
         switch ($this->typeFam) {
             case '':
@@ -1880,7 +1883,7 @@ class ValidationOne
         return $this;
     }
 
-    public function successMessage($id, $msg, $level = "success")
+    public function successMessage($id, $msg, $level = "success"): ValidationOne
     {
         $this->successMessage = ['id' => $id, 'msg' => $msg, 'level' => $level];
         return $this;
@@ -1893,7 +1896,7 @@ class ValidationOne
      *
      * @return ValidationOne
      */
-    public function override($override = true)
+    public function override($override = true): ValidationOne
     {
         $this->override = $override;
         return $this;
@@ -1909,7 +1912,7 @@ class ValidationOne
      * @see ValidationOne::def()
      * @see ValidationOne::condition()
      */
-    public function exist($exist = true, $msg = '')
+    public function exist($exist = true, $msg = ''): ValidationOne
     {
         $this->exist = $exist;
         if ($this->exist) {
@@ -1977,7 +1980,7 @@ class ValidationOne
         $level = 'error'
         ,
         $key = null
-    )
+    ): ValidationOne
     {
         if (strpos($this->DATSARR, $this->type) !== false) {
             $conditionValue = $this->inputToDate($conditionValue);
@@ -1998,7 +2001,7 @@ class ValidationOne
      * @return $this
      * @see \eftec\ValidationOne::condition
      */
-    public function notempty($msg = '')
+    public function notempty($msg = ''): ValidationOne
     {
         $this->condition('ne', $msg);
         return $this;
@@ -2016,7 +2019,7 @@ class ValidationOne
      * @return $this
      * @see \eftec\ValidationOne::condition
      */
-    public function required($required = true, $msg = '')
+    public function required($required = true, $msg = ''): ValidationOne
     {
         if ($required) {
             $this->condition('req', $msg);
@@ -2030,7 +2033,7 @@ class ValidationOne
      * @return ValidationOne
      * @noinspection PhpUndefinedClassInspection
      */
-    public function useForm($form)
+    public function useForm($form): ValidationOne
     {
         $this->formOne = $form;
         return $this;
@@ -2043,7 +2046,7 @@ class ValidationOne
      *
      * @return ValidationOne
      */
-    public function friendId($id)
+    public function friendId($id): ValidationOne
     {
         $this->friendId = $id;
         return $this;
@@ -2059,7 +2062,7 @@ class ValidationOne
      *
      * @return ValidationOne $this
      */
-    public function type($type)
+    public function type($type): ValidationOne
     {
         if (is_array($type)) {
             $this->typeFams = $this->getTypeFamily($type);
@@ -2192,7 +2195,7 @@ class ValidationOne
      *
      * @return null|string
      */
-    public function getMessage($withWarning = false)
+    public function getMessage($withWarning = false): ?string
     {
         if ($withWarning) {
             return $this->messageList->firstErrorOrWarning();
@@ -2207,7 +2210,7 @@ class ValidationOne
      *
      * @return array
      */
-    public function getMessages($withWarning = false)
+    public function getMessages($withWarning = false): array
     {
         if ($withWarning) {
             $this->messageList->allErrorOrWarningArray();
@@ -2222,7 +2225,7 @@ class ValidationOne
      *
      * @return MessageLocker
      */
-    public function getMessageId($idLocker)
+    public function getMessageId($idLocker): MessageLocker
     {
         return $this->messageList->get($idLocker);
     }
@@ -2233,7 +2236,8 @@ class ValidationOne
      * @param bool $includeWarning If true then it also includes the warning.
      * @return int
      */
-    public function errorCount($includeWarning=false) {
+    public function errorCount($includeWarning=false): int
+    {
         return $includeWarning
             ? $this->messageList->errorCount
             : $this->messageList->errorOrWarningCount;
@@ -2246,7 +2250,8 @@ class ValidationOne
      * @param bool $includeWarning If true then it also returns if there is a warning
      * @return bool
      */
-    public function hasError($includeWarning=false) {
+    public function hasError($includeWarning=false): bool
+    {
         return $this->messageList->hasError($includeWarning);
     }
 

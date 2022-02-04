@@ -1,6 +1,5 @@
-<?php /** @noinspection ReturnTypeCanBeDeclaredInspection
+<?php /**
  * @noinspection PhpMissingStrictTypesDeclarationInspection
- * @noinspection PhpMissingReturnTypeInspection
  * @noinspection PhpMissingParamTypeInspection
  * @noinspection PhpUnusedParameterInspection
  * @noinspection UnknownInspectionInspection
@@ -187,7 +186,7 @@ class ValidationInputOne {
      * @internal param $folder
      * @internal param string $type
      */
-    public function getFile($field, $array = false, &$msg = null, &$isMissing = false)
+    public function getFile($field, $array = false, &$msg = null, &$isMissing = false): array
     {
         $fieldId = $this->prefix . $field;
         if (!$array) {
