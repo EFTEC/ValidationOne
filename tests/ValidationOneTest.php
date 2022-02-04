@@ -292,6 +292,66 @@ class ValidationOneTest extends TestCase
         $r = getVal()->type('string')->isNullOrEmptyValid()->notempty()->required()->post('FIELDREQ');
         self::assertEquals(0,getVal()->messageList->errorCount);
         self::assertEquals('', $r);
+
+        getVal()->messageList->resetAll();
+        unset($_POST['frm_FIELDREQ']);
+        $r = getVal()->type('string')
+            //->isNullValid()
+            ->condition('notnull')
+            ->required()
+            ->post('FIELDREQ');
+        self::assertEquals(['FIELDREQ is null', 'FIELDREQ is required'],getVal()->getMessages());
+        self::assertEquals(null, $r);
+
+        getVal()->messageList->resetAll();
+        unset($_POST['frm_FIELDREQ']);
+        $r = getVal()->type('string')
+            //->isNullValid()
+            ->condition('null')
+            ->required()
+            ->post('FIELDREQ');
+        self::assertEquals(['FIELDREQ is required'],getVal()->getMessages());
+        self::assertEquals(null, $r);
+
+        getVal()->messageList->resetAll();
+        unset($_POST['frm_FIELDREQ']);
+        $r = getVal()->type('string')
+            //->isNullValid()
+            ->condition('empty')
+            ->required()
+            ->post('FIELDREQ');
+        self::assertEquals(['FIELDREQ is required'],getVal()->getMessages());
+        self::assertEquals(null, $r);
+
+        getVal()->messageList->resetAll();
+        unset($_POST['frm_FIELDREQ']);
+        $r = getVal()->type('string')
+            //->isNullValid()
+            ->condition('notempty')
+            ->required()
+            ->post('FIELDREQ');
+        self::assertEquals(['FIELDREQ is empty','FIELDREQ is required'],getVal()->getMessages());
+        self::assertEquals(null, $r);
+
+        getVal()->messageList->resetAll();
+        unset($_POST['frm_FIELDREQ']);
+        $r = getVal()->type('string')
+            //->isNullValid()
+            ->condition('notexist')
+            ->required(false)
+            ->post('FIELDREQ');
+        self::assertEquals([],getVal()->getMessages());
+        self::assertEquals(null, $r);
+
+        getVal()->messageList->resetAll();
+        $_POST['frm_FIELDREQ']='123';
+        $r = getVal()->type('string')
+            //->isNullValid()
+            ->condition('notexist')
+            ->required(false)
+            ->post('FIELDREQ');
+        self::assertEquals(['FIELDREQ exists'],getVal()->getMessages());
+        self::assertEquals('123', $r);
     }
 
 

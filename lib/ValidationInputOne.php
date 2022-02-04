@@ -153,52 +153,6 @@ class ValidationInputOne {
         return $r;
     }
 
-    /**
-     * It adds an error
-     *
-     * @param string $msg     first message. If it's empty or null then it uses the second message<br>
-     *                        Message could use the next variables '%field','%realfield','%value','%comp','%first','%second'
-     * @param string $msg2    second message
-     * @param string $fieldId id of the field
-     * @param mixed  $value   value supplied
-     * @param mixed  $vcomp   value to compare.
-     * @param string $level   (error,warning,info,success) error level
-     * @noinspection PhpUnusedPrivateMethodInspection
-     * @noinspection PhpSameParameterValueInspection
-     */
-    private function addMessageInternal($msg, $msg2, $fieldId, $value, $vcomp, $level = 'error'): void
-    {
-        $txt = ($msg) ?: $msg2;
-        if (is_array($vcomp)) {
-            $first = @$vcomp[0];
-            $second = @$vcomp[1];
-            $vcomp = @$vcomp[0]; // is not array anymore
-        } else {
-            $first = $vcomp;
-            $second = $vcomp;
-        }
-        if (is_array($this->originalValue)) {
-            $txt = str_replace(['%field', '%realfield', '%value', '%comp', '%first', '%second'], [
-                $this->friendId ?? $fieldId,
-                $fieldId,
-                $value,
-                $vcomp,
-                $first,
-                $second
-            ], $txt);
-        } else {
-            $txt = str_replace(['%field', '%realfield', '%value', '%comp', '%first', '%second'], [
-                $this->friendId ?? $fieldId,
-                $fieldId,
-                $this->originalValue,
-                $vcomp,
-                $first,
-                $second
-            ], $txt);
-        }
-        $this->messageList->addItem($fieldId, $txt, $level);
-    }
-
     public function post($field, $msg = null, &$isMissing = false) {
         return $this->getField($field, 0, $msg, $isMissing);
     }
@@ -273,7 +227,6 @@ class ValidationInputOne {
      *
      * @return false|string|null
      * @noinspection CallableParameterUseCaseInTypeContextInspection
-     * @noinspection GrazieInspection
      */
     public static function sanitizeFileName($filename) {
         if (empty($filename)) {

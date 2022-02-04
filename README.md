@@ -661,9 +661,10 @@ $validation->convert('htmldecode')->set(....);
 
 ## Version list
 
+* 2022-02-04 2.2
+  * [new] support to PHP 8.1.  PHP 8.1 is quite tricky, it deprecated a lot of arguments for several functions.
 * 2022-01-29 2.1
   * [new] method throwOnError()
-
 * 2022-01-29 2.0.2
   * fixed a problem when the condition is "gte". 
 * 2022-01-15 2.0.1

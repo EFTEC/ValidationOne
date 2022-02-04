@@ -545,20 +545,20 @@ class ValidationOne
                     return $this->inputToDate($localDefault);
                 }
                 $valueDate = ($value instanceof DateTime) ? $value
-                    : DateTime::createFromFormat($this->dateLong, $value);
+                    : DateTime::createFromFormat($this->dateLong, $value??'');
 
                 if ($valueDate === false) {
                     // the format is not date and time, maybe it's only date
                     /** @var DateTime|false $valueDate */
-                    $valueDate = DateTime::createFromFormat($this->dateShort, $value);
+                    $valueDate = DateTime::createFromFormat($this->dateShort, $value??'');
                     if ($valueDate === false) {
                         // nope, it's neither date and it is required
                         $this->hasMessage = true;
                         $this->addMessageInternal($msg, '%field is not a date', $field, $value, null);
                         $tmpOutput = ($localDefault instanceof DateTime) ? $localDefault
-                            : DateTime::createFromFormat($this->dateLong, $localDefault);
+                            : DateTime::createFromFormat($this->dateLong, $localDefault??'');
                         if ($tmpOutput === false) {
-                            $tmpOutput = DateTime::createFromFormat($this->dateShort, $localDefault);
+                            $tmpOutput = DateTime::createFromFormat($this->dateShort, $localDefault??'');
                             if ($tmpOutput != false) {
                                 $tmpOutput->settime(0, 0);
                             } else {
@@ -866,7 +866,7 @@ class ValidationOne
                 }
                 break;
             case 'gte':
-                if ($r <= $cond->value) {
+                if ($r < $cond->value) {
                     $fail = true;
                     $genMsg = '%field is less than %comp';
                 }
@@ -902,7 +902,7 @@ class ValidationOne
                 break;
             case 'missing':
             case 'notexist':
-                if (!$this->isMissing || $type !== 4) { // file uses a different method
+                if (!$this->isMissing && $type !== 4) { // file uses a different method
                     $fail = true;
                     $genMsg = '%field exists';
                 }
@@ -1306,203 +1306,79 @@ class ValidationOne
         if (!$asMime) {
             return $ext;
         }
-        switch ($ext) {
-            case 'aac':
-                $mime = 'audio/aac';
-                break;
-            case 'abw':
-                $mime = 'application/x-abiword';
-                break;
-            case 'avi':
-                $mime = 'video/x-msvideo';
-                break;
-            case 'bmp':
-                $mime = 'image/bmp';
-                break;
-            case 'bz':
-                $mime = 'application/x-bzip';
-                break;
-            case 'bz2':
-                $mime = 'application/x-bzip2';
-                break;
-            case 'css':
-                $mime = 'text/css';
-                break;
-            case 'csv':
-                $mime = 'text/csv';
-                break;
-            case 'doc':
-                $mime = 'application/msword';
-                break;
-            case 'docx':
-                $mime = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-                break;
-            case 'dwg':
-                $mime = 'image/vnd.dwg';
-                break;
-            case 'eot':
-                $mime = 'application/vnd.ms-fontobject';
-                break;
-            case 'epub':
-                $mime = 'application/epub+zip';
-                break;
-            case 'gif':
-                $mime = 'image/gif';
-                break;
-            case 'html':
-            case 'htm':
-                $mime = 'text/html';
-                break;
-            case 'ico':
-                $mime = 'image/x-icon';
-                break;
-            case 'ics':
-                $mime = 'text/calendar';
-                break;
-            case 'jar':
-                $mime = 'application/java-archive';
-                break;
-            case 'jpg':
-            case 'jpeg':
-                $mime = 'image/jpeg';
-                break;
-            case 'js':
-                $mime = 'application/javascript';
-                break;
-            case 'json':
-                $mime = 'application/json';
-                break;
-            case 'midi':
-            case 'mid':
-                $mime = 'audio/midi audio/x-midi';
-                break;
-            case 'mpeg':
-            case 'mpg':
-                $mime = 'video/mpeg';
-                break;
-            case 'mpkg':
-                $mime = 'application/vnd.apple.installer+xml';
-                break;
-            case 'odp':
-                $mime = 'application/vnd.oasis.opendocument.presentation';
-                break;
-            case 'ods':
-                $mime = 'application/vnd.oasis.opendocument.spreadsheet';
-                break;
-            case 'odt':
-                $mime = 'application/vnd.oasis.opendocument.text';
-                break;
-            case 'oga':
-            case 'ogg':
-                $mime = 'audio/ogg';
-                break;
-            case 'ogv':
-                $mime = 'video/ogg';
-                break;
-            case 'ogx':
-                $mime = 'application/ogg';
-                break;
-            case 'otf':
-                $mime = 'font/otf';
-                break;
-            case 'png':
-                $mime = 'image/png';
-                break;
-            case 'pdf':
-                $mime = 'application/pdf';
-                break;
-            case 'ppt':
-                $mime = 'application/vnd.ms-powerpoint';
-                break;
-            case 'pptx':
-                $mime = 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
-                break;
-            case 'rar':
-                $mime = 'application/x-rar-compressed';
-                break;
-            case 'rtf':
-                $mime = 'application/rtf';
-                break;
-            case 'sh':
-                $mime = 'application/x-sh';
-                break;
-            case 'svg':
-                $mime = 'image/svg+xml';
-                break;
-            case 'swf':
-                $mime = 'application/x-shockwave-flash';
-                break;
-            case 'tar':
-                $mime = 'application/x-tar';
-                break;
-            case 'tiff':
-            case 'tif':
-                $mime = 'image/tiff';
-                break;
-            case 'ts':
-                $mime = 'application/typescript';
-                break;
-            case 'ttf':
-                $mime = 'font/ttf';
-                break;
-            case 'txt':
-                $mime = 'text/plain';
-                break;
-            case 'vsd':
-                $mime = 'application/vnd.visio';
-                break;
-            case 'wav':
-                $mime = 'audio/wav';
-                break;
-            case 'weba':
-                $mime = 'audio/webm';
-                break;
-            case 'webm':
-                $mime = 'video/webm';
-                break;
-            case 'webp':
-                $mime = 'image/webp';
-                break;
-            case 'woff':
-                $mime = 'font/woff';
-                break;
-            case 'woff2':
-                $mime = 'font/woff2';
-                break;
-            case 'xhtml':
-                $mime = 'application/xhtml+xml';
-                break;
-            case 'xls':
-                $mime = 'application/vnd.ms-excel';
-                break;
-            case 'xlsm':
-                $mime = 'application/vnd.ms-excel.sheet.macroEnabled.12';
-                break;
-            case 'xlsx':
-                $mime = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-                break;
-            case 'xml':
-                $mime = 'application/xml';
-                break;
-            case 'xul':
-                $mime = 'application/vnd.mozilla.xul+xml';
-                break;
-            case 'zip':
-                $mime = 'application/zip';
-                break;
-            case '3gp':
-                $mime = 'video/3gpp';
-                break;
-            case '3g2':
-                $mime = 'video/3gpp2';
-                break;
-            case '7z':
-                $mime = 'application/x-7z-compressed';
-                break;
-            default:
-                $mime = 'application/octet-stream';
-        }
-        return $mime;
+        $mimes=['aac'=>'audio/aac',
+            'abw'=>'application/x-abiword',
+            'avi'=>'video/x-msvideo',
+            'bmp'=>'image/bmp',
+            'bz'=>'application/x-bzip',
+            'bz2'=>'application/x-bzip2',
+            'css'=>'text/css',
+            'csv'=>'text/csv',
+            'doc'=>'application/msword',
+            'docx'=>'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'dwg'=>'image/vnd.dwg',
+            'eot'=>'application/vnd.ms-fontobject',
+            'epub'=>'application/epub+zip',
+            'gif'=>'image/gif',
+            'html'=>'text/html',
+            'htm'=>'text/html',
+            'ico'=>'image/x-icon',
+            'ics'=>'text/calendar',
+            'jar'=>'application/java-archive',
+            'jpg'=>'image/jpeg',
+            'jpeg'=>'image/jpeg',
+            'js'=>'application/javascript',
+            'json'=>'application/json',
+            'midi'=>'audio/midi audio/x-midi',
+            'mid'=>'audio/midi audio/x-midi',
+            'mpeg'=>'video/mpeg',
+            'mpg'=>'video/mpeg',
+            'mpkg'=>'application/vnd.apple.installer+xml',
+            'odp'=>'application/vnd.oasis.opendocument.presentation',
+            'ods'=>'application/vnd.oasis.opendocument.spreadsheet',
+            'odt'=>'application/vnd.oasis.opendocument.text',
+            'oga'=>'audio/ogg',
+            'ogg'=>'audio/ogg',
+            'ogv'=>'video/ogg',
+            'ogx'=>'application/ogg',
+            'otf'=>'font/otf',
+            'png'=>'image/png',
+            'pdf'=>'application/pdf',
+            'ppt'=>'application/vnd.ms-powerpoint',
+            'pptx'=>'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            'rar'=>'application/x-rar-compressed',
+            'rtf'=>'application/rtf',
+            'sh'=>'application/x-sh',
+            'svg'=>'image/svg+xml',
+            'swf'=>'application/x-shockwave-flash',
+            'tar'=>'application/x-tar',
+            'tiff'=>'image/tiff',
+            'tif'=>'image/tiff',
+            'ts'=>'application/typescript',
+            'ttf'=>'font/ttf',
+            'txt'=>'text/plain',
+            'vsd'=>'application/vnd.visio',
+            'wav'=>'audio/wav',
+            'weba'=>'audio/webm',
+            'webm'=>'video/webm',
+            'webp'=>'image/webp',
+            'woff'=>'font/woff',
+            'woff2'=>'font/woff2',
+            'xhtml'=>'application/xhtml+xml',
+            'xls'=>'application/vnd.ms-excel',
+            'xlsm'=>'application/vnd.ms-excel.sheet.macroEnabled.12',
+            'xlsx'=>'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'xml'=>'application/xml',
+            'xul'=>'application/vnd.mozilla.xul+xml',
+            'zip'=>'application/zip',
+            '3gp'=>'video/3gpp',
+            '3g2'=>'video/3gpp2',
+            '7z'=>'application/x-7z-compressed',
+            'default'=>'application/octet-stream'
+        ];
+        return array_key_exists($ext, $mimes)
+            ? $mimes[$ext]
+            : $mimes['default'];
     }
 
     /**
@@ -1592,7 +1468,9 @@ class ValidationOne
                             $tmp=str_replace($v[1],$v[2],$input);
                             break;
                         case 'sanitizer':
-                            $tmp=filter_var($input, $v[1] ?? FILTER_DEFAULT,$v[2]);
+                            $tmp = $v[2] === null
+                                ? filter_var($input, $v[1] ?? FILTER_DEFAULT)
+                                : filter_var($input, $v[1] ?? FILTER_DEFAULT, $v[2]);
                             break;
                         case 'alphanumeric':
                             $tmp=preg_replace('/[\W]/', '', $input);
@@ -1604,10 +1482,10 @@ class ValidationOne
                             $tmp=preg_replace($v[1], $v[2]??'', $input);
                             break;
                         case 'htmlencode':
-                            $tmp=htmlentities($input,$v[1],$v[2]);
+                            $tmp=htmlentities($input,$v[1]??ENT_QUOTES|ENT_SUBSTITUTE,$v[2]);
                             break;
                         case 'htmldecode':
-                            $tmp=html_entity_decode($input,$v[1],$v[2]);
+                            $tmp=html_entity_decode($input,$v[1]??ENT_QUOTES|ENT_SUBSTITUTE,$v[2]);
                             break;
                         default:
                             $tmp = $input;
