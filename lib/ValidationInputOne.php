@@ -182,11 +182,11 @@ class ValidationInputOne {
      * @param string|null $msg
      * @param bool        $isMissing
      *
-     * @return array=[current filename,temporal name]
+     * @return null|array=[current filename,temporal name]
      * @internal param $folder
      * @internal param string $type
      */
-    public function getFile($field, $array = false, &$msg = null, &$isMissing = false): array
+    public function getFile($field, $array = false, &$msg = null, &$isMissing = false): ?array
     {
         $fieldId = $this->prefix . $field;
         if (!$array) {

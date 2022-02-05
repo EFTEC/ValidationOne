@@ -660,12 +660,15 @@ $validation->convert('htmldecode')->set(....);
 
 
 ## Version list
-
+* 2022-02-05 2.2
+  * **[update]** update dependency to MessageContainer 2.3. Now MessageContainer is injected as singleton.
+  * **[update]** ValidationOne methods now has type hinting (return values).
+  * **[fix]** inputDate() method has some wrong operations. Now, they were removed.
 * 2022-02-04 2.2
-  * [new] support to PHP 8.1.  PHP 8.1 is quite tricky, it deprecated a lot of arguments for several functions.
-  * [new] This library support PHP 7.2 or higher. If you need older functionality, then you can use an old version.
+  * **[new]** support to PHP 8.1.  PHP 8.1 is quite tricky, it deprecated a lot of arguments for several functions.
+  * **[new]** This library support PHP 7.2 or higher. If you need older functionality, then you can use an old version.
 * 2022-01-29 2.1
-  * [new] method throwOnError()
+  * **[new]** method throwOnError()
 * 2022-01-29 2.0.2
   * fixed a problem when the condition is "gte". 
 * 2022-01-15 2.0.1

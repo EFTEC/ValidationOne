@@ -25,7 +25,8 @@ class ValidationOneTest extends TestCase
 
     public function testMessages()
     {
-        $ml = new MessageContainer();
+        $ml = MessageContainer::instance();
+        $ml->resetAll();
         $ml->addItem('c1', 'message error c1-1', 'error');
         $ml->addItem('c1', 'message error c1-2', 'error');
 
@@ -41,6 +42,11 @@ class ValidationOneTest extends TestCase
             2 => 'message error c2-1',
             3 => 'message error c2-2'
         ], $ml->allErrorOrWarningArray());
+    }
+    public function testArray() {
+        getVal()->resetValidation(true);
+        getVal()->condition('gt','10')->isArray()->set([1,2,3],'id');
+        self::assertEquals([], getVal()->getMessageId('id')->all());
     }
 
     public function test6()

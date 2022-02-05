@@ -22,16 +22,8 @@ function getVal($prefix='frm_') {
 }
 
 /**
- * @return MessageContainer|null
+ * @return string
  */
-function messages() {
-    global $errorList;
-    if ($errorList===null) {
-        $errorList=new MessageContainer();
-    }
-    return $errorList;
-}
-
 function generateTable($array,$css=true){
     if (!isset($array[0])) {
         $tmp=$array;

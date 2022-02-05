@@ -28,7 +28,7 @@ if (!defined("NULLVAL")) {
  *
  * @package       eftec
  * @author        Jorge Castro Castillo
- * @version       2.1 2022-29-01
+ * @version       2.2 2022-02-05
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see           https://github.com/EFTEC/ValidationOne
  */
@@ -132,11 +132,8 @@ class ValidationOne
      */
     public function __construct($prefix = '')
     {
-        if (function_exists('messages')) {
-            $this->messageList = messages();
-        } else {
-            $this->messageList = new MessageContainer();
-        }
+        // autowire an instance or create a new one.
+        $this->messageList =MessageContainer::instance();
         $this->prefix = $prefix;
         $this->resetChain();
     }
@@ -193,18 +190,12 @@ class ValidationOne
     /**
      * It cleans the stacked validations. It also could delete the messages
      *
-     * @param bool $deleteMessage [default] if true then it deletes all messages (by default it's false).<br>
-     *                            It does not delete the messages if they are defined by the global
-     *                            function messages().
+     * @param bool $deleteMessage [default] if true then it deletes all messages (by default it's false).<br>.
      */
     public function resetValidation($deleteMessage = false)
     {
         if ($deleteMessage) {
-            if (function_exists('messages')) {
-                $this->messageList = messages();
-            } else {
-                $this->messageList = new MessageContainer();
-            }
+            $this->messageList->resetAll();
         }
         $this->conditions = array();
     }
@@ -346,20 +337,9 @@ class ValidationOne
                     }
                     $value->settime(0, 0);
                     break;
-                case 'datestringx':
-                    $value = DateTime::createFromFormat($this->dateShort, $input);
-                    if ($value === false) {
-                        return false;
-                    }
-                    $value->settime(0, 0);
-                    $value = $value->format($this->dateOutputString);
-                    break;
                 case 'datetime':
                 case 'datetimestring':
                     $value = DateTime::createFromFormat($this->dateLong, $input);
-                    break;
-                case 'datetimestringxx':
-                    $value = DateTime::createFromFormat($this->dateLong, $input)->format($this->dateLongOutputString);
                     break;
                 default:
                     $value = $input;
@@ -434,7 +414,7 @@ class ValidationOne
                 $input = $this->basicValidation($input, $fieldId, $msg);
                 if (is_array($input)) {
                     foreach ($input as $key => &$items) {
-                        $currentField = ($this->isArrayFlat) ? $fieldId : $fieldId . "[" . $key . "]";
+                        $currentField = ($this->isArrayFlat) ? $fieldId : "$fieldId[$key]";
                         $this->runConditions($items, $currentField, $key);
 
                         if ($this->ifFailThenDefault && $this->messageList->get($currentField)->countError()) {
@@ -1649,7 +1629,7 @@ class ValidationOne
      * $this->isNullValid()->condition("eq","hello")->get("idfield"); // hello or null are valid conditions
      * </pre>
      *
-     * @param bool $isValid if true then if the value is null then it is not evaluated.
+     * @param bool $isValid if true then, if the value is null then it is not evaluated.
      *
      * @return ValidationOne
      */
@@ -1667,7 +1647,7 @@ class ValidationOne
      * $this->isNullorEmptyValid()->condition("eq","hello")->get("idfield"); // hello or null/'' are valid conditions
      * </pre>
      *
-     * @param bool $isValid if true then if the value is null/empty then it is not evaluated.
+     * @param bool $isValid if true then, if the value is null/empty then it is not evaluated.
      *
      * @return ValidationOne
      */
@@ -1686,7 +1666,7 @@ class ValidationOne
      * $this->isNullValid()->condition("eq","hello")->get("idfield"); // hello or '' are valid conditions
      * </pre>
      *
-     * @param bool $isEmpty if true then if the value is null then it is not evaluated.
+     * @param bool $isEmpty if true then, if the value is null then it is not evaluated.
      *
      * @return ValidationOne
      */
@@ -1704,7 +1684,7 @@ class ValidationOne
      * $this->isMissingValid()->condition("eq","hello")->get("idfield"); // hello or not defined are valid conditions
      * </pre>
      *
-     * @param bool $isMissing if true then if the value is null then it is not evaluated.
+     * @param bool $isMissing if true then, if the value is null then it is not evaluated.
      *
      * @return ValidationOne
      */
@@ -1748,7 +1728,7 @@ class ValidationOne
     //<editor-fold desc="fetch and end of chain commands">
 
     /**
-     * Sets if the conditions must be evaluated on Error or not. By default it's not aborted.
+     * Sets if the conditions must be evaluated on Error or not. By default, it's not aborted.
      *
      * @param bool $abort if true, then it stops at the first error.
      *
@@ -1923,7 +1903,7 @@ class ValidationOne
 
     /**
      * It adds a condition to the variable. If the conditions doesn't meet, then it stores a message and raise an error
-     * level. The conditions depends on the type of the variable. Also, some conditions requires one or two values.
+     * level. The conditions depend on the type of the variable. Also, some conditions requires one or two values.
      * <b>Example:</b>
      * <pre>
      * $field2=getVal()->type('string')
@@ -2127,7 +2107,7 @@ class ValidationOne
     }
 
     /**
-     * It is an alternative to get(), post() and request(). It reads from the memory.
+     * It is an alternative to get(), post() and request(). It reads a value from a literal os variable.
      *
      * @param mixed  $input   Input data.
      * @param string $fieldId (optional)
