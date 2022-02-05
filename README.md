@@ -660,7 +660,7 @@ $validation->convert('htmldecode')->set(....);
 
 
 ## Version list
-* 2022-02-05 2.2
+* 2022-02-05 2.3
   * **[update]** update dependency to MessageContainer 2.3. Now MessageContainer is injected as singleton.
   * **[update]** ValidationOne methods now has type hinting (return values).
   * **[fix]** inputDate() method has some wrong operations. Now, they were removed.
