@@ -60,6 +60,18 @@ class ValidationOneTest extends TestCase
         self::assertEquals('this value must not be empty', getVal()->messageList->firstErrorText());
         getVal()->configChain(false, false);
     }
+    public function testAlphaNumericUnder()
+    {
+        getVal()->messageList->resetAll();
+        unset($_POST['frm_FIELDREQ'], $_GET['frm_FIELDREQ'], $_FILES['frm_FIELDREQF']);
+        $_POST['frm_FIELDREQ']='Aaaaa**';
+        $_POST['frm_FIELDREQ2']='Aa_aaa**';
+
+        $r=getVal()->type('string')->condition('alphanumunder')->post('FIELDREQ');
+        $r2=getVal()->type('string')->conversion('alphanumericunderscore')->post('FIELDREQ2');
+        self::assertEquals('FIELDREQ is not alphanumeric with underscore', getVal()->messageList->firstErrorText());
+        self::assertEquals('Aa_aaa', $r2);
+    }
 
     public function test4()
     {

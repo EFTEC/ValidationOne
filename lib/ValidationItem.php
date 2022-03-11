@@ -15,7 +15,7 @@ namespace eftec;
  * @see           https://github.com/EFTEC/ValidationOne
  */
 class ValidationItem {
-    /** @var string=['alpha','alphanum','between','betweenlen','contain','doc','domain','email','eq','ext','false','gt','gte','image','lt','lte','maxlen','maxsize','minlen','minsize','ne','notcontain','notnull','null','regexp','req','text','true','url','fn.*'][$i] */
+    /** @var string=['alpha','alphanum','alphanumunder','between','betweenlen','contain','doc','domain','email','eq','ext','false','gt','gte','image','lt','lte','maxlen','maxsize','minlen','minsize','ne','notcontain','notnull','null','regexp','req','text','true','url','fn.*'][$i] */
     public $type;
     /** @var mixed value used for validation. It could be an array (between for example uses an array) */
     public $value;
@@ -27,7 +27,7 @@ class ValidationItem {
     /**
      * Tris constructor.
      *
-     * @param string $type  =['alpha','alphanum','between','betweenlen','contain','doc','domain','email','eq','ext','false','gt','gte','image','lt','lte','maxlen','maxsize','minlen','minsize','ne','notcontain','notnull','null','regexp','req','text','true','url','fn.*'][$i]
+     * @param string $type  =['alpha','alphanum','alphanumunder','between','betweenlen','contain','doc','domain','email','eq','ext','false','gt','gte','image','lt','lte','maxlen','maxsize','minlen','minsize','ne','notcontain','notnull','null','regexp','req','text','true','url','fn.*'][$i]
      * @param string $msg   It uses sprintf, so you could use %s and %3$s
      * @param mixed  $value value used for validation. It could be an array (between for example uses an array)
      * @param string $level =['error','warning','info','success'][$i]

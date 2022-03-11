@@ -1,16 +1,12 @@
-<?php /** @noinspection PhpMissingStrictTypesDeclarationInspection */
-/** @noinspection TypeUnsafeComparisonInspection */
-/** @noinspection TypeUnsafeArraySearchInspection */
+<?php /** @noinspection TypeUnsafeArraySearchInspection */
+/** @noinspection PhpMissingStrictTypesDeclarationInspection */
 /** @noinspection DuplicatedCode */
-/** @noinspection ReturnTypeCanBeDeclaredInspection */
 /** @noinspection AlterInForeachInspection */
 /** @noinspection PhpMissingParamTypeInspection */
 /**
  * @noinspection DuplicatedCode
  */
-
 //declare(strict_types=1);
-
 namespace eftec;
 
 use DateTime;
@@ -28,7 +24,7 @@ if (!defined("NULLVAL")) {
  *
  * @package       eftec
  * @author        Jorge Castro Castillo
- * @version       2.2 2022-02-05
+ * @version       2.4 2022-03-11
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see           https://github.com/EFTEC/ValidationOne
  */
@@ -95,10 +91,10 @@ class ValidationOne
     private $override = false;
     /** @var bool If true then the field exists otherwise it generates an error */
     private $exist = false;
-    /** @var array The conversion stack  */
-    private $conversion=[];
-    private $alwaysTrim=false;
-    private $alwaysTrimChars=" \t\n\r\0\x0B";
+    /** @var array The conversion stack */
+    private $conversion = [];
+    private $alwaysTrim = false;
+    private $alwaysTrimChars = " \t\n\r\0\x0B";
     /** @var mixed It keeps a copy of the original value (after get/post/fetch or set) */
     private $originalValue;
     /** @var string It's a friendly id used to replace the "id" used in message. For example: "id customer" instead of "idcustomer" */
@@ -108,7 +104,7 @@ class ValidationOne
     private $container = [];
     /**
      * @var FormOne It is an optional feature that uses FormOne. It's used for callback.
-     * @see https://github.com/EFTEC/FormOne
+     * @see          https://github.com/EFTEC/FormOne
      * @noinspection PhpUndefinedClassInspection
      */
     private $formOne;
@@ -120,8 +116,8 @@ class ValidationOne
     private $isMissing = false;
     /* interal counter of error per chain */
     private $countError;
-    private $throwOnError=false;
-    private $throwOnWarning=false;
+    private $throwOnError = false;
+    private $throwOnWarning = false;
 
     //</editor-fold>
 
@@ -133,7 +129,7 @@ class ValidationOne
     public function __construct($prefix = '')
     {
         // autowire an instance or create a new one.
-        $this->messageList =MessageContainer::instance();
+        $this->messageList = MessageContainer::instance();
         $this->prefix = $prefix;
         $this->resetChain();
     }
@@ -143,7 +139,7 @@ class ValidationOne
      * It also reset any validating pending to be executed.<br>
      * <b>Note:</b> It does not delete the messages (if any)
      */
-    public function resetChain()
+    public function resetChain(): void
     {
         $this->default = null;
         $this->initialValue = null;
@@ -163,28 +159,27 @@ class ValidationOne
         $this->override = false;
         $this->resetValidation();
         $this->exist = $this->defaultRequired;
-        $this->conversion=[];
+        $this->conversion = [];
         $this->friendId = null;
         $this->successMessage = null;
         $this->isMissing = false;
         $this->countError = 0;
         $this->addToForm = false;
         $this->missingSet = null;
-        if($this->throwOnError && $this->errorCount()>0) {
-            $errors=$this->messageList->allErrorArray();
-            $this->throwOnError=false;
-            $this->throwOnWarning=false;
+        if ($this->throwOnError && $this->errorCount() > 0) {
+            $errors = $this->messageList->allErrorArray();
+            $this->throwOnError = false;
+            $this->throwOnWarning = false;
             throw new RuntimeException(end($errors)); // it throws the latest error
         }
-        if($this->throwOnWarning && $this->messageList->warningCount>0) {
+        if ($this->throwOnWarning && $this->messageList->warningCount > 0) {
             $warnings = $this->messageList->allWarningArray();
-            $this->throwOnError=false;
-            $this->throwOnWarning=false;
+            $this->throwOnError = false;
+            $this->throwOnWarning = false;
             throw new RuntimeException(end($warnings)); // it throws the latest warning
         }
-
-        $this->throwOnError=false;
-        $this->throwOnWarning=false;
+        $this->throwOnError = false;
+        $this->throwOnWarning = false;
     }
 
     /**
@@ -192,27 +187,29 @@ class ValidationOne
      *
      * @param bool $deleteMessage [default] if true then it deletes all messages (by default it's false).<br>.
      */
-    public function resetValidation($deleteMessage = false)
+    public function resetValidation($deleteMessage = false): void
     {
         if ($deleteMessage) {
             $this->messageList->resetAll();
         }
         $this->conditions = array();
     }
+
     /**
      * If we store an error then we also throw a PHP exception.
      *
-     * @param bool    $throwOnError  if true (default), then it throws an excepcion every time
-     *                               we store an error.
+     * @param bool    $throwOnError   if true (default), then it throws an excepcion every time
+     *                                we store an error.
      * @param boolean $includeWarning If true then it also includes warnings.
      * @return ValidationOne
      */
-    public function throwOnError($throwOnError=true,$includeWarning=false): ValidationOne
+    public function throwOnError($throwOnError = true, $includeWarning = false): ValidationOne
     {
-        $this->throwOnError=$throwOnError;
-        $this->throwOnWarning=$includeWarning;
+        $this->throwOnError = $throwOnError;
+        $this->throwOnWarning = $includeWarning;
         return $this;
     }
+
     /**
      * It sets the input values (datestring and datetimestring) in "m/d/Y" and "m/d/Y H:i:s" format instead of "d/m/Y"
      * and "d/m/Y H:i:s" <br> The output is still "Y-m-D" and 'Y-m-d\TH:i:s\Z'<br> This configuration persists across
@@ -368,7 +365,6 @@ class ValidationOne
         if ($this->missingSet !== null && ($input === null || $input === '')) {
             $input = $this->missingSet;
         }
-
         //if (!$this->isMissing) {
         if ($this->ifFailThenOrigin) {
             $this->default = $input;
@@ -382,12 +378,12 @@ class ValidationOne
                         $v = $this->basicValidation($v, $currentField, $msg, $key);
                     }
                 }
-            } else if($input!==null) {
+            } else if ($input !== null) {
                 // if the value is not array, but it is null, then we avoid showing a message (we consider it an empty array)
                 $this->addMessageInternal('%field is not an array', '', $fieldId, 0, 'error');
             } else {
                 // null are considered empty arrays.
-                $input=[];
+                $input = [];
                 $this->originalValue = $input;
             }
             if (!$this->isMissingValid || !$this->isMissing) { // bypass if missing is valid (and the value is missing)
@@ -406,7 +402,6 @@ class ValidationOne
                     }
                 }
             }
-
             //$output = $input;
         } else { // the value does not expect an array
             $this->originalValue = $input;
@@ -414,9 +409,8 @@ class ValidationOne
                 $input = $this->basicValidation($input, $fieldId, $msg);
                 if (is_array($input)) {
                     foreach ($input as $key => &$items) {
-                        $currentField = ($this->isArrayFlat) ? $fieldId : "$fieldId[$key]";
+                        $currentField = ($this->isArrayFlat) ? $fieldId : (string)$fieldId[$key];
                         $this->runConditions($items, $currentField, $key);
-
                         if ($this->ifFailThenDefault && $this->messageList->get($currentField)->countError()) {
                             $items = (is_array($this->default)) ? $this->default[$key] : $this->default;
                         }
@@ -426,13 +420,10 @@ class ValidationOne
                     if ($this->ifFailThenDefault && $this->messageList->get($fieldId)->countError()) {
                         $input = $this->default;
                     }
-
                 }
             }
-
         }
         $output = $this->endConversion($input); // isArray
-
         /*} else {
             // we convert the input into a datetime object.
             //$input=$this->endConversion( $this->inputToDate($input));
@@ -446,7 +437,6 @@ class ValidationOne
         if ($this->addToForm) {
             $this->callFormBack($fieldId);
         }
-
         $this->resetChain();
         return $output;
     }
@@ -519,26 +509,24 @@ class ValidationOne
             case 'datestring':
             case 'datetime':
             case 'datetimestring':
-
                 if (is_string($value) && !$value && $this->exist === false) {
                     // we return the local value unmodified
                     return $this->inputToDate($localDefault);
                 }
                 $valueDate = ($value instanceof DateTime) ? $value
-                    : DateTime::createFromFormat($this->dateLong, $value??'');
-
+                    : DateTime::createFromFormat($this->dateLong, $value ?? '');
                 if ($valueDate === false) {
                     // the format is not date and time, maybe it's only date
                     /** @var DateTime|false $valueDate */
-                    $valueDate = DateTime::createFromFormat($this->dateShort, $value??'');
+                    $valueDate = DateTime::createFromFormat($this->dateShort, $value ?? '');
                     if ($valueDate === false) {
                         // nope, it's neither date and it is required
                         $this->hasMessage = true;
                         $this->addMessageInternal($msg, '%field is not a date', $field, $value, null);
                         $tmpOutput = ($localDefault instanceof DateTime) ? $localDefault
-                            : DateTime::createFromFormat($this->dateLong, $localDefault??'');
+                            : DateTime::createFromFormat($this->dateLong, $localDefault ?? '');
                         if ($tmpOutput === false) {
-                            $tmpOutput = DateTime::createFromFormat($this->dateShort, $localDefault??'');
+                            $tmpOutput = DateTime::createFromFormat($this->dateShort, $localDefault ?? '');
                             if ($tmpOutput != false) {
                                 $tmpOutput->settime(0, 0);
                             } else {
@@ -549,7 +537,6 @@ class ValidationOne
                     }
                     $valueDate->settime(0, 0); // datetime without time
                 }
-
                 return $valueDate;
             default:
                 return $value;
@@ -567,7 +554,7 @@ class ValidationOne
      * @param string $level   (error,warning,info,success) error level
      * @param null   $key
      */
-    private function addMessageInternal($msg, $msg2, $fieldId, $value, $vcomp, $level = 'error', $key = null)
+    private function addMessageInternal($msg, $msg2, $fieldId, $value, $vcomp, $level = 'error', $key = null): void
     {
         $txt = ($msg) ?: $msg2;
         if (is_array($vcomp)) {
@@ -626,7 +613,7 @@ class ValidationOne
      * @param       $fieldId
      * @param null  $key
      */
-    private function runConditions($value, $fieldId, $key = null)
+    private function runConditions($value, $fieldId, $key = null): void
     {
         if (($value === null && $this->isNullValid) || ($value === '' && $this->isEmptyValid)) {
             // bypass (null or empty value and isvalidnull or isvalidempty, then it is ok and nothing to evaluate).
@@ -665,7 +652,6 @@ class ValidationOne
                                 if ($condCopy->value instanceof DateTime) {
                                     $condCopy->value = $condCopy->value->getTimeStamp();
                                 }
-
                                 $this->runDateCondition($value, $cond, $fail, $genMsg);
                             }
                             break;
@@ -690,7 +676,6 @@ class ValidationOne
                 $this->conditions[$key] = [$this->conditions[$key]];
             }
             foreach ($this->conditions[$key] as $cond) {
-
                 if (strpos($cond->type, "fn.") === 0) {
                     // if it starts with fn. then it's a function condition
                     $this->runFnCondition($value, $cond, $fail, $genMsg);
@@ -746,7 +731,7 @@ class ValidationOne
      * @param boolean        $fail   True if the operation fails
      * @param string         $genMsg If it fails, it returns a message.
      */
-    private function runFnCondition($r, $cond, &$fail, &$genMsg)
+    private function runFnCondition($r, $cond, &$fail, &$genMsg): void
     {
         // is a function
         $arr = explode(".", $cond->type);
@@ -819,7 +804,7 @@ class ValidationOne
      * @param boolean        $fail   True if the operation fails
      * @param string         $genMsg If it fails, it returns a message.
      */
-    private function runNumericCondition($r, $cond, &$fail, &$genMsg)
+    private function runNumericCondition($r, $cond, &$fail, &$genMsg): void
     {
         if ($this->runSharedCondition($r, $cond, $fail, $genMsg, 0)) {
             return;
@@ -832,10 +817,8 @@ class ValidationOne
                 }
                 break;
             case 'lte':
-
                 if ($r > $cond->value) {
                     $fail = true;
-
                     $genMsg = '%field is great than %comp';
                 }
                 break;
@@ -897,12 +880,13 @@ class ValidationOne
             case 'eq':
             case '==':
                 if (is_array($cond->value)) {
+                    /** @noinspection TypeUnsafeArraySearchInspection */
                     if (!in_array($r, $cond->value)) {
                         $fail = true;
                         $genMsg = '%field is not equals than %comp';
                         return true;
                     }
-                } elseif ($r != $cond->value) {
+                } /** @noinspection TypeUnsafeComparisonInspection */ elseif ($r != $cond->value) {
                     $fail = true;
                     $genMsg = '%field is not equals than %comp';
                     return true;
@@ -917,7 +901,7 @@ class ValidationOne
                         $genMsg = '%field is in %comp';
                         return true;
                     }
-                } elseif ($r == $cond->value) {
+                } /** @noinspection TypeUnsafeComparisonInspection */ elseif ($r == $cond->value) {
                     $fail = true;
                     $genMsg = '%field is equals than %comp';
                     return true;
@@ -957,7 +941,7 @@ class ValidationOne
      * @param boolean        $fail   True if the operation fails
      * @param string         $genMsg If it fails, it returns a message.
      */
-    private function runStringCondition($r, $cond, &$fail, &$genMsg)
+    private function runStringCondition($r, $cond, &$fail, &$genMsg): void
     {
         if ($this->runSharedCondition($r, $cond, $fail, $genMsg, 1)) {
             return;
@@ -979,6 +963,12 @@ class ValidationOne
                 if (!ctype_alpha($r)) {
                     $fail = true;
                     $genMsg = '%field is not alphabetic';
+                }
+                break;
+            case 'alphanumunder':
+                if (!ctype_alnum(str_replace('_', '', $r))) {
+                    $fail = true;
+                    $genMsg = '%field is not alphanumeric with underscore';
                 }
                 break;
             case 'alphanum':
@@ -1033,7 +1023,6 @@ class ValidationOne
                 }
                 break;
             case 'betweenlen':
-
                 $rl = strlen((string)$r);
                 if ($rl < $cond->value[0] || $rl > $cond->value[1]) {
                     $fail = true;
@@ -1050,7 +1039,7 @@ class ValidationOne
      * @param boolean        $fail   True if the operation fails
      * @param string         $genMsg If it fails, it returns a message.
      */
-    private function runDateCondition($r, $cond, &$fail, &$genMsg)
+    private function runDateCondition($r, $cond, &$fail, &$genMsg): void
     {
         if ($this->runSharedCondition($r, $cond, $fail, $genMsg, 2)) {
             return;
@@ -1098,12 +1087,11 @@ class ValidationOne
      * @param boolean        $fail   True if the operation fails
      * @param string         $genMsg If it fails, it returns a message.
      */
-    private function runBoolCondition($r, $cond, &$fail, &$genMsg)
+    private function runBoolCondition($r, $cond, &$fail, &$genMsg): void
     {
         if ($this->runSharedCondition($r, $cond, $fail, $genMsg, 3)) {
             return;
         }
-
         switch ($cond->type) {
             case 'true':
                 if ($r === true) {
@@ -1127,11 +1115,10 @@ class ValidationOne
      * @param string         $genMsg (default error message, it could be replaced
      *                               if there is a message for this condition)
      */
-    private function runFileCondition($value, $cond, &$fail, &$genMsg)
+    private function runFileCondition($value, $cond, &$fail, &$genMsg): void
     {
         $fileName = $value[0] ?? null;
         $fileNameTmp = $value[1] ?? null;
-
         if ($this->runSharedCondition($value, $cond, $fail, $genMsg, 4)) {
             return;
         }
@@ -1257,7 +1244,6 @@ class ValidationOne
             }
             return $mime;
         }
-
         if (function_exists("mime_content_type")) {
             $mime = @mime_content_type($fullFilename);
             if ($onlyType) {
@@ -1286,75 +1272,75 @@ class ValidationOne
         if (!$asMime) {
             return $ext;
         }
-        $mimes=['aac'=>'audio/aac',
-            'abw'=>'application/x-abiword',
-            'avi'=>'video/x-msvideo',
-            'bmp'=>'image/bmp',
-            'bz'=>'application/x-bzip',
-            'bz2'=>'application/x-bzip2',
-            'css'=>'text/css',
-            'csv'=>'text/csv',
-            'doc'=>'application/msword',
-            'docx'=>'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'dwg'=>'image/vnd.dwg',
-            'eot'=>'application/vnd.ms-fontobject',
-            'epub'=>'application/epub+zip',
-            'gif'=>'image/gif',
-            'html'=>'text/html',
-            'htm'=>'text/html',
-            'ico'=>'image/x-icon',
-            'ics'=>'text/calendar',
-            'jar'=>'application/java-archive',
-            'jpg'=>'image/jpeg',
-            'jpeg'=>'image/jpeg',
-            'js'=>'application/javascript',
-            'json'=>'application/json',
-            'midi'=>'audio/midi audio/x-midi',
-            'mid'=>'audio/midi audio/x-midi',
-            'mpeg'=>'video/mpeg',
-            'mpg'=>'video/mpeg',
-            'mpkg'=>'application/vnd.apple.installer+xml',
-            'odp'=>'application/vnd.oasis.opendocument.presentation',
-            'ods'=>'application/vnd.oasis.opendocument.spreadsheet',
-            'odt'=>'application/vnd.oasis.opendocument.text',
-            'oga'=>'audio/ogg',
-            'ogg'=>'audio/ogg',
-            'ogv'=>'video/ogg',
-            'ogx'=>'application/ogg',
-            'otf'=>'font/otf',
-            'png'=>'image/png',
-            'pdf'=>'application/pdf',
-            'ppt'=>'application/vnd.ms-powerpoint',
-            'pptx'=>'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-            'rar'=>'application/x-rar-compressed',
-            'rtf'=>'application/rtf',
-            'sh'=>'application/x-sh',
-            'svg'=>'image/svg+xml',
-            'swf'=>'application/x-shockwave-flash',
-            'tar'=>'application/x-tar',
-            'tiff'=>'image/tiff',
-            'tif'=>'image/tiff',
-            'ts'=>'application/typescript',
-            'ttf'=>'font/ttf',
-            'txt'=>'text/plain',
-            'vsd'=>'application/vnd.visio',
-            'wav'=>'audio/wav',
-            'weba'=>'audio/webm',
-            'webm'=>'video/webm',
-            'webp'=>'image/webp',
-            'woff'=>'font/woff',
-            'woff2'=>'font/woff2',
-            'xhtml'=>'application/xhtml+xml',
-            'xls'=>'application/vnd.ms-excel',
-            'xlsm'=>'application/vnd.ms-excel.sheet.macroEnabled.12',
-            'xlsx'=>'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'xml'=>'application/xml',
-            'xul'=>'application/vnd.mozilla.xul+xml',
-            'zip'=>'application/zip',
-            '3gp'=>'video/3gpp',
-            '3g2'=>'video/3gpp2',
-            '7z'=>'application/x-7z-compressed',
-            'default'=>'application/octet-stream'
+        $mimes = ['aac' => 'audio/aac',
+            'abw' => 'application/x-abiword',
+            'avi' => 'video/x-msvideo',
+            'bmp' => 'image/bmp',
+            'bz' => 'application/x-bzip',
+            'bz2' => 'application/x-bzip2',
+            'css' => 'text/css',
+            'csv' => 'text/csv',
+            'doc' => 'application/msword',
+            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'dwg' => 'image/vnd.dwg',
+            'eot' => 'application/vnd.ms-fontobject',
+            'epub' => 'application/epub+zip',
+            'gif' => 'image/gif',
+            'html' => 'text/html',
+            'htm' => 'text/html',
+            'ico' => 'image/x-icon',
+            'ics' => 'text/calendar',
+            'jar' => 'application/java-archive',
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'js' => 'application/javascript',
+            'json' => 'application/json',
+            'midi' => 'audio/midi audio/x-midi',
+            'mid' => 'audio/midi audio/x-midi',
+            'mpeg' => 'video/mpeg',
+            'mpg' => 'video/mpeg',
+            'mpkg' => 'application/vnd.apple.installer+xml',
+            'odp' => 'application/vnd.oasis.opendocument.presentation',
+            'ods' => 'application/vnd.oasis.opendocument.spreadsheet',
+            'odt' => 'application/vnd.oasis.opendocument.text',
+            'oga' => 'audio/ogg',
+            'ogg' => 'audio/ogg',
+            'ogv' => 'video/ogg',
+            'ogx' => 'application/ogg',
+            'otf' => 'font/otf',
+            'png' => 'image/png',
+            'pdf' => 'application/pdf',
+            'ppt' => 'application/vnd.ms-powerpoint',
+            'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            'rar' => 'application/x-rar-compressed',
+            'rtf' => 'application/rtf',
+            'sh' => 'application/x-sh',
+            'svg' => 'image/svg+xml',
+            'swf' => 'application/x-shockwave-flash',
+            'tar' => 'application/x-tar',
+            'tiff' => 'image/tiff',
+            'tif' => 'image/tiff',
+            'ts' => 'application/typescript',
+            'ttf' => 'font/ttf',
+            'txt' => 'text/plain',
+            'vsd' => 'application/vnd.visio',
+            'wav' => 'audio/wav',
+            'weba' => 'audio/webm',
+            'webm' => 'video/webm',
+            'webp' => 'image/webp',
+            'woff' => 'font/woff',
+            'woff2' => 'font/woff2',
+            'xhtml' => 'application/xhtml+xml',
+            'xls' => 'application/vnd.ms-excel',
+            'xlsm' => 'application/vnd.ms-excel.sheet.macroEnabled.12',
+            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'xml' => 'application/xml',
+            'xul' => 'application/vnd.mozilla.xul+xml',
+            'zip' => 'application/zip',
+            '3gp' => 'video/3gpp',
+            '3g2' => 'video/3gpp2',
+            '7z' => 'application/x-7z-compressed',
+            'default' => 'application/octet-stream'
         ];
         return array_key_exists($ext, $mimes)
             ? $mimes[$ext]
@@ -1366,42 +1352,65 @@ class ValidationOne
      * It is equals than to use $this->conversion('trim')
      *
      *
-     * @param null|string $type =[null,'ltrim','rtrim','trim'][$i] (null = no trim)
+     * @param null|string $type      =[null,'ltrim','rtrim','trim'][$i] (null = no trim)
      * @param string      $trimChars Characters to trim " \t\n\r\0\x0B"
      * @return ValidationOne
      * @see \eftec\ValidationOne::conversion
      */
-    public function trim($type='trim',$trimChars=" \t\n\r\0\x0B"): ValidationOne
+    public function trim($type = 'trim', $trimChars = " \t\n\r\0\x0B"): ValidationOne
     {
-        $this->conversion[]=[$type,$trimChars,null];
+        $this->conversion[] = [$type, $trimChars, null];
         return $this;
     }
 
     /**
      * If set then it always "trims" the values.
      *
-     * @param bool   $always [false] If true then it trims all the results.
+     * @param bool   $always    [false] If true then it trims all the results.
      * @param string $trimChars Characters to trim
      */
-    public function alwaysTrim($always=true,$trimChars=" \t\n\r\0\x0B") {
-        $this->alwaysTrim=$always;
-        $this->alwaysTrimChars=$trimChars;
+    public function alwaysTrim($always = true, $trimChars = " \t\n\r\0\x0B"): void
+    {
+        $this->alwaysTrim = $always;
+        $this->alwaysTrimChars = $trimChars;
     }
 
     /**
      * It adds a conversion of the result. It is an after-validation operation.<br>
      * <b>Note:</b> Default values are never converted.
+     * <b>example</b><br>
+     * <pre>
+     * $this->type('string')->conversion('alphanumericunderscore')->post('FIELDREQ2');
+     * </pre>
      *
-     * @param string $type =['type','upper','lower','ucfirst','ucwords','replace','sanitizer'
+     * @param string $type =['upper','lower','ucfirst','ucwords','replace','sanitizer'
      *                     ,'rtrim','ltrim','trim','htmlencode','htmldecode','alphanumeric'
-     *                     ,'alphanumericminus','regexp'][$i]
-     * @param mixed $arg1 It is used if the conversion requires an argument.
-     * @param mixed $arg2 It is used if the conversion requires a second argument.
+     *                     ,'alphanumericminus','alphanumericunderscore','regexp'][$i] <br>
+     *                     <ul>
+     *                     <li><b>upper</b>: Converts in uppercase</li>
+     *                     <li><b>lower</b>: Converts in lowercase</li>
+     *                     <li><b>ucfirst</b>: Converts in first case</li>
+     *                     <li><b>ucwords</b>: Converts every first letter in a word in uppercase</li>
+     *                     <li><b>replace</b>: Replaces a value (or values) by other(s)</li>
+     *                     <li><b>sanitizer</b>: It uses the default FILTER_DEFAULT but you can specify other</li>
+     *                     <li><b>rtrim</b>: Trim to the right, you can change the value to trim</li>
+     *                     <li><b>ltrim</b>: Trim to the left, you can change the value to trim</li>
+     *                     <li><b>trim</b>: Trim to the left, you can change the value to trim</li>
+     *                     <li><b>htmlencode</b>: HTML encode</li>
+     *                     <li><b>htmldecode</b>: HTML decode</li>
+     *                     <li><b>alphanumeric</b>: Removes all non-alphanumeric characters</li>
+     *                     <li><b>alphanumericminus</b>: Removes all non-alphanumeric characters plus symbol minus</li>
+     *                     <li><b>alphanumericunderscore</b>: Removes all non-alphanumeric characters plus symbol
+     *                     underscore</li>
+     *                     <li><b>regexp</b>: Use a regular expression to clean a text</li>
+     *                     </ul>
+     * @param mixed  $arg1 It is used if the conversion requires an argument.
+     * @param mixed  $arg2 It is used if the conversion requires a second argument.
      * @return $this
      */
-    public function conversion($type,$arg1=null,$arg2=null): ValidationOne
+    public function conversion($type, $arg1 = null, $arg2 = null): ValidationOne
     {
-        $this->conversion[]=[$type,$arg1,$arg2];
+        $this->conversion[] = [$type, $arg1, $arg2];
         return $this;
     }
 
@@ -1418,36 +1427,36 @@ class ValidationOne
     {
         // end conversion, we convert the input or default value.
         if ($input !== null) {
-            if($this->alwaysTrim) {
-                $this->trim('trim',$this->alwaysTrimChars);
+            if ($this->alwaysTrim) {
+                $this->trim('trim', $this->alwaysTrimChars);
             }
-            $tmp=null;
-            if(!is_object($input) && count($this->conversion)>0) {
-                foreach($this->conversion as $v) {
+            $tmp = null;
+            if (!is_object($input) && count($this->conversion) > 0) {
+                foreach ($this->conversion as $v) {
                     switch ($v[0]) {
                         case 'ltrim':
-                            $tmp=ltrim($input, $v[1] ?? " \t\n\r\0\x0B");
+                            $tmp = ltrim($input, $v[1] ?? " \t\n\r\0\x0B");
                             break;
                         case 'rtrim':
-                            $tmp=rtrim($input, $v[1] ?? " \t\n\r\0\x0B");
+                            $tmp = rtrim($input, $v[1] ?? " \t\n\r\0\x0B");
                             break;
                         case 'trim':
-                            $tmp=trim($input, $v[1] ?? " \t\n\r\0\x0B");
+                            $tmp = trim($input, $v[1] ?? " \t\n\r\0\x0B");
                             break;
                         case 'upper':
-                            $tmp=strtoupper($input);
+                            $tmp = strtoupper($input);
                             break;
                         case 'lower':
-                            $tmp=strtolower($input);
+                            $tmp = strtolower($input);
                             break;
                         case 'ucfirst':
-                            $tmp=ucfirst($input);
+                            $tmp = ucfirst($input);
                             break;
                         case 'ucwords':
-                            $tmp=ucwords($input, $v[1] ?? " \t\r\n\f\v");
+                            $tmp = ucwords($input, $v[1] ?? " \t\r\n\f\v");
                             break;
                         case 'replace':
-                            $tmp=str_replace($v[1],$v[2],$input);
+                            $tmp = str_replace($v[1], $v[2], $input);
                             break;
                         case 'sanitizer':
                             $tmp = $v[2] === null
@@ -1455,26 +1464,27 @@ class ValidationOne
                                 : filter_var($input, $v[1] ?? FILTER_DEFAULT, $v[2]);
                             break;
                         case 'alphanumeric':
-                            $tmp=preg_replace('/[\W]/', '', $input);
+                            $tmp = preg_replace('/[\W]/', '', $input);
                             break;
                         case 'alphanumericminus':
-                            $tmp=preg_replace('/[^\w-]/', '', $input);
+                            $tmp = preg_replace('/[^\w-]/', '', $input);
+                            break;
+                        case 'alphanumericunderscore':
+                            $tmp = preg_replace('/[^\w_]/', '', $input);
                             break;
                         case 'regexp':
-                            $tmp=preg_replace($v[1], $v[2]??'', $input);
+                            $tmp = preg_replace($v[1], $v[2] ?? '', $input);
                             break;
                         case 'htmlencode':
-                            $tmp=htmlentities($input,$v[1]??ENT_QUOTES|ENT_SUBSTITUTE,$v[2]);
+                            $tmp = htmlentities($input, $v[1] ?? ENT_QUOTES | ENT_SUBSTITUTE, $v[2]);
                             break;
                         case 'htmldecode':
-                            $tmp=html_entity_decode($input,$v[1]??ENT_QUOTES|ENT_SUBSTITUTE,$v[2]);
+                            $tmp = html_entity_decode($input, $v[1] ?? ENT_QUOTES | ENT_SUBSTITUTE, $v[2]);
                             break;
                         default:
                             $tmp = $input;
                     }
                 }
-
-
             } else {
                 $tmp = $input;
             }
@@ -1488,7 +1498,6 @@ class ValidationOne
                 default:
                     $output = $tmp;
             }
-
         } else {
             $output = null;
         }
@@ -1503,7 +1512,7 @@ class ValidationOne
      * @param string $message  message to show. Example: 'the value is incorrect'
      * @param string $level    =['error','warning','info','success'][$i]
      */
-    public function addMessage($idLocker, $message, $level = 'error')
+    public function addMessage($idLocker, $message, $level = 'error'): void
     {
         $this->messageList->addItem($idLocker, $message, $level);
     }
@@ -1514,7 +1523,7 @@ class ValidationOne
      *
      * @param $fieldId
      */
-    private function callFormBack($fieldId)
+    private function callFormBack($fieldId): void
     {
         if ($this->formOne !== null) {
             $this->formOne->callBack($this, $fieldId);
@@ -1572,7 +1581,6 @@ class ValidationOne
     public function getFile($fieldId, $array = false, $msg = null): ?array
     {
         $this->countError = $this->messageList->errorCount;
-
         $this->input()->default = $this->default;
         $this->input()->originalValue = $this->originalValue;
         $this->input()->ifFailThenOrigin = $this->ifFailThenOrigin;
@@ -1583,7 +1591,6 @@ class ValidationOne
                 break;
             }
         }
-
         $r = $this->input()->exist($this->exist)->friendId($this->friendId)->getFile($fieldId, $array, $msg,
             $this->isMissing);
         //->getField($fieldId,$inputType,$msg,$this->isMissing);
@@ -1719,7 +1726,7 @@ class ValidationOne
      * @param bool $ifFailThenDefault
      * @param bool $ifRequired The field must be fetched, otherwise it generates an error
      */
-    public function configChain($ifFailThenDefault = false, $ifRequired = false)
+    public function configChain($ifFailThenDefault = false, $ifRequired = false): void
     {
         $this->defaultIfFail = $ifFailThenDefault;
         $this->defaultRequired = $ifRequired;
@@ -1754,6 +1761,7 @@ class ValidationOne
         $this->isArrayFlat = $flat;
         return $this;
     }
+
     public function getHasMessage(): bool
     {
         return $this->hasMessage;
@@ -1790,9 +1798,7 @@ class ValidationOne
         return $this;
     }
     //</editor-fold>
-
     //<editor-fold desc="conditions">
-
     /**
      * If the value is missing (null or empty) then it sets a value. If it does not set then it uses
      * the default natural value.<br>
@@ -1915,12 +1921,56 @@ class ValidationOne
      *      ->post('percentage');
      * </pre>
      *
-     * @param string $condition           =['alpha','alphanum','between','betweenlen','contain','doc','domain','email'
+     * @param string $condition           =['alpha','alphanum','alphanumunder','between','betweenlen','contain','doc','domain','email'
      *                                    ,'eq','exist','ext'
-     *                                    ,'false','notexist','missing','gt','gte','image'.'doc','compression','architecture',
+     *                                    ,'false','notexist','missing','gt','gte','image','doc','compression','architecture',
      *                                    ,'lt','lte','maxlen','maxsize','minlen','minsize','ne'
      *                                    ,'notcontain','notnull','null','empty','notempty','regexp','req','required','text','true'
      *                                    ,'url','fn.*'][$i]
+     *                                    <ul>
+     *                                    <li><b>alpha</b>: An alphabetic value</li>
+     *                                    <li><b>alphanum</b>: An alphanumeric value</li>
+     *                                    <li><b>alphanumunder</b>: An alphanumeric value including underscore</li>
+     *                                    <li><b>between</b>: A value between two values</li>
+     *                                    <li><b>betweenlen</b>: The leght of a string between two values</li>
+     *                                    <li><b>contain</b>: The text must contain a vlaue</li>
+     *                                    <li><b>doc</b>: The extension is a document file</li>
+     *                                    <li><b>domain</b>: The name of a domain</li>
+     *                                    <li><b>email</b>: An email</li>
+     *                                    <li><b>eq</b>: equal</li>
+     *                                    <li><b>exist</b>: The value exists (in a list of values)</li>
+     *                                    <li><b>ext</b>: The extension of the file</li>
+     *                                    <li><b>false</b>: The value is false</li>
+     *                                    <li><b>notexist</b>: The value does not exist (in a list of values)</li>
+     *                                    <li><b>missing</b>: The value is missing</li>
+     *                                    <li><b>gt</b>: Great than</li>
+     *                                    <li><b>gte</b>: Great than or equals</li>
+     *                                    <li><b>image</b>: The extension is an image</li>
+     *                                    <li><b>compression</b>: The extension is a compression file</li>
+     *                                    <li><b>architecture</b>: The extension is an architecture file</li>
+     *                                    <li><b>lt</b>: Less than</li>
+     *                                    <li><b>lte</b>: Less than or equals</li>
+     *                                    <li><b>maxlen</b>: The maximum lenght</li>
+     *                                    <li><b>maxsize</b>: The maximum size (of a file)</li>
+     *                                    <li><b>minlen</b>: The minimum lehght</li>
+     *                                    <li><b>minsize</b>: The minimum size (of a file)</li>
+     *                                    <li><b>ne</b>: Not equals</li>
+     *                                    <li><b>notcontain</b>: Not contains a text</li>
+     *                                    <li><b>notnull</b>: Is not null</li>
+     *                                    <li><b>null</b>: Is null</li>
+     *                                    <li><b>empty</b>: Is empty</li>
+     *                                    <li><b>notempty</b>: Is not empty</li>
+     *                                    <li><b>regexp</b>: Evaluates a regular expression</li>
+     *                                    <li><b>req</b>: Is required</li>
+     *                                    <li><b>required</b>: Is required (alias)</li>
+     *                                    <li><b>text</b>: The value is a words, number, accents, spaces, and other
+     *                                    characters</li>
+     *                                    <li><b>true</b>: Is true</li>
+     *                                    <li><b>url</b>: Is an url</li>
+     *                                    <li><b>fn.*</b>: Evaluate using a function (* is the name of the
+     *                                    function)</li>
+     *                                    </ul>
+     *                                    <b>Usage by type of value:</b><br>
      *                                    <br><b>number</b>:req,eq,ne,gt,lt,gte,lte,between,null,notnull,empty,notempty<br>
      *                                    <b>string</b>:req,eq,ne,minlen,maxlen,betweenlen,null,notnull,empty,notempty
      *                                    ,contain,notcontain
@@ -1930,12 +1980,14 @@ class ValidationOne
      *                                    <b>boolean</b>:req,eq,ne,true,false<br>
      *                                    <b>file</b>:exist,notexist,minsize,maxsize,req,image,doc,compression
      *                                    ,architecture,ext<br>
-     *                                    <b>function:</b><br>
-     *                                    fn.static.Class.methodstatic<br>
-     *                                    fn.global.function<br>
-     *                                    fn.object.Class.method where object is a global $object<br>
-     *                                    fn.class.Class.method<br>
-     *                                    fn.class.\namespace\Class.method<br>
+     *                                    <b>functions:</b><br>
+     *                                    <ul>
+     *                                    <li><b>fn.static.Class.methodstatic</b>: Call a static method</li>
+     *                                    <li><b>fn.global.function</b>: Call a global function</li>
+     *                                    <li><b>fn.object.Class.method</b>: Call a method where object is a global
+     *                                    $object</li>
+     *                                    <li><b>fn.class.\namespace\Class.method</b>: Call a satic method</li>
+     *                                    </ul>
      * @param string $message             The message to display. It could also use a special variable<br>
      *                                    Example:"the field with name %field does not exist"<br>
      *                                    <b>%field</b> = name of the field, it could be the friendid or the actual
@@ -1947,8 +1999,9 @@ class ValidationOne
      *                                    <b>%second</b> = second value to compare (if the compare value is an
      *                                    array)<br>
      *                                    <b>%key</b> = key used (for input array)<br>
-     * @param null   $conditionValue      Value used for some conditions. This value could be an array too.
-     * @param string $level               =['error','warning','info','success'][$i]
+     * @param null   $conditionValue      (optional) Value used for some conditions. This value could be an array.
+     * @param string $level               =['error','warning','info','success'][$i]<br>
+     *                                    The level of error to raise if the condition doesn't match (default is error)
      * @param null   $key                 If key is not null then it is used for add more than one condition by key
      *
      * @return ValidationOne
@@ -1957,8 +2010,7 @@ class ValidationOne
         $condition,
         $message = "",
         $conditionValue = null,
-        $level = 'error'
-        ,
+        $level = 'error',
         $key = null
     ): ValidationOne
     {
@@ -2098,7 +2150,7 @@ class ValidationOne
     /**
      * Use future.
      */
-    public function store()
+    public function store(): void
     {
         $id = 1;
         $this->container[$id] = [];
@@ -2148,7 +2200,7 @@ class ValidationOne
             // bypass
             if ((!$this->isMissingValid || !$this->isMissing)) {
                 $input = $this->basicValidation($input, $fieldId, $msg);
-                if ($this->abortOnError != false || $this->messageList->errorCount == 0) {
+                if ($this->abortOnError !== false || $this->messageList->errorCount === 0) {
                     $this->runConditions($input, $fieldId);
                 }
                 if ($this->ifFailThenDefault && $this->messageList->get($fieldId)->countError()) {
@@ -2156,7 +2208,7 @@ class ValidationOne
                 }
             }
         }
-        if ($this->messageList->errorCount == $this->countError && $this->successMessage !== null) {
+        if ($this->messageList->errorCount === $this->countError && $this->successMessage !== null) {
             $this->messageList->addItem($this->successMessage['id'], $this->successMessage['msg'],
                 $this->successMessage['level']);
         }
@@ -2216,7 +2268,7 @@ class ValidationOne
      * @param bool $includeWarning If true then it also includes the warning.
      * @return int
      */
-    public function errorCount($includeWarning=false): int
+    public function errorCount($includeWarning = false): int
     {
         return $includeWarning
             ? $this->messageList->errorCount
@@ -2230,11 +2282,10 @@ class ValidationOne
      * @param bool $includeWarning If true then it also returns if there is a warning
      * @return bool
      */
-    public function hasError($includeWarning=false): bool
+    public function hasError($includeWarning = false): bool
     {
         return $this->messageList->hasError($includeWarning);
     }
 
     //</editor-fold>
-
 }
