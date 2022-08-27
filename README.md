@@ -15,39 +15,37 @@ in practically any PHP project, including WordPress, Laravel, core PHP project, 
 [![CocoaPods](https://img.shields.io/badge/docs-70%25-yellow.svg)]()
 
 - [ValidationOne](#validationone)
-    * [Examples](#examples)
-    * [Concept](#concept)
-    * [Adding a new condition](#adding-a-new-condition)
-        + [types](#types)
-        + [Type of conditions per type of input.](#type-of-conditions-per-type-of-input)
-        + [Types of Conditions.](#types-of-conditions)
-        + [Calling a custom function](#calling-a-custom-function)
-    * [Getting the messages](#getting-the-messages)
-        + [MessageContainer](#messagelist)
-            - [Count of messages of all containers](#count-of-messages-of-all-containers)
-            - [Obtain messages or text of all containers](#obtain-messages-or-text-of-all-containers)
-            - [Css for a specific container](#css-for-a-specific-container)
-            - [Misc](#misc)
-        + [MessageLocker](#messageitem)
-            - [Obtain messages of a specific container](#obtain-messages-of-a-specific-container)
-    * [Working with dates](#working-with-dates)
-        + [setDateFormat](#setdateformat)
-        + [setDateFormatDefault](#setdateformatdefault)
-        + [setDateFormatEnglish](#setdateformatenglish)
-    * [Dealing with missing or empty values](#dealing-with-missing-or-empty-values)
-        + [exist](#exist)
-        + [required](#required)
-        + [notnull](#notnull)
-        + [notempty](#notempty)
-    * [Allowing missing or empty values](#allowing-missing-or-empty-values)
-    * [Processing the result](#processing-the-result)
-        + [def()](#def--)
-        + [trim()](#trim--)
-        + [alwaysTrim()](#alwaystrim--)
-        + [convert()](#convert--)
-    * [Version list](#version-list)
-    * [todo](#todo)
-    * [Note](#note)
+    - [Full Diagram](#full-diagram)
+    - [Examples](#examples)
+    - [Concept](#concept)
+    - [Starting the chain](#starting-the-chain)
+    - [Adding a new condition](#adding-a-new-condition)
+        - [types](#types)
+        - [Type of conditions per type of input.](#type-of-conditions-per-type-of-input)
+        - [Types of Conditions.](#types-of-conditions)
+        - [Calling a custom function](#calling-a-custom-function)
+    - [Getting the messages](#getting-the-messages)
+    - [How to manage to the messages?](#how-to-manage-to-the-messages)
+    - [Working with dates](#working-with-dates)
+        - [setDateFormat](#setdateformat)
+        - [setDateFormatDefault](#setdateformatdefault)
+        - [setDateFormatEnglish](#setdateformatenglish)
+    - [Generating exceptions](#generating-exceptions)
+        - [throwOnError()](#throwonerror)
+    - [Dealing with missing or empty values](#dealing-with-missing-or-empty-values)
+        - [exist](#exist)
+        - [required](#required)
+        - [notnull](#notnull)
+        - [notempty](#notempty)
+    - [Allowing missing or empty values](#allowing-missing-or-empty-values)
+    - [Processing the result](#processing-the-result)
+        - [def()](#def)
+        - [trim()](#trim)
+        - [alwaysTrim()](#alwaystrim)
+        - [convert()](#convert)
+    - [Version list](#version-list)
+    - [todo](#todo)
+    - [Note](#note)
 
 ## Full Diagram
 
@@ -163,15 +161,15 @@ It adds a condition that it depends on the **type** of the input.
 
     Message could use the next variables '%field','%realfield','%value','%comp','%first','%second'  
 
-    | Field      | Description                                                     | Example             |
-    | ---------- | --------------------------------------------------------------- | ------------------- |
-    | %field     | name of the field, it could be the **friendid** or the actual name  | CustomerID          |
-    | %realfield | name of the field (not the  **friendid**)                           | Customer Identifier |
-    | %value     | current value of the field                                      | John                |
-    | %comp      | value to compare (if any)                                       |                     |
-    | %first     | first value to compare (if the compare value  is an array)      |                     |
-    | %second    | second value to compare (if the compare  value is an array)     |                     |
-    | %key       | key used (for input array)                                      |                     |
+| Field      | Description                                                        | Example             |
+|------------|--------------------------------------------------------------------|---------------------|
+| %field     | name of the field, it could be the **friendid** or the actual name | CustomerID          |
+| %realfield | name of the field (not the  **friendid**)                          | Customer Identifier |
+| %value     | current value of the field                                         | John                |
+| %comp      | value to compare (if any)                                          |                     |
+| %first     | first value to compare (if the compare value  is an array)         |                     |
+| %second    | second value to compare (if the compare  value is an array)        |                     |
+| %key       | key used (for input array)                                         |                     |
 
 * @param null $conditionValue
 
@@ -211,71 +209,71 @@ $validation->def(null)
 | string         | (string) it allows any input                                                                            |
 | date           | (date) the input could be a DateTime or a string. The value is stored as   an object DateTime           |
 | datetime       | (date) the input could be a DateTime or a string. The value is stored as   an object DateTime           |
-| datestring     | (date) the input could be a DateTime or a string. The value is stored as a string                    |
-| datetimestring | (date) the input could be a DateTime or a string. The value is stored as a string                    |
-| file           | (file) the input is a string, and it's store as a string, but it adds special validation |
+| datestring     | (date) the input could be a DateTime or a string. The value is stored as a string                       |
+| datetimestring | (date) the input could be a DateTime or a string. The value is stored as a string                       |
+| file           | (file) the input is a string, and it's store as a string, but it adds special validation                |
 
 
 
 ### Type of conditions per type of input.
 
-| Input type                                   | Condition                                                          |   |
-|----------------------------------------------|--------------------------------------------------------------------|---|
-| number                                       | gt,lt,gte,lte,between                                          |   |
-| string                                       | minlen,maxlen,betweenlen,contain<br>,notcontain,alpha,alphanum,text,regexp,email,url,domain |   |
-| date                                         | gt,lt,gte,lte,between                                          |   |
-| datestring                                   | gt,lt,gte,lte,between                                          |   |
-| boolean                                      | true,false                                                     |   |
-| file                                         | minsize,maxsize,req,image,doc,compression,architecture,ext         |   |
-| *  (it applies for any type)                 | req,eq,ne,null,notnull,empty,notempty                                  |   |
-| *                                            | function                                                           |   |
-| *                                            | fn.static.Class.methodstatic                                       |   |
-| *                                            | fn.global.function                                                 |   |
-| *                                            | fn.object.Class.method where object is a global $object            |   |
-| *                                            | fn.class.Class.method                                              |   |
-| *                                            | fn.class.\namespace\Class.method                                   |   |
+| Input type                   | Condition                                                                                   |     |
+|------------------------------|---------------------------------------------------------------------------------------------|-----|
+| number                       | gt,lt,gte,lte,between                                                                       |     |
+| string                       | minlen,maxlen,betweenlen,contain<br>,notcontain,alpha,alphanum,text,regexp,email,url,domain |     |
+| date                         | gt,lt,gte,lte,between                                                                       |     |
+| datestring                   | gt,lt,gte,lte,between                                                                       |     |
+| boolean                      | true,false                                                                                  |     |
+| file                         | minsize,maxsize,req,image,doc,compression,architecture,ext                                  |     |
+| *  (it applies for any type) | req,eq,ne,null,notnull,empty,notempty                                                       |     |
+| *                            | function                                                                                    |     |
+| *                            | fn.static.Class.methodstatic                                                                |     |
+| *                            | fn.global.function                                                                          |     |
+| *                            | fn.object.Class.method where object is a global $object                                     |     |
+| *                            | fn.class.Class.method                                                                       |     |
+| *                            | fn.class.\namespace\Class.method                                                            |     |
 
 ### Types of Conditions.
 
-| Condition                                               | Description                                            | Value Example          |
-|---------------------------------------------------------|--------------------------------------------------------|------------------------|
-| architecture                                            | The extension of the file must be an architecture file (dwg, etc.) |                        |
-| between                                                 | The number must be between two values                  | [0,20]                 |
-| betweenlen                                              | The length of the text must be between two values      | [0,20]                 |
-| compression                                             | The extension of the file must be an compression file  |                        |
-| contain                                                 | The text must contain a value                          | "text"                 |
-| doc                                                     | The extension of the file must be a document file     |                        |
-| eq (it could be an array or value) / ==                 | The value must be equals to<br />The value must be contained in a array | "text",["text","text2"]                 |
-| exist                                                   | The file or value must exist (it could be null/empty) |                        |
-| missing / notexist                                      | The file or value must not exists or be null/empty     |                        |
-| required (or req)                                       | The value must not be null or empty                    |                        |
-| ext                                                     | The extension (file) must be in the list of extensions | ["ext1","ext2","ext3"] |
-| false                                                   | The value must be false (===false)                     |                        |
-| fn.class.\namespace\Class.method                        | The method of a class must returns true                |                        |
-| fn.class.Class.method                                   | The method of a class must returns true                |                        |
-| fn.global.function                                      | The global function must returns true                  |                        |
-| fn.object.Class.method where object is a global $object | The method of a global object must returns true        |                        |
-| fn.static.Class.methodstatic                            | The static method of a class must returns true         |                        |
-| function                                                | The function must returns true                         |                        |
-| gt / >                                                  | The value must be greater than                         | 123                    |
-| gte  / >=                                               | The value must be greater or equal than                | 123                    |
-| image                                                   | The extension of the file must be an image file        |                        |
-| lt  / <                                                 | The value must be less than                            | 123                    |
-| lte / <=                                                | The value must be less or equal than                   | 123                    |
-| maxlen                                                  | The maximum length of a string                         | 123                    |
-| maxsize                                                 | The maximum size of a file                             | 123                    |
-| minlen                                                  | The minimum length of a string                         | 123                    |
-| minsize                                                 | The minimum size of a file                             | 123                    |
-| mime (the value to compare could be an string or array) | The mime type of a file                                | "application/msword" or ["application/msword","image/gif"]|
-| mimetype                                                | The mime type (without subtype) of a file              | "application" or ["application,"image"]|
-| ne / != (the value to compare could be an single value or array)   | The value must not be equals.<br />Or the value must not be contained in a array | 123,[123,345],["aa","bb"]                    |
-| notcontain                                              | The value must not contain a value                     | "text"                 |
-| notnull                                                 | The value must not be null                             |                        |
-| null                                                    | The value must be null                                 |                        |
-| empty                                                   | The value must be empty (i.e. "",0,null)               |                        |
-| notempty                                                | The value must not be empty (i.e. not equals to "",0,null)|                        |
-| req                                                     | The value must exists                          |                        |
-| true                                                    | The value must be true (===true)                       |                        |
+| Condition                                                        | Description                                                                      | Value Example                                              |
+|------------------------------------------------------------------|----------------------------------------------------------------------------------|------------------------------------------------------------|
+| architecture                                                     | The extension of the file must be an architecture file (dwg, etc.)               |                                                            |
+| between                                                          | The number must be between two values                                            | [0,20]                                                     |
+| betweenlen                                                       | The length of the text must be between two values                                | [0,20]                                                     |
+| compression                                                      | The extension of the file must be an compression file                            |                                                            |
+| contain                                                          | The text must contain a value                                                    | "text"                                                     |
+| doc                                                              | The extension of the file must be a document file                                |                                                            |
+| eq (it could be an array or value) / ==                          | The value must be equals to<br />The value must be contained in a array          | "text",["text","text2"]                                    |
+| exist                                                            | The file or value must exist (it could be null/empty)                            |                                                            |
+| missing / notexist                                               | The file or value must not exists or be null/empty                               |                                                            |
+| required (or req)                                                | The value must not be null or empty                                              |                                                            |
+| ext                                                              | The extension (file) must be in the list of extensions                           | ["ext1","ext2","ext3"]                                     |
+| false                                                            | The value must be false (===false)                                               |                                                            |
+| fn.class.\namespace\Class.method                                 | The method of a class must returns true                                          |                                                            |
+| fn.class.Class.method                                            | The method of a class must returns true                                          |                                                            |
+| fn.global.function                                               | The global function must returns true                                            |                                                            |
+| fn.object.Class.method where object is a global $object          | The method of a global object must returns true                                  |                                                            |
+| fn.static.Class.methodstatic                                     | The static method of a class must returns true                                   |                                                            |
+| function                                                         | The function must returns true                                                   |                                                            |
+| gt / >                                                           | The value must be greater than                                                   | 123                                                        |
+| gte  / >=                                                        | The value must be greater or equal than                                          | 123                                                        |
+| image                                                            | The extension of the file must be an image file                                  |                                                            |
+| lt  / <                                                          | The value must be less than                                                      | 123                                                        |
+| lte / <=                                                         | The value must be less or equal than                                             | 123                                                        |
+| maxlen                                                           | The maximum length of a string                                                   | 123                                                        |
+| maxsize                                                          | The maximum size of a file                                                       | 123                                                        |
+| minlen                                                           | The minimum length of a string                                                   | 123                                                        |
+| minsize                                                          | The minimum size of a file                                                       | 123                                                        |
+| mime (the value to compare could be an string or array)          | The mime type of a file                                                          | "application/msword" or ["application/msword","image/gif"] |
+| mimetype                                                         | The mime type (without subtype) of a file                                        | "application" or ["application,"image"]                    |
+| ne / != (the value to compare could be an single value or array) | The value must not be equals.<br />Or the value must not be contained in a array | 123,[123,345],["aa","bb"]                                  |
+| notcontain                                                       | The value must not contain a value                                               | "text"                                                     |
+| notnull                                                          | The value must not be null                                                       |                                                            |
+| null                                                             | The value must be null                                                           |                                                            |
+| empty                                                            | The value must be empty (i.e. "",0,null)                                         |                                                            |
+| notempty                                                         | The value must not be empty (i.e. not equals to "",0,null)                       |                                                            |
+| req                                                              | The value must exists                                                            |                                                            |
+| true                                                             | The value must be true (===true)                                                 |                                                            |
 
 
 Examples:
@@ -371,28 +369,28 @@ $container->get('locker20')->firstError(); // it returns the first message of er
 
 Messages are leveled as follows
 
-| id      | Description                                                  | Example                                   |
-| ------- | ------------------------------------------------------------ | ----------------------------------------- |
-| error   | The message is an error, and it must be solved. It is our show stopper. | Database is down                          |
+| id      | Description                                                                                                                                      | Example                                   |
+|---------|--------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------|
+| error   | The message is an error, and it must be solved. It is our show stopper.                                                                          | Database is down                          |
 | warning | The message is a warning that maybe it could be ignored.  However, the class **MessageContainer** allows to group Error and Warning as the same. | The registry was stored but with warnings |
-| info    | The message is information. For example, to log or debug an operation. | Log is stored                             |
-| success | The message is a successful operation                        | Order Accepted                            |
+| info    | The message is information. For example, to log or debug an operation.                                                                           | Log is stored                             |
+| success | The message is a successful operation                                                                                                            | Order Accepted                            |
 
 ## How to manage to the messages?
 
-| Function                                           | Description                                                  | Example                                                      |
-| -------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| addMessage($idLocker, $message, $level =  'error') | It adds a message inside a locker.  <br />Usually, it is done automatically by the library but you can add messages manually via code. | $this->addMessage('pwd','the password is required','error'); |
-| getMessage($withWarning = false)                   | It gets the first error message or empty if none             | $this->getMessage();                                         |
-| getMessages($withWarning = false)                  | It gets all the error messages or empty if none              | $this->getMessages();                                        |
+| Function                                           | Description                                                                                                                                     | Example                                                      |
+|----------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------|
+| addMessage($idLocker, $message, $level =  'error') | It adds a message inside a locker.  <br />Usually, it is done automatically by the library but you can add messages manually via code.          | $this->addMessage('pwd','the password is required','error'); |
+| getMessage($withWarning = false)                   | It gets the first error message or empty if none                                                                                                | $this->getMessage();                                         |
+| getMessages($withWarning = false)                  | It gets all the error messages or empty if none                                                                                                 | $this->getMessages();                                        |
 | getMessageId($idLocker)                            | It gets a **MessageLocker** object (see [EFTEC/MessageContainer](https://github.com/EFTEC/MessageContainer#messagelocker) for more information) | $obj=$this->getMessageId('pwd');                             |
-| errorCount(includeWarning=false)                   | It gets the error count                                      | $count=$this->errorCount();                                  |
-| hasError($includeWarning=false)                    | It returns true if there is an error                         | $fail=$this->hasError();                                     |
+| errorCount(includeWarning=false)                   | It gets the error count                                                                                                                         | $count=$this->errorCount();                                  |
+| hasError($includeWarning=false)                    | It returns true if there is an error                                                                                                            | $fail=$this->hasError();                                     |
 
 
 
-| Field        | Description                                                  | Example                        |
-| ------------ | ------------------------------------------------------------ | ------------------------------ |
+| Field        | Description                                                                      | Example                        |
+|--------------|----------------------------------------------------------------------------------|--------------------------------|
 | $messageList | It gets all the container. It returns an object of the type **MessageContainer** | $container=$this->messageList; |
 
 You can see more information about **MessageContainer** in [EFTEC/MessageContainer](https://github.com/EFTEC/MessageContainer)
@@ -414,17 +412,17 @@ $validation->getMessages(true); // it gets all messages of error or warning from
 
 We also could work with dates.  There are several types of date formats.
 
-| type           | description                                                  |
-| -------------- | ------------------------------------------------------------ |
-| date           | (date) the input could be a DateTime or a string. The value is stored as  an object DateTime |
-| datetime       | (date) the input could be a DateTime or a string. The value is stored as  an object DateTime |
-| datestring     | (date) the input could be a DateTime or a string. The value is stored as a string using the field **$dateOutputString** |
+| type           | description                                                                                                                 |
+|----------------|-----------------------------------------------------------------------------------------------------------------------------|
+| date           | (date) the input could be a DateTime or a string. The value is stored as  an object DateTime                                |
+| datetime       | (date) the input could be a DateTime or a string. The value is stored as  an object DateTime                                |
+| datestring     | (date) the input could be a DateTime or a string. The value is stored as a string using the field **$dateOutputString**     |
 | datetimestring | (date) the input could be a DateTime or a string. The value is stored as a string using the field **$dateLongOutputString** |
 
 There are two ways to specify the format of dates, short (Date only) and long (date and time). And we could specify the format as input and output.
 
 | Name Field            | Description                                            | Default value  |
-| --------------------- | ------------------------------------------------------ | -------------- |
+|-----------------------|--------------------------------------------------------|----------------|
 | $dateShort            | It is the (expected) input format for date (short)     | d/m/Y          |
 | $dateLong             | It is the (expected) input format (with date and time) | d/m/Y H:i:s    |
 | $dateOutputString     | It is the output format (for datestring)               | Y-m-d          |
@@ -457,7 +455,7 @@ $validation->setDateFormatDefault();
 We set the format to the dates to :
 
 | Name         | Format         |
-| ------------ | -------------- |
+|--------------|----------------|
 | input short  | m/d/Y          |
 | input long   | m/d/Y H:i:s    |
 | output short | Y-m-d          |
@@ -469,7 +467,8 @@ $validation->setDateFormatEnglish()
 
 ## Generating exceptions
 
-By default, this library does not generates exceptions. However, it is possible to generate exceptions if the message if of the type ERROR and/or WARNING.
+By default, this library does not generate exceptions. 
+However, it is possible to generate exceptions if the message is of the type ERROR and/or WARNING.
 
 ### throwOnError()
 
@@ -615,22 +614,22 @@ It converts the end result after it is validated. Depending on the type of conve
 
 If the value is missing, or it is used the default value, then it is not converted.
 
-| Type              |      | Description                                                  | Example                                                      |
-| ----------------- | ---- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| upper             |      | Converts the value in uppercase                              | $this->conversion('upper')->set('Hello World'); // HELLO WORLD |
-| lower             |      | Converts the value in lowercase                              | $this->conversion('lower')->set('Hello World'); // hello world |
-| ucfirst           |      | Converts the first character in uppercase                    | $this->conversion('ucfirst')->set('hello world'); // Hello world |
-| ucwords           |      | Converts the first character in a word in uppercase          | $this->conversion('ucwords')->set('hello world'); // Hello World |
-| replace           |      | Replace a string by other                                    | $this->conversion('replace','hello','world')->set('hello hello'); // world world |
-| sanitizer         |      | Sanitizer the result. It uses filter_var()                   | $this->conversion('sanitizer',FILTER_SANITIZE_EMAIL)->set('//aaa@bb.com'); // aaa@bb.com<br />$this->conversion('sanitizer',FILTER_SANITIZE_SPECIAL_CHARS,FILTER_FLAG_STRIP_HIGH) |
-| alphanumeric      |      | Sanitize the result by keeping the alphanumeric characters plus underscore : | this->conversion('alphanumeric')->set('HELLO world_-123'); // HELLOworld_123 |
-| alphanumericminus |      | Sanitize the result by keeping the alphanumeric characters plus underscore and minus symbol | this->conversion('alphanumericminus')->set('HELLO world_-123'); // HELLOworld_-123 |
-| regexp            |      | It calls preg_replace to replace a text                      | this->conversion('regexp','/[/^0-9]/','')->set('hello123'); // 123 |
-| rtrim             |      | Trim the right characters                                    | $this->conversion('rtrim')                                   |
-| ltrim             |      | Trim the left characters                                     | $this->conversion('ltrim')                                   |
-| trim              |      | Trim the right and left. It is equivalent to $this->trim()   | $this->conversion('trim')->set(' hello '); // hello<br />$this->conversion('trim'," \t\n\r\0\x0B") |
-| htmlencode        |      | Encode to html content. It uses htmlentities()               | $this->conversion('htmlencode')->set('\<b>dog\</b>'); //\&lt;b\&gt;dog\&lt; |
-| htmldecode        |      | Decode from a html. It uses html_entity_decode()             | $this->conversion('htmldecode')->set('\&lt;b\&gt;dog\&lt;'); // \<b>dog\</b> |
+| Type              |     | Description                                                                                 | Example                                                                                                                                                                           |
+|-------------------|-----|---------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| upper             |     | Converts the value in uppercase                                                             | $this->conversion('upper')->set('Hello World'); // HELLO WORLD                                                                                                                    |
+| lower             |     | Converts the value in lowercase                                                             | $this->conversion('lower')->set('Hello World'); // hello world                                                                                                                    |
+| ucfirst           |     | Converts the first character in uppercase                                                   | $this->conversion('ucfirst')->set('hello world'); // Hello world                                                                                                                  |
+| ucwords           |     | Converts the first character in a word in uppercase                                         | $this->conversion('ucwords')->set('hello world'); // Hello World                                                                                                                  |
+| replace           |     | Replace a string by other                                                                   | $this->conversion('replace','hello','world')->set('hello hello'); // world world                                                                                                  |
+| sanitizer         |     | Sanitizer the result. It uses filter_var()                                                  | $this->conversion('sanitizer',FILTER_SANITIZE_EMAIL)->set('//aaa@bb.com'); // aaa@bb.com<br />$this->conversion('sanitizer',FILTER_SANITIZE_SPECIAL_CHARS,FILTER_FLAG_STRIP_HIGH) |
+| alphanumeric      |     | Sanitize the result by keeping the alphanumeric characters plus underscore :                | this->conversion('alphanumeric')->set('HELLO world_-123'); // HELLOworld_123                                                                                                      |
+| alphanumericminus |     | Sanitize the result by keeping the alphanumeric characters plus underscore and minus symbol | this->conversion('alphanumericminus')->set('HELLO world_-123'); // HELLOworld_-123                                                                                                |
+| regexp            |     | It calls preg_replace to replace a text                                                     | this->conversion('regexp','/[/^0-9]/','')->set('hello123'); // 123                                                                                                                |
+| rtrim             |     | Trim the right characters                                                                   | $this->conversion('rtrim')                                                                                                                                                        |
+| ltrim             |     | Trim the left characters                                                                    | $this->conversion('ltrim')                                                                                                                                                        |
+| trim              |     | Trim the right and left. It is equivalent to $this->trim()                                  | $this->conversion('trim')->set(' hello '); // hello<br />$this->conversion('trim'," \t\n\r\0\x0B")                                                                                |
+| htmlencode        |     | Encode to html content. It uses htmlentities()                                              | $this->conversion('htmlencode')->set('\<b>dog\</b>'); //\&lt;b\&gt;dog\&lt;                                                                                                       |
+| htmldecode        |     | Decode from a html. It uses html_entity_decode()                                            | $this->conversion('htmldecode')->set('\&lt;b\&gt;dog\&lt;'); // \<b>dog\</b>                                                                                                      |
 
 
 
@@ -660,6 +659,8 @@ $validation->convert('htmldecode')->set(....);
 
 
 ## Version list
+* 2022-08-27 2.5
+  * **[update]** added type of arguments to the function. 
 * 2022-03-11 2.4
   * **[update]** added condition alphanumunder (alphanumeric or underscore).
 * 2022-02-05 2.3
@@ -724,7 +725,7 @@ $validation->convert('htmldecode')->set(....);
 * 2020-01-03 1.21
     * ValidationOne::runConditions() now allows (for file type), conditions architecture and compression
     * ValidationOne::getFileExtension() now could return the extension as mime
-    * ValidationOne::getFileMime() new method that returns the mime type of a file.
+    * ValidationOne::getFileMime() new method that returns the mime-type of a file.
 * 2019-11-27 1.20
   * Fixed the name countErrorOrWaring->countErrorOrWarning
 * 2019-11-27 1.19 
@@ -734,7 +735,7 @@ $validation->convert('htmldecode')->set(....);
 * 2019-10-01 1.17 Fixed a bug. If the input is zero, then it is considered as null.
 * 2019-08-10 1.16 Solved a problem with the datestring/datetimestring.
 * 2019-08-07 1.15 
-* * Added the type datestring and datetimestring. It reads a string and it converts into another string (as date or datetime)
+* * Added the type datestring and datetimestring. It reads a string, and it converts into another string (as date or datetime)
 * * Code formatted
 * 2019-03-08 1.14 Added getFile() to upload a file.
 * 2018-12-15 1.13 Added phpunit and travis.
@@ -742,7 +743,7 @@ $validation->convert('htmldecode')->set(....);
 * 2018-10-22 1.11 Some fixes. Now isEmpty is called isMissing
 * 2018-10-22 1.10 New Features
 * * Added ValidationInputOne, now the fetchs are done by  this class (SRP principle)
-* * Added a fix with the input, when the value expected is an array but it's returned a single value
+* * Added a fix with the input, when the value expected is an array, but it's returned a single value
 * 2018-10-15 1.9 Added some extra features
 * 2018-10-15 1.8 Some fixes and phpdocs, a new example
 * 2018-10-15 1.7 Added method addMessage() in ValidationOne. Now ErrorItem/ErrorList is called MessageLocker and MessageContainer

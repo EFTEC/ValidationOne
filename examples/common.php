@@ -8,6 +8,10 @@ include "../vendor/eftec/messagecontainer/lib/MessageContainer.php";
 include "../vendor/eftec/messagecontainer/lib/MessageLocker.php";
 include "../lib/ValidationInputOne.php";
 
+function messages(): MessageContainer
+{
+    return MessageContainer::instance();
+}
 
 /**
  * @param string $prefix

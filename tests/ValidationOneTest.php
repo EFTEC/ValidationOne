@@ -10,7 +10,7 @@ use PHPUnit\Framework\TestCase;
 class ValidationOneTest extends TestCase
 {
 
-    public function test_db()
+    public function test_db(): void
     {
         getVal()->messageList->resetAll();
         $r = getVal()->def(-1)->type('integer')
@@ -20,10 +20,11 @@ class ValidationOneTest extends TestCase
 
         self::assertEquals(12345, $r, 'it must be equals to 12345');
         //var_dump(getVal()->messageList->allErrorArray());
+        getVal()->override(false);
         self::assertCount(2, getVal()->messageList->allErrorArray(), 'it must be 2 errors');
     }
 
-    public function testMessages()
+    public function testMessages(): void
     {
         $ml = MessageContainer::instance();
         $ml->resetAll();
@@ -43,13 +44,14 @@ class ValidationOneTest extends TestCase
             3 => 'message error c2-2'
         ], $ml->allErrorOrWarningArray());
     }
-    public function testArray() {
+    public function testArray(): void
+    {
         getVal()->resetValidation(true);
         getVal()->condition('gt','10')->isArray()->set([1,2,3],'id');
         self::assertEquals([], getVal()->getMessageId('id')->all());
     }
 
-    public function test6()
+    public function test6(): void
     {
         getVal()->configChain(false, false);
         getVal()->resetValidation(true);
@@ -60,7 +62,7 @@ class ValidationOneTest extends TestCase
         self::assertEquals('this value must not be empty', getVal()->messageList->firstErrorText());
         getVal()->configChain(false, false);
     }
-    public function testAlphaNumericUnder()
+    public function testAlphaNumericUnder(): void
     {
         getVal()->messageList->resetAll();
         unset($_POST['frm_FIELDREQ'], $_GET['frm_FIELDREQ'], $_FILES['frm_FIELDREQF']);
@@ -73,7 +75,7 @@ class ValidationOneTest extends TestCase
         self::assertEquals('Aa_aaa', $r2);
     }
 
-    public function test4()
+    public function test4(): void
     {
         getVal()->messageList->resetAll();
         $r = getVal()->def("???")->type('string')->condition('eq', null, ['foo', 'bar'])->set("hello");
@@ -89,7 +91,8 @@ class ValidationOneTest extends TestCase
         //var_dump(getVal()->messageList->allErrorArray());
         self::assertEquals('setfield is in ["foo","bar"]', getVal()->messageList->firstErrorText());
     }
-    public function testPostGetRequest() {
+    public function testPostGetRequest(): void
+    {
         getVal()->messageList->resetAll();
         $_POST['frm_FIELDREQ']="hello";
         $_GET['frm_FIELDREQ']="hello-get";
@@ -105,7 +108,8 @@ class ValidationOneTest extends TestCase
         $r=getVal()->type('string')->exist()->getFile('FIELDREQF');
         self::assertEquals(['name.jpg','name.jpg'],$r);
     }
-    public function testOther() {
+    public function testOther(): void
+    {
         // VALUE IS MISSING -> exist -> GENERATE AN ERROR -> SET DEFAULT
         getVal()->messageList->resetAll();
         unset($_POST['frm_FIELDREQ'], $_GET['frm_FIELDREQ'], $_FILES['frm_FIELDREQF']);
@@ -113,7 +117,8 @@ class ValidationOneTest extends TestCase
         $r=getVal()->type('integer')->def('noexist')->exist(true)->get('FIELDREQ');
         self::assertEquals(false,getVal()->getHasMessage());
     }
-    public function testPipeline() {
+    public function testPipeline(): void
+    {
         // VALUE IS MISSING -> exist -> GENERATE AN ERROR -> SET DEFAULT
         getVal()->messageList->resetAll();
         unset($_POST['frm_FIELDREQ'], $_GET['frm_FIELDREQ'], $_FILES['frm_FIELDREQF']);
@@ -177,7 +182,8 @@ class ValidationOneTest extends TestCase
         self::assertEquals('1',$r);
 
     }
-    public function testPostGetRequestNoFound() {
+    public function testPostGetRequestNoFound(): void
+    {
         getVal()->messageList->resetAll();
         unset($_POST['frm_FIELDREQ'], $_GET['frm_FIELDREQ'], $_FILES['frm_FIELDREQF']);
 
@@ -198,7 +204,8 @@ class ValidationOneTest extends TestCase
         getVal()->messageList->resetAll();
 
     }
-    public function testMessageContainer() {
+    public function testMessageContainer(): void
+    {
         getVal()->messageList->resetAll();
         self::assertEquals(0,getVal()->messageList->errorCount);
         getVal()->messageList->addItem('containere','errorm','error');
@@ -220,13 +227,15 @@ class ValidationOneTest extends TestCase
         self::assertEquals('warning',getVal()->messageList->cssClass('container1'));
 
     }
-    public function testMisc() {
+    public function testMisc(): void
+    {
         self::assertEquals('jpg',getVal()->getFileExtension('//folder/file.jpg'));
         self::assertEquals('image/jpeg',getVal()->getFileExtension('//folder/file.jpg',true));
     }
 
 
-    public function testThrow() {
+    public function testThrow(): void
+    {
         getVal()->messageList->resetAll();
         try {
             getVal()->type('integer')->throwOnError()->set('hello', 'field1');
@@ -252,7 +261,8 @@ class ValidationOneTest extends TestCase
             $this->assertEquals('XXXXYYY does not exist',$ex->getMessage());
         }
     }
-    public function testTrimConversion() {
+    public function testTrimConversion(): void
+    {
         getVal()->messageList->resetAll();
         $r=getVal()->type('string')->set('  hello  ');
         self::assertEquals('  hello  ',$r);
@@ -282,7 +292,7 @@ class ValidationOneTest extends TestCase
         self::assertEquals('  hello  ',$r);
 
     }
-    public function testExistMissingValid()
+    public function testExistMissingValid(): void
     {
         // missing valid
         getVal()->messageList->resetAll();
@@ -373,7 +383,7 @@ class ValidationOneTest extends TestCase
     }
 
 
-    public function testExistRequired2()
+    public function testExistRequired2(): void
     {
         getVal()->messageList->resetAll();
         $_POST['frm_FIELDREQ'] = "hello";
@@ -398,7 +408,8 @@ class ValidationOneTest extends TestCase
     }
 
 
-    public function testExistRequired() {
+    public function testExistRequired(): void
+    {
         getVal()->messageList->resetAll();
         $_POST['frm_FIELDREQ']="hello";
         $r=getVal()->type('string')->exist()->post('FIELDREQ');
@@ -428,7 +439,8 @@ class ValidationOneTest extends TestCase
         self::assertEquals("hello",$r);
     }
 
-    public function testMultiple() {
+    public function testMultiple(): void
+    {
         getVal()->messageList->resetAll();
         $_POST['frm_FIELDREQ']="hello";
         $r=getVal()->type('string')->exist()->post('FIELDREQ');
@@ -449,7 +461,7 @@ class ValidationOneTest extends TestCase
 
     }
 
-    public function testMultipleCondition()
+    public function testMultipleCondition(): void
     {
         getVal()->messageList->resetAll();
         $r = getVal()->def("???")->type('integer')->condition('between', 'value must be between zero and 100', [0, 100])
@@ -476,7 +488,7 @@ class ValidationOneTest extends TestCase
         getVal()->messageList->resetAll();
     }
 
-    public function test5()
+    public function test5(): void
     {
         getVal()->messageList->resetAll();
         $r = getVal()->def("???")->type('file')->condition('exist')->set(__FILE__, 'filename');
@@ -494,7 +506,7 @@ class ValidationOneTest extends TestCase
 
     }
 
-    public function testFailCondition()
+    public function testFailCondition(): void
     {
         getVal()->messageList->resetAll();
         $r = getVal()->def("default")->type('string')->condition('contain', 'it must contains the text hello', 'hello')
@@ -515,13 +527,13 @@ class ValidationOneTest extends TestCase
         self::assertEquals(3, getVal()->messageList->errorOrWarningCount, 'it must be 3 errors or warnings');
     }
 
-    public function test7()
+    public function test7(): void
     {
         $r = getVal()->type('string')->isNullValid(true)->set(null, 'field');
         self::assertEquals(null, $r);
     }
 
-    public function testOthers()
+    public function testOthers(): void
     {
         $r = getVal()->ifMissingThenSet('hi world')->get('nope');
         self::assertEquals('hi world', $r);
@@ -534,7 +546,8 @@ class ValidationOneTest extends TestCase
 
         getVal()->setDateFormatDefault(); // to default configuration
     }
-    public function testExt() {
+    public function testExt(): void
+    {
         getVal()->messageList->resetAll();
         $this->assertEquals('image/jpeg',getVal()->getFileExtension('aaa.jpg',true));
         $this->assertEquals('application/javascript',getVal()->getFileExtension('aaa.js',true));
@@ -544,7 +557,7 @@ class ValidationOneTest extends TestCase
         $this->assertEquals('hello',getVal()->initial('hello')->get('XXXXX'));
     }
 
-    public function testDateEmptyOrMissing()
+    public function testDateEmptyOrMissing(): void
     {
         getVal()->messageList->resetAll();
         $r = getVal()->type('datetimestring')->def('')->ifFailThenDefault()->set(null);
@@ -555,7 +568,7 @@ class ValidationOneTest extends TestCase
         self::assertEquals(null, $r);
     }
 
-    public function testDate()
+    public function testDate(): void
     {
         getVal()->messageList->resetAll();
         $r = getVal()->type('date')->condition('req')->set('31/12/2010');
@@ -582,7 +595,7 @@ class ValidationOneTest extends TestCase
             'it must have 0 errors or warnings');
     }
 
-    public function testDateString()
+    public function testDateString(): void
     {
         // getVal()->dateShort= 'd/m/Y'
         //getVal()->dateOutputString='Y-m-d'
