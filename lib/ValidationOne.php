@@ -17,7 +17,7 @@ if (!defined("NULLVAL")) {
  *
  * @package       eftec
  * @author        Jorge Castro Castillo
- * @version       2.5 2022-08-27
+ * @version       2.6 2023-01-26
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see           https://github.com/EFTEC/ValidationOne
  */
@@ -1360,7 +1360,7 @@ class ValidationOne
      * @param null|string $type      =[null,'ltrim','rtrim','trim'][$i] (null = no trim)
      * @param string      $trimChars Characters to trim " \t\n\r\0\x0B"
      * @return ValidationOne
-     * @see \eftec\ValidationOne::conversion
+     * @see ValidationOne::conversion
      */
     public function trim(?string $type = 'trim', string $trimChars = " \t\n\r\0\x0B"): ValidationOne
     {
@@ -1625,7 +1625,7 @@ class ValidationOne
      *                                       otherwise, it returns a null.
      *
      * @return ValidationOne
-     * @see \eftec\ValidationOne::ifFailThenDefault
+     * @see ValidationOne::ifFailThenDefault
      */
     public function def($value = null, ?bool $ifFailThenDefault = null): ValidationOne
     {
@@ -2039,7 +2039,7 @@ class ValidationOne
      * @param string $msg See condition() for more information
      *
      * @return $this
-     * @see \eftec\ValidationOne::condition
+     * @see ValidationOne::condition
      */
     public function notempty(string $msg = ''): ValidationOne
     {
@@ -2057,7 +2057,7 @@ class ValidationOne
      * @param bool   $required
      * @param string $msg See condition() for more information
      * @return $this
-     * @see \eftec\ValidationOne::condition
+     * @see ValidationOne::condition
      */
     public function required(bool $required = true, string $msg = ''): ValidationOne
     {

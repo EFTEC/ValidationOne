@@ -8,50 +8,54 @@ in practically any PHP project, including WordPress, Laravel, core PHP project, 
 
 [![Packagist](https://img.shields.io/packagist/v/eftec/validationone.svg)](https://packagist.org/packages/eftec/ValidationOne)
 [![Total Downloads](https://poser.pugx.org/eftec/validationone/downloads)](https://packagist.org/packages/eftec/ValidationOne)
-[![Maintenance](https://img.shields.io/maintenance/yes/2022.svg)]()
+[![Maintenance](https://img.shields.io/maintenance/yes/2023.svg)]()
 [![composer](https://img.shields.io/badge/composer-%3E1.8-blue.svg)]()
 [![php](https://img.shields.io/badge/php-7.x-green.svg)]()
 [![php](https://img.shields.io/badge/php-8.x-green.svg)]()
 [![CocoaPods](https://img.shields.io/badge/docs-70%25-yellow.svg)]()
 
-- [ValidationOne](#validationone)
-    - [Full Diagram](#full-diagram)
-    - [Examples](#examples)
-    - [Concept](#concept)
-    - [Starting the chain](#starting-the-chain)
-    - [Adding a new condition](#adding-a-new-condition)
-        - [types](#types)
-        - [Type of conditions per type of input.](#type-of-conditions-per-type-of-input)
-        - [Types of Conditions.](#types-of-conditions)
-        - [Calling a custom function](#calling-a-custom-function)
-    - [Getting the messages](#getting-the-messages)
-    - [How to manage to the messages?](#how-to-manage-to-the-messages)
-    - [Working with dates](#working-with-dates)
-        - [setDateFormat](#setdateformat)
-        - [setDateFormatDefault](#setdateformatdefault)
-        - [setDateFormatEnglish](#setdateformatenglish)
-    - [Generating exceptions](#generating-exceptions)
-        - [throwOnError()](#throwonerror)
-    - [Dealing with missing or empty values](#dealing-with-missing-or-empty-values)
-        - [exist](#exist)
-        - [required](#required)
-        - [notnull](#notnull)
-        - [notempty](#notempty)
-    - [Allowing missing or empty values](#allowing-missing-or-empty-values)
-    - [Processing the result](#processing-the-result)
-        - [def()](#def)
-        - [trim()](#trim)
-        - [alwaysTrim()](#alwaystrim)
-        - [convert()](#convert)
-    - [Version list](#version-list)
-    - [todo](#todo)
-    - [Note](#note)
 
 ## Full Diagram
 
 ![diagram full](examples/docs/diagram2022.png)
 
+## Table of contents
 
+<!-- TOC -->
+* [ValidationOne](#validationone)
+  * [Full Diagram](#full-diagram)
+  * [Table of contents](#table-of-contents)
+  * [Examples](#examples)
+  * [Concept](#concept)
+  * [Starting the chain](#starting-the-chain)
+  * [Adding a new condition](#adding-a-new-condition)
+    * [types](#types)
+    * [Type of conditions per type of input.](#type-of-conditions-per-type-of-input)
+    * [Types of Conditions.](#types-of-conditions)
+    * [Calling a custom function](#calling-a-custom-function)
+  * [Getting the messages](#getting-the-messages)
+  * [How to manage to the messages?](#how-to-manage-to-the-messages)
+  * [Working with dates](#working-with-dates)
+    * [setDateFormat](#setdateformat)
+    * [setDateFormatDefault](#setdateformatdefault)
+    * [setDateFormatEnglish](#setdateformatenglish)
+  * [Generating exceptions](#generating-exceptions)
+    * [throwOnError()](#throwonerror--)
+  * [Dealing with missing or empty values](#dealing-with-missing-or-empty-values)
+    * [exist](#exist)
+    * [required](#required)
+    * [notnull](#notnull)
+    * [notempty](#notempty)
+  * [Allowing missing or empty values](#allowing-missing-or-empty-values)
+  * [Processing the result](#processing-the-result)
+    * [def()](#def--)
+    * [trim()](#trim--)
+    * [alwaysTrim()](#alwaystrim--)
+    * [convert()](#convert--)
+  * [Version list](#version-list)
+  * [todo](#todo)
+  * [Note](#note)
+<!-- TOC -->
 
 ## Examples
 
@@ -659,8 +663,10 @@ $validation->convert('htmldecode')->set(....);
 
 
 ## Version list
+* 2023-01-26 2.6
+  * Some small cleanups. 
 * 2022-08-27 2.5
-  * **[update]** added type of arguments to the function. 
+  * **[update]** added the validation of arguments for most of the functions of the library.
 * 2022-03-11 2.4
   * **[update]** added condition alphanumunder (alphanumeric or underscore).
 * 2022-02-05 2.3

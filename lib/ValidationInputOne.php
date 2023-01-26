@@ -58,7 +58,6 @@ class ValidationInputOne
         if ($messageList !== null) {
             $this->messageList = $messageList;
         } elseif (function_exists('messages')) {
-            /** @noinspection PhpUndefinedFunctionInspection */
             $this->messageList = messages();
         } else {
             $this->messageList = new MessageContainer();
