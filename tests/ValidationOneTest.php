@@ -4,6 +4,7 @@ namespace eftec\tests;
 
 use DateTime;
 use eftec\MessageContainer;
+use eftec\ValidationOne;
 use PHPUnit\Framework\TestCase;
 
 
@@ -23,16 +24,20 @@ class ValidationOneTest extends TestCase
         getVal()->override(false);
         self::assertCount(2, getVal()->messageList->allErrorArray(), 'it must be 2 errors');
     }
+    public function testVersion():void
+    {
+        $this->assertNotEmpty(ValidationOne::VERSION);
+    }
 
     public function testMessages(): void
     {
         $ml = MessageContainer::instance();
         $ml->resetAll();
-        $ml->addItem('c1', 'message error c1-1', 'error');
-        $ml->addItem('c1', 'message error c1-2', 'error');
+        $ml->addItem('c1', 'message error c1-1');
+        $ml->addItem('c1', 'message error c1-2');
 
-        $ml->addItem('c2', 'message error c2-1', 'error');
-        $ml->addItem('c2', 'message error c2-2', 'error');
+        $ml->addItem('c2', 'message error c2-1');
+        $ml->addItem('c2', 'message error c2-2');
 
         self::assertEquals(['message error c1-1', 'message error c1-2'], $ml->get('c1')->allErrorOrWarning());
         self::assertEquals(['message error c1-1', 'message error c1-2'], $ml->get('c1')->allErrorOrWarning());
@@ -47,20 +52,30 @@ class ValidationOneTest extends TestCase
     public function testArray(): void
     {
         getVal()->resetValidation(true);
+        $r=getVal()->isArray(true,true)->set(['col1'=>['cocacola','fanta'],'col2'=>[1,2]],'id');
+        self::assertEquals(
+            [
+            ['col1'=>'cocacola','col2'=>1],
+            ['col1'=>'fanta','col2'=>2]
+            ], $r);
+    }
+    public function testArray2(): void
+    {
+        getVal()->resetValidation(true);
         getVal()->condition('gt','10')->isArray()->set([1,2,3],'id');
         self::assertEquals([], getVal()->getMessageId('id')->all());
     }
 
     public function test6(): void
     {
-        getVal()->configChain(false, false);
+        getVal()->configChain();
         getVal()->resetValidation(true);
         getVal()->useForm(null);
 
         getVal()->notempty('this value must not be empty')->set('', 'id');
         self::assertEquals(1, getVal()->getMessageId('id')->countError());
         self::assertEquals('this value must not be empty', getVal()->messageList->firstErrorText());
-        getVal()->configChain(false, false);
+        getVal()->configChain();
     }
     public function testAlphaNumericUnder(): void
     {
@@ -114,7 +129,7 @@ class ValidationOneTest extends TestCase
         getVal()->messageList->resetAll();
         unset($_POST['frm_FIELDREQ'], $_GET['frm_FIELDREQ'], $_FILES['frm_FIELDREQF']);
         $_POST['frm_FIELDREQ']='abc';
-        $r=getVal()->type('integer')->def('noexist')->exist(true)->get('FIELDREQ');
+        $r=getVal()->type('integer')->def('noexist')->exist()->get('FIELDREQ');
         self::assertEquals(false,getVal()->getHasMessage());
     }
     public function testPipeline(): void
@@ -123,7 +138,7 @@ class ValidationOneTest extends TestCase
         getVal()->messageList->resetAll();
         unset($_POST['frm_FIELDREQ'], $_GET['frm_FIELDREQ'], $_FILES['frm_FIELDREQF']);
 
-        $r=getVal()->type('string')->def('noexist')->exist(true)->post('FIELDREQ');
+        $r=getVal()->type('string')->def('noexist')->exist()->post('FIELDREQ');
         self::assertEquals(1,getVal()->messageList->errorCount);
         self::assertEquals("FIELDREQ does not exist",getVal()->getMessage());
         self::assertEquals('noexist',$r);
@@ -208,7 +223,7 @@ class ValidationOneTest extends TestCase
     {
         getVal()->messageList->resetAll();
         self::assertEquals(0,getVal()->messageList->errorCount);
-        getVal()->messageList->addItem('containere','errorm','error');
+        getVal()->messageList->addItem('containere','errorm');
         getVal()->messageList->addItem('containeri','infom','info');
         getVal()->messageList->addItem('container1','warningm','warning');
         getVal()->messageList->addItem('containers','successm','success');
@@ -529,7 +544,7 @@ class ValidationOneTest extends TestCase
 
     public function test7(): void
     {
-        $r = getVal()->type('string')->isNullValid(true)->set(null, 'field');
+        $r = getVal()->type('string')->isNullValid()->set(null, 'field');
         self::assertEquals(null, $r);
     }
 
@@ -552,7 +567,7 @@ class ValidationOneTest extends TestCase
         $this->assertEquals('image/jpeg',getVal()->getFileExtension('aaa.jpg',true));
         $this->assertEquals('application/javascript',getVal()->getFileExtension('aaa.js',true));
         $this->assertEquals('image/png',getVal()->getFileExtension('aaa.png',true));
-        getVal()->addMessage('tmp','error','error');
+        getVal()->addMessage('tmp','error');
         $this->assertEquals(1,getVal()->errorCount());
         $this->assertEquals('hello',getVal()->initial('hello')->get('XXXXX'));
     }
@@ -564,7 +579,7 @@ class ValidationOneTest extends TestCase
         self::assertEquals('', $r);
         $r = getVal()->type('datetimestring')->get('missingfield');
         self::assertEquals('', $r);
-        $r = getVal()->type('datetimestring')->def(null)->ifFailThenDefault()->set(null);
+        $r = getVal()->type('datetimestring')->def()->ifFailThenDefault()->set(null);
         self::assertEquals(null, $r);
     }
 

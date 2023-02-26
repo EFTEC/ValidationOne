@@ -610,6 +610,51 @@ $validation->alwaysTrim(true,",."); // always trim , and .
 $validation->alwaysTrim(false);  // we disable the always trim.
 ```
 
+### isArray()
+
+If we want to fetch an array, then we could use the next method
+
+```php
+$array=$validation->isArray()->request('id');
+```
+It also validates every value. However, it stores the messages in a single container.
+
+If we want to store every message separately, then we could use:
+```php
+$array=$validation->isArray(true)->request('id');
+```
+
+#### Example of array
+
+```html
+<form>
+    <input type='text' name='field[col1][0]' value="cocacola" />
+    <input type='text' name='field[col2][0]' value="123" /><br>
+    <input type='text' name='field[col1][1]' value="fanta" />
+    <input type='text' name='field[col2][1]' value="123" /><br>
+    <input type="submit"><br>
+</form>
+```
+
+>Note: You could also define the fields as 'field\[0]\[col1]' so you won't need to invert the array
+
+```php
+$values=getVal()->isArray(true)->request('field'); // ['col1'=>['cocacola','fanta'],'col2'=>[123,123]]
+ValidationOne::invertArray($values); // // [['col1'=>'cocacola','col2'=>123],['col1'=>'fanta','col2'=>123]]
+```
+
+### invertArray()
+
+If the value is an array but the indexes of the columns are inverted with the columns, then you can invert the order<br>
+**example:**
+
+```php
+$arr=['col1'=>['cocacola','fanta'],'col2'=>[1,2]];
+ValidationOne::invertArray($arr); // [['col1'=>'cocacola','col2'=>1],['col1'=>'fanta','col2'=>2]]
+'''
+
+
+
 
 
 ### convert()
@@ -663,6 +708,9 @@ $validation->convert('htmldecode')->set(....);
 
 
 ## Version list
+* 2023-02-26 2.7
+  * added a new argument for isArray()
+  * added the static method invertArray()
 * 2023-01-26 2.6
   * Some small cleanups. 
 * 2022-08-27 2.5

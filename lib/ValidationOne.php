@@ -17,12 +17,13 @@ if (!defined("NULLVAL")) {
  *
  * @package       eftec
  * @author        Jorge Castro Castillo
- * @version       2.6 2023-01-26
+ * @version       2.7 2023-02-26
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see           https://github.com/EFTEC/ValidationOne
  */
 class ValidationOne
 {
+    public const VERSION='2.7';
     /** @var string It is the (expected) input format for date (short) */
     public $dateShort = 'd/m/Y';
     /** @var string It is the (expected) input format (with date and time) */
@@ -69,6 +70,13 @@ class ValidationOne
     private $isColumn = false;
     /** @var bool if true then the errors from id[0],id[1] ared stored in "idx" */
     private $isArrayFlat = false;
+    /**
+     * @var bool     If the value is an array but the indexes of the columns are inverted with the columns, then you can
+     *               invert the order<br>
+     *               <b>(false, no conversion)</b>: ['col1'=>['cocacola','fanta'],'col2'=>[1,2]]<br>
+     *               <b>(true)</b>: [['col1'=>'cocacola','col2'=>1],['col1'=>'fanta','col2'=>2]]<br>
+     */
+    private $invertIndexRow = false;
     /** @var bool TODO */
     private $hasMessage = false;
     /** @var bool if the validation fails then it returns the default value */
@@ -364,6 +372,9 @@ class ValidationOne
         if ($this->missingSet !== null && ($input === null || $input === '')) {
             $input = $this->missingSet;
         }
+        if($this->isArray && $this->invertIndexRow) {
+            $input = self::invertArray($input);
+        }
         //if (!$this->isMissing) {
         if ($this->ifFailThenOrigin) {
             $this->default = $input;
@@ -391,8 +402,9 @@ class ValidationOne
                     foreach ($input as $key => &$items) {
                         $currentField = ($this->isArrayFlat) ? $fieldId : $fieldId . "[" . $key . "]";
                         $this->runConditions($items, $currentField, $key);
+
                         if ($this->ifFailThenDefault && $this->messageList->get($currentField)->countError()) {
-                            $items = (is_array($this->default)) ? $this->default[$key] : $this->default;
+                            $items = (is_array($this->default)) ? ($this->default[$key]??null) : $this->default;
                         }
                     }
                     unset($items);
@@ -441,6 +453,34 @@ class ValidationOne
         }
         $this->resetChain();
         return $output;
+    }
+
+    /**
+     * If the value is an array but the indexes of the columns are inverted with the columns,
+     * then you can invert the order<br>
+     * <b>example:</b><br>
+     * <pre>
+     * $arr=['col1'=>['cocacola','fanta'],'col2'=>[1,2]];
+     * ValidationOne::invertArray($arr); // [['col1'=>'cocacola','col2'=>1],['col1'=>'fanta','col2'=>2]]
+     * </pre>
+     * @param array|null $input
+     * @return array|null
+     */
+    public static function invertArray(?array $input):?array {
+        if($input===null) {
+            return null;
+        }
+        $inputFinal = [];
+        foreach ($input as $kcol => $vcol) {
+            if (is_array($vcol)) {
+                foreach ($vcol as $kid => $vidx) {
+                    $inputFinal[$kid][$kcol] = $vidx;
+                }
+            } else {
+                $inputFinal[$kcol] = $vcol;
+            }
+        }
+        return $inputFinal;
     }
 
 
@@ -570,7 +610,7 @@ class ValidationOne
         }
         if (is_array($this->originalValue)) {
             $txt = str_replace(['%field', '%realfield', '%value', '%comp', '%first', '%second', '%key'], [
-                    $this->friendId ?? $fieldId,
+                $this->friendId ?? $fieldId,
                 $fieldId,
                 is_array($value) ? "[]" : $value,
                 $vcomp,
@@ -581,7 +621,7 @@ class ValidationOne
             //$this->originalValue=$value;
         } else {
             $txt = str_replace(['%field', '%realfield', '%value', '%comp', '%first', '%second', '%key'], [
-                    $this->friendId ?? $fieldId,
+                $this->friendId ?? $fieldId,
                 $fieldId,
                 $this->addMessageSer($this->originalValue),
                 $this->addMessageSer($vcomp),
@@ -1760,13 +1800,17 @@ class ValidationOne
      * If $flat is true then the errors are returned as a flat array (idx instead of idx[0],idx[1])
      *
      * @param bool $flat
+     * @param bool $invertIndexRow If true, then it invert the order of the array<br>
+     *                             <b>(false, no conversion)</b>: ['col1'=>['cocacola','fanta'],'col2'=>[1,2]]<br>
+     *                             <b>(true)</b>: [['col1'=>'cocacola','col2'=>1],['col1'=>'fanta','col2'=>2]]<br>
      *
      * @return ValidationOne $this
      */
-    public function isArray(bool $flat = false): ValidationOne
+    public function isArray(bool $flat = false,bool $invertIndexRow = false): ValidationOne
     {
         $this->isArray = true;
         $this->isArrayFlat = $flat;
+        $this->invertIndexRow = $invertIndexRow;
         return $this;
     }
 
@@ -2068,7 +2112,7 @@ class ValidationOne
     }
 
     /**
-     * @param FormOne $form
+     * @param FormOne|null $form
      *
      * @return ValidationOne
      * @noinspection PhpUndefinedClassInspection
@@ -2176,8 +2220,12 @@ class ValidationOne
         if (is_object($input)) {
             $input = (array)$input;
         }
+        if(is_array($input) && $this->invertIndexRow) {
+            $input = self::invertArray($input);
+        }
         $this->countError = $this->messageList->errorCount;
         if (is_array($input)) {
+
             if (!$this->isMissingValid || !$this->isMissing) { // bypass if missing is valid (and the value is missing)
                 foreach ($input as $key => &$v) {
                     $this->originalValue = $v;
