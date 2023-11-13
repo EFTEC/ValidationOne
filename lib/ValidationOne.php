@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection UnknownInspectionInspection */
 
 namespace eftec;
 
@@ -17,13 +17,13 @@ if (!defined("NULLVAL")) {
  *
  * @package       eftec
  * @author        Jorge Castro Castillo
- * @version       2.7 2023-02-26
+ * @version       2.8 2023-11-13
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see           https://github.com/EFTEC/ValidationOne
  */
 class ValidationOne
 {
-    public const VERSION='2.7';
+    public const VERSION='2.8';
     /** @var string It is the (expected) input format for date (short) */
     public $dateShort = 'd/m/Y';
     /** @var string It is the (expected) input format (with date and time) */
@@ -458,11 +458,11 @@ class ValidationOne
     /**
      * If the value is an array but the indexes of the columns are inverted with the columns,
      * then you can invert the order<br>
-     * <b>example:</b><br>
-     * <pre>
+     * **Example:**<br>
+     * ```php
      * $arr=['col1'=>['cocacola','fanta'],'col2'=>[1,2]];
      * ValidationOne::invertArray($arr); // [['col1'=>'cocacola','col2'=>1],['col1'=>'fanta','col2'=>2]]
-     * </pre>
+     * ```
      * @param array|null $input
      * @return array|null
      */
@@ -1424,9 +1424,9 @@ class ValidationOne
      * It adds a conversion of the result. It is an after-validation operation.<br>
      * <b>Note:</b> Default values are never converted.
      * <b>example</b><br>
-     * <pre>
+     * ```php
      * $this->type('string')->conversion('alphanumericunderscore')->post('FIELDREQ2');
-     * </pre>
+     * ```
      *
      * @param string     $type =['upper','lower','ucfirst','ucwords','replace','sanitizer'
      *                         ,'rtrim','ltrim','trim','htmlencode','htmldecode','alphanumeric'
@@ -1679,10 +1679,10 @@ class ValidationOne
     /**
      * If the value is null, then it is not evaluated, and it doesn't generate any message<br>
      * This method is used where a value null is a valid condition.<br>
-     * <b>Example:</b><br>
-     * <pre>
+     * **Example:**<br>
+     * ```php
      * $this->isNullValid()->condition("eq","hello")->get("idfield"); // hello or null are valid conditions
-     * </pre>
+     * ```
      *
      * @param bool $isValid if true then, if the value is null then it is not evaluated.
      *
@@ -1697,10 +1697,10 @@ class ValidationOne
     /**
      * If the value is null or empty '', then it is not evaluated, and it doesn't generate any message<br>
      * This method is used where a value null/empty is a valid condition.<br>
-     * <b>Example:</b><br>
-     * <pre>
+     * **Example:**<br>
+     * ```php
      * $this->isNullorEmptyValid()->condition("eq","hello")->get("idfield"); // hello or null/'' are valid conditions
-     * </pre>
+     * ```
      *
      * @param bool $isValid if true then, if the value is null/empty then it is not evaluated.
      *
@@ -1716,10 +1716,10 @@ class ValidationOne
     /**
      * If the value is empty, then it is not evaluated, and it doesn't generate any message<br>
      * This method is used where a value empty is a valid condition.<br>
-     * <b>Example:</b><br>
-     * <pre>
+     * **Example:**<br>
+     * ```php
      * $this->isNullValid()->condition("eq","hello")->get("idfield"); // hello or '' are valid conditions
-     * </pre>
+     * ```
      *
      * @param bool $isEmpty if true then, if the value is null then it is not evaluated.
      *
@@ -1734,10 +1734,10 @@ class ValidationOne
     /**
      * If the value is missing, then it is not evaluated, and it doesn't generate any message<br>
      * This method is used where a value missing is a valid condition.<br>
-     * <b>Example:</b><br>
-     * <pre>
+     * **Example:**<br>
+     * ```php
      * $this->isMissingValid()->condition("eq","hello")->get("idfield"); // hello or not defined are valid conditions
-     * </pre>
+     * ```
      *
      * @param bool $isMissing if true then, if the value is null then it is not evaluated.
      *
@@ -1854,10 +1854,10 @@ class ValidationOne
     /**
      * If the value is missing (null or empty) then it sets a value. If it does not set then it uses
      * the default natural value.<br>
-     * <b>Example:</b><br>
-     * <pre>
+     * **Example:**<br>
+     * ```php
      * $this->ifMissingThenSet("some value");
-     * </pre>
+     * ```
      *
      * @param mixed $value The value to set if the value is missing.
      *
@@ -1962,8 +1962,8 @@ class ValidationOne
     /**
      * It adds a condition to the variable. If the conditions doesn't meet, then it stores a message and raise an error
      * level. The conditions depend on the type of the variable. Also, some conditions requires one or two values.
-     * <b>Example:</b>
-     * <pre>
+     * **Example:**
+     * ```php
      * $field2=getVal()->type('string')
      *      ->condition('minlen','',3)
      *      ->condition('maxlen','',10)
@@ -1971,7 +1971,7 @@ class ValidationOne
      * $field2=getVal()->type('int')
      *      ->condition('between','',[0,100])
      *      ->post('percentage');
-     * </pre>
+     * ```
      *
      * @param string      $condition      =['alpha','alphanum','alphanumunder','between','betweenlen','contain','doc','domain','email'
      *                                    ,'eq','exist','ext'
@@ -2140,7 +2140,7 @@ class ValidationOne
     /**
      * It sets the type for the current operation. The default type is 'string'<br>
      * This value important to validate the information.<br>
-     * <b>Example:</b> $valid->type('integer')->set(20);<br>
+     * **Example:** $valid->type('integer')->set(20);<br>
      *
      * @param string|array $type =['integer','unixtime','boolean','decimal','float','varchar','string'
      *                           ,'date','datetime','datestring','datetimestring'][$i]

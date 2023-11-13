@@ -708,6 +708,8 @@ $validation->convert('htmldecode')->set(....);
 
 
 ## Version list
+* 2023-11-13 2.8
+  * some maintenance code.   
 * 2023-02-26 2.7
   * added a new argument for isArray()
   * added the static method invertArray()
