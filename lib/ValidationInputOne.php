@@ -18,22 +18,22 @@ namespace eftec;
  */
 class ValidationInputOne
 {
-    /** @var MessageContainer */
-    public $messageList;
-    public $prefix = '';
+    /** @var MessageContainer|null */
+    public ?MessageContainer $messageList = null;
+    public string $prefix = '';
 
     /** @var bool If true then the field exists (it could be null or empty) otherwise it generates an error */
-    public $exist = false;
+    public bool $exist = false;
     /** @var mixed default value */
     public $default;
     /** @var mixed default value */
     public $initial;
-    public $ifFailThenOrigin = false;
+    public bool $ifFailThenOrigin = false;
 
     /** @var mixed It keeps a copy of the original value (after get/post/fetch or set) */
     public $originalValue;
-    /** @var string It's a friendly id used to replace the "id" used in message. For example: "id customer" instead of "idcustomer" */
-    public $friendId;
+    /** @var null|string It's a friendly id used to replace the "id" used in message. For example: "id customer" instead of "idcustomer" */
+    public ?string $friendId = null;
 
     /**
      * @param string                $prefix
@@ -158,11 +158,11 @@ class ValidationInputOne
      * @param string|null $msg
      * @param bool        $isMissing
      *
-     * @return null|array=[current filename,temporal name]
+     * @return null|array|string=[current filename,temporal name]
      * @internal param $folder
      * @internal param string $type
      */
-    public function getFile(string $field, bool $isArray = false, ?string &$msg = null, bool &$isMissing = false): ?array
+    public function getFile(string $field, bool $isArray = false, ?string &$msg = null, bool &$isMissing = false)
     {
         $fieldId = $this->prefix . $field;
         if (!$isArray) {

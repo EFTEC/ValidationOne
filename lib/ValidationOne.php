@@ -1,9 +1,12 @@
-<?php /** @noinspection UnknownInspectionInspection */
+<?php /** @noinspection PhpUndefinedClassInspection */
+
+/** @noinspection UnknownInspectionInspection */
 
 namespace eftec;
 
 use DateTime;
 use Exception;
+use JsonException;
 use ReflectionMethod;
 use RuntimeException;
 
@@ -17,108 +20,109 @@ if (!defined("NULLVAL")) {
  *
  * @package       eftec
  * @author        Jorge Castro Castillo
- * @version       2.8 2023-11-13
+ * @version       2.9 2024-03-02
  * @copyright (c) Jorge Castro C. LGLPV2 License  https://github.com/EFTEC/ValidationOne
  * @see           https://github.com/EFTEC/ValidationOne
  */
 class ValidationOne
 {
-    public const VERSION='2.8';
+    public const VERSION='2.9';
     /** @var string It is the (expected) input format for date (short) */
-    public $dateShort = 'd/m/Y';
+    public string $dateShort = 'd/m/Y';
     /** @var string It is the (expected) input format (with date and time) */
-    public $dateLong = 'd/m/Y H:i:s';
+    public string $dateLong = 'd/m/Y H:i:s';
     /** @var string It is the output format (for datestring) */
-    public $dateOutputString = 'Y-m-d';
+    public string $dateOutputString = 'Y-m-d';
     /** @var string It is the output format (for datetimestring) */
-    public $dateLongOutputString = 'Y-m-d\TH:i:s\Z';
+    public string $dateLongOutputString = 'Y-m-d\TH:i:s\Z';
     /** @var MessageContainer the container of the messages */
-    public $messageList;
+    public MessageContainer $messageList;
 
-    /** @var ValidationInputOne */
-    public $input;
+    /** @var ValidationInputOne|null */
+    public ?ValidationInputOne $input = null;
     /** @var bool if debug then it fills an array called debugLog */
-    public $debug = false;
+    public bool $debug = false;
 
     //private $NUMARR='integer,unixtime,boolean,decimal,float';
     /** @var ValidationItem[] */
-    public $conditions = [];
+    public array $conditions = [];
     /** @var string Prefix used for the input */
-    public $prefix;
-    private $STRARR = 'varchar,string';
+    public string $prefix;
+    private string $STRARR = 'varchar,string';
     //<editor-fold desc="chain variables">
     /** @var string members of the family DATE */
-    private $DATARR = 'date,datetime';
+    private string $DATARR = 'date,datetime';
     /** @var string members of the family DATESTRING */
-    private $DATSARR = 'datestring,datetimestring';
+    private string $DATSARR = 'datestring,datetimestring';
     /** @var mixed default value */
     private $default;
+    /** @var mixed */
     private $initialValue;
     /** @var string=['integer','unixtime','boolean','decimal','float','varchar','string','date','datetime','datestring','datetimestring'][$i] */
-    private $type = 'string';
+    private string $type = 'string';
     /** @var array used to store types (if the input is an array) */
-    private $types = [];
+    private array $types = [];
     /** @var int=[0,1,2,3,4,5][$i] Family of types 0=number,1=string,2=date,3=boolean,4=file,5=datestring */
-    private $typeFam = 1;
-    /** @var int=[0,1,2,3,4,5][$i] Family of types (for arrays). See self::$types */
-    private $typeFams = 1;
+    private int $typeFam = 1;
+    /** @var mixed|int=[0,1,2,3,4,5][$i] Family of types (for arrays). See self::$types */
+    private  $typeFams = 1;
     /** @var bool if an error happens, then the next validations are not executed */
-    private $abortOnError = false;
+    private bool $abortOnError = false;
     /** @var bool if the value is an array or not */
-    private $isArray = false;
+    private bool $isArray = false;
     /** @var bool if the value is an array or not */
-    private $isColumn = false;
+    private bool $isColumn = false;
     /** @var bool if true then the errors from id[0],id[1] ared stored in "idx" */
-    private $isArrayFlat = false;
+    private bool $isArrayFlat = false;
     /**
      * @var bool     If the value is an array but the indexes of the columns are inverted with the columns, then you can
      *               invert the order<br>
      *               <b>(false, no conversion)</b>: ['col1'=>['cocacola','fanta'],'col2'=>[1,2]]<br>
      *               <b>(true)</b>: [['col1'=>'cocacola','col2'=>1],['col1'=>'fanta','col2'=>2]]<br>
      */
-    private $invertIndexRow = false;
+    private bool $invertIndexRow = false;
     /** @var bool TODO */
-    private $hasMessage = false;
+    private bool $hasMessage = false;
     /** @var bool if the validation fails then it returns the default value */
-    private $ifFailThenDefault = false;
-    private $isNullValid = false;
-    private $isEmptyValid = false;
-    private $isMissingValid = false;
+    private bool $ifFailThenDefault = false;
+    private bool $isNullValid = false;
+    private bool $isEmptyValid = false;
+    private bool $isMissingValid = false;
     /** @var bool if the validation fails then it returns the original (input) value */
-    private $ifFailThenOrigin = false;
-    /** @var null|string */
-    private $successMessage;
+    private bool $ifFailThenOrigin = false;
+    /** @var null|array */
+    private ?array $successMessage;
     /** @var bool It overrides previous errors (for the "id" used) */
-    private $override = false;
+    private bool $override = false;
     /** @var bool If true then the field exists otherwise it generates an error */
-    private $exist = false;
+    private bool $exist = false;
     /** @var array The conversion stack */
-    private $conversion = [];
-    private $alwaysTrim = false;
-    private $alwaysTrimChars = " \t\n\r\0\x0B";
+    private array $conversion = [];
+    private bool $alwaysTrim = false;
+    private string $alwaysTrimChars = " \t\n\r\0\x0B";
     /** @var mixed It keeps a copy of the original value (after get/post/fetch or set) */
     private $originalValue;
-    /** @var string It's a friendly id used to replace the "id" used in message. For example: "id customer" instead of "idcustomer" */
-    private $friendId;
+    /** @var string|null It's a friendly id used to replace the "id" used in message. For example: "id customer" instead of "idcustomer" */
+    private ?string $friendId;
     /** @var null|mixed It is the value used if the value is null or empty. If null then the value is not changed. */
     private $missingSet;
 
     /**
-     * @var FormOne It is an optional feature that uses FormOne. It's used for callback.
+     * @var FormOne|null It is an optional feature that uses FormOne. It's used for callback.
      * @see          https://github.com/EFTEC/FormOne
      * @noinspection PhpUndefinedClassInspection
      */
-    private $formOne;
-    private $addToForm = false;
+    private ?FormOne $formOne;
+    private bool $addToForm = false;
     /** @var bool if true and the validation fails, then it returns the default value */
-    private $defaultIfFail = false;
-    private $defaultRequired = false;
+    private bool $defaultIfFail = false;
+    private bool $defaultRequired = false;
     /** @var bool value is missing */
-    private $isMissing = false;
-    /* interal counter of error per chain */
-    private $countError;
-    private $throwOnError = false;
-    private $throwOnWarning = false;
+    private bool $isMissing = false;
+    /* @var int internal counter of error per chain */
+    private int $countError=0;
+    private bool $throwOnError = false;
+    private bool $throwOnWarning = false;
 
     //</editor-fold>
 
@@ -275,6 +279,7 @@ class ValidationOne
      * @param string|null $msg
      *
      * @return array|bool|DateTime|float|int|mixed|null
+     * @throws JsonException
      */
     public function get(string $field = "", ?string $msg = null)
     {
@@ -289,6 +294,7 @@ class ValidationOne
      * @param string|null $msg
      *
      * @return array|bool|DateTime|float|int|mixed|null
+     * @throws JsonException
      */
     private function endChainFetch(int $inputType, string $fieldId, ?string $msg = null)
     {
@@ -366,6 +372,7 @@ class ValidationOne
      * @param mixed       $fieldId
      * @param string|null $msg
      * @return mixed|null
+     * @throws JsonException
      */
     private function afterFetch($input, $fieldId, ?string $msg)
     {
@@ -496,6 +503,7 @@ class ValidationOne
      * @param mixed|null  $key   key value. It is used if the value is an array.
      *
      * @return bool|DateTime|float|int|mixed|null  Returns the input modified.
+     * @throws JsonException
      */
     public function basicValidation($input, string $field, ?string $msg = "", $key = null)
     {
@@ -595,6 +603,7 @@ class ValidationOne
      * @param mixed       $vcomp   value to compare.
      * @param string      $level   (error,warning,info,success) error level
      * @param mixed       $key
+     * @throws JsonException
      */
     private function addMessageInternal(?string $msg, ?string $msg2, string $fieldId, $value
         ,                                       $vcomp, string $level = 'error', $key = null): void
@@ -603,7 +612,7 @@ class ValidationOne
         if (is_array($vcomp)) {
             $first = $vcomp[0] ?? null;
             $second = $vcomp[1] ?? null;
-            $vcomp = json_encode($vcomp); // is not array anymore
+            $vcomp = json_encode($vcomp, JSON_THROW_ON_ERROR); // is not array anymore
         } else {
             $first = $vcomp;
             $second = $vcomp;
@@ -639,6 +648,7 @@ class ValidationOne
      * @param mixed $value
      *
      * @return false|string
+     * @throws JsonException
      */
     private function addMessageSer($value)
     {
@@ -646,7 +656,7 @@ class ValidationOne
             return $value->format('c');
         }
         if (is_object($value)) {
-            return json_encode($value);
+            return json_encode($value, JSON_THROW_ON_ERROR);
         }
         return $value;
     }
@@ -655,6 +665,7 @@ class ValidationOne
      * @param mixed $value
      * @param       $fieldId
      * @param null  $key
+     * @throws JsonException
      */
     private function runConditions($value, $fieldId, $key = null): void
     {
@@ -1308,7 +1319,7 @@ class ValidationOne
      *
      * @return string mixed
      */
-    public function getFileExtension(string $fullPath, bool $asMime = false): string
+    public function getFileExtension(?string $fullPath, bool $asMime = false): string
     {
         if (empty($fullPath)) {
             return '';
@@ -1583,6 +1594,7 @@ class ValidationOne
      * @param string|null $msg
      *
      * @return array|bool|DateTime|float|int|mixed|null
+     * @throws JsonException
      */
     public function post(string $field, ?string $msg = null)
     {
@@ -1594,6 +1606,7 @@ class ValidationOne
      * @param string|null $msg
      *
      * @return array|bool|DateTime|float|int|mixed|null
+     * @throws JsonException
      */
     public function request(string $field, ?string $msg = null)
     {
@@ -1608,6 +1621,7 @@ class ValidationOne
      * @param null|string $msg
      *
      * @return mixed
+     * @throws JsonException
      */
     public function fetch(int $inputType, string $field, ?string $msg = null)
     {
@@ -1622,11 +1636,12 @@ class ValidationOne
      * @param bool        $isArray
      * @param string|null $msg
      *
-     * @return array|null
-     * @internal param $folder
+     * @return mixed
+     * @throws JsonException
      * @internal param string $type
+     * @internal param $folder
      */
-    public function getFile(string $fieldId, bool $isArray = false, ?string $msg = null): ?array
+    public function getFile(string $fieldId, bool $isArray = false, ?string $msg = null)
     {
         $this->countError = $this->messageList->errorCount;
         $this->input()->default = $this->default;
@@ -2210,6 +2225,7 @@ class ValidationOne
      * @param bool        $isMissing
      *
      * @return array|bool|DateTime|float|int|mixed|null
+     * @throws JsonException
      */
     public function set($input, string $fieldId = "setfield", ?string $msg = "", bool $isMissing = false)
     {

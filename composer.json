@@ -12,7 +12,7 @@
         }
     ],
     "require": {
-        "php": "^7.2.5 || ^8.0",
+        "php": "^7.4 || ^8.0",
         "ext-ctype": "*",
         "eftec/messagecontainer": "^2.8",
         "ext-json": "*",
@@ -27,6 +27,6 @@
         "eftec/formone": "Allows to create form and integrates with the validation"
     },
     "require-dev": {
-        "phpunit/phpunit": "^9.5.13"
+        "phpunit/phpunit": "^8.5.13"
     }
 }

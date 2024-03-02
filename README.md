@@ -8,7 +8,7 @@ in practically any PHP project, including WordPress, Laravel, core PHP project, 
 
 [![Packagist](https://img.shields.io/packagist/v/eftec/validationone.svg)](https://packagist.org/packages/eftec/ValidationOne)
 [![Total Downloads](https://poser.pugx.org/eftec/validationone/downloads)](https://packagist.org/packages/eftec/ValidationOne)
-[![Maintenance](https://img.shields.io/maintenance/yes/2023.svg)]()
+[![Maintenance](https://img.shields.io/maintenance/yes/2024.svg)]()
 [![composer](https://img.shields.io/badge/composer-%3E1.8-blue.svg)]()
 [![php](https://img.shields.io/badge/php-7.x-green.svg)]()
 [![php](https://img.shields.io/badge/php-8.x-green.svg)]()
@@ -708,6 +708,9 @@ $validation->convert('htmldecode')->set(....);
 
 
 ## Version list
+* 2024-03-02 2.9
+  * Updating dependency to PHP 7.4. The extended support of PHP 7.2 ended 3 years ago.
+  * Added more type hinting in the code.
 * 2023-11-13 2.8
   * some maintenance code.   
 * 2023-02-26 2.7
